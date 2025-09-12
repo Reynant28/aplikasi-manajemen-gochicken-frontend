@@ -51,7 +51,7 @@ const Login = () => {
                     activeTab === "signIn" ? "text-white" : "text-gray-700"
                 }`}
                 >
-                Sign In
+                Super Admin
                 </button>
                 <button
                 onClick={() => setActiveTab("signUp")}
@@ -59,12 +59,12 @@ const Login = () => {
                     activeTab === "signUp" ? "text-white" : "text-gray-700"
                 }`}
                 >
-                Sign Up
+                Admin Cabang
                 </button>
             </div>
 
                 <div className="relative overflow-hidden min-h-[340px]">
-                    {/* Sign In Form */}
+                    {/* Super Admin Form */}
                     <div
                     className={`absolute inset-0 transition-opacity duration-500 ease-in-out transform ${
                         activeTab === "signIn"
@@ -123,80 +123,85 @@ const Login = () => {
                     </form>
                     </div>
 
-                    {/* Sign Up Form */}
+                    {/* Admin Cabang Form */}
                     <div
                     className={`absolute inset-0 transition-opacity duration-500 ease-in-out transform ${
                         activeTab === "signUp"
                         ? "opacity-100 translate-x-0"
                         : "opacity-0 translate-x-full pointer-events-none"
-                        }`}
+                    }`}
+                    >
+                    <form onSubmit={handleSubmit} className="p-1">
+                        {/* Pilih Cabang */}
+                        <div className="mb-6">
+                        <label
+                            htmlFor="branch"
+                            className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
                         >
+                            Pilih Cabang
+                        </label>
+                        <select
+                            id="branch"
+                            value={branch}
+                            onChange={(e) => setBranch(e.target.value)}
+                            className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            required
+                        >
+                            <option value="">-- Pilih Cabang --</option>
+                            <option value="jakarta">Cabang Jakarta</option>
+                            <option value="bandung">Cabang Bandung</option>
+                            <option value="surabaya">Cabang Surabaya</option>
+                        </select>
+                        </div>
 
-                        <form onSubmit={handleSubmit} className="p-1">
-                            {/* Email (for Sign Up) */}
-                            <div className="mb-6">
-                            <label
-                                htmlFor="signUpEmail"
-                                className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
-                            >
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                id="signUpEmail"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="newuser@example.com"
-                                required
-                            />
-                            </div>
+                        {/* Password Cabang */}
+                        <div className="mb-6">
+                        <label
+                            htmlFor="branchPassword"
+                            className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
+                        >
+                            Password Cabang
+                        </label>
+                        <input
+                            type="password"
+                            id="branchPassword"
+                            value={branchPassword}
+                            onChange={(e) => setBranchPassword(e.target.value)}
+                            className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            placeholder="Password cabang"
+                            required
+                        />
+                        </div>
 
-                            {/* Password (for Sign Up) */}
-                            <div className="mb-6">
-                            <label
-                                htmlFor="signUpPassword"
-                                className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
-                            >
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                id="signUpPassword"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="Create a password"
-                                required
-                            />
-                            </div>
-                            {/* Confirm Password (contoh tambahan untuk Sign Up) */}
-                            <div className="mb-6">
-                            <label
-                                htmlFor="confirmPassword"
-                                className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
-                            >
-                                Confirm Password
-                            </label>
-                            <input
-                                type="password"
-                                id="confirmPassword"
-                                className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                                placeholder="Confirm your password"
-                                required
-                            />
-                            </div>
+                        {/* Password Pribadi */}
+                        <div className="mb-6">
+                        <label
+                            htmlFor="personalPassword"
+                            className="block text-[var(--light-text-muted)] text-sm font-semibold mb-2"
+                        >
+                            Password Pribadi
+                        </label>
+                        <input
+                            type="password"
+                            id="personalPassword"
+                            value={personalPassword}
+                            onChange={(e) => setPersonalPassword(e.target.value)}
+                            className="shadow-sm border rounded-lg w-full py-2 px-3 text-[var(--light-text)] bg-[var(--light-bg)] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                            placeholder="Password pribadi"
+                            required
+                        />
+                        </div>
 
-                            {/* Button */}
-                            <div className="flex items-center justify-between">
-                            <button
-                                type="submit"
-                                className="bg-[var(--themered)] hover:bg-[var(--themeredhover)] text-white font-semibold py-2 px-4 rounded-lg w-full transition-all duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                            >
-                                Sign Up
-                            </button>
-                            </div>
-                        </form>
+                        {/* Button */}
+                        <div className="flex items-center justify-between">
+                        <button
+                            type="submit"
+                            className="bg-[var(--themered)] hover:bg-[var(--themeredhover)] text-white font-semibold py-2 px-4 rounded-lg w-full transition-all duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                            Login Admin Cabang
+                        </button>
+                        </div>
+                    </form>
                     </div>
                 </div>
             </div>
