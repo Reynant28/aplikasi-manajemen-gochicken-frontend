@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@tailwind components;
 @tailwind utilities;
 
 :root {
@@ -16,17 +15,20 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* Theme Colors */
   --themered: #a42d1a;
   --themeredhover: #7e2214;
   --themeorange: #f8a110;
   --themeorangehover: #d28a0f;
 
+  /* Light Theme */
   --light-bg: hsl(0 0% 95%);
   --light-bg-dark: hsl(0 0% 90%);
   --light-bg-light: hsl(0 0% 100%);
   --light-text: hsl(0 0% 5%);
   --light-text-muted: hsl(0 0% 30%);
 
+  /* Dark Theme */
   --dark-bg: hsl(0 0% 5%);
   --dark-bg-dark: hsl(0 0% 0%);
   --dark-bg-light: hsl(0 0% 10%);
