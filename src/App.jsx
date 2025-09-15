@@ -22,7 +22,7 @@ function App() {
 
         <Route path="/" element={<DashboardLayout />}>
           {/* Rute default akan diarahkan ke /reports */}
-          <Route index element={<Navigate to="/reports" replace />} />
+          
           <Route path="/general" element={<GeneralPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/advertising" element={<AdvertisingPage />} />
