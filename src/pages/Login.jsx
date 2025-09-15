@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-// eslint-disable-next-line no-unused-vars
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
 // Custom icon components
@@ -78,6 +80,73 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showPersonalPassword, setShowPersonalPassword] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [cabangOptions, setCabangOptions] = useState([]);
+  const [cabangMap, setCabangMap] = useState({});
+
+  useEffect(() => {
+    // Fetch cabang dari backend
+    axios.get("http://localhost:8000/api/cabang")
+      .then((res) => {
+        if (res.data.status === "success") {
+          setCabangOptions(res.data.data.map(c => c.nama_cabang));
+          // Map nama_cabang ke id_cabang
+          const map = {};
+          res.data.data.forEach(c => { map[c.nama_cabang] = c.id_cabang; });
+          setCabangMap(map);
+        }
+      })
+      .catch(() => {
+        setCabangOptions([]);
+      });
+  }, []);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    try {
+      if (activePanel === "cabang") {
+        // Ambil id_cabang dari map
+        const id_cabang = cabangMap[formData.cabang];
+        if (!id_cabang) {
+          alert("Pilih cabang terlebih dahulu.");
+          return;
+        }
+        const res = await axios.post("http://localhost:8000/api/admin-cabang/login", {
+          id_cabang,
+          password_cabang: formData.passwordCabang,
+          password_pribadi: formData.personalPassword,
+        });
+        if (res.data.status === "success") {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          navigate("/home");
+        } else {
+          alert(res.data.message || "Login gagal");
+        }
+      } else {
+        // Super Admin login
+        const res = await axios.post("http://localhost:8000/api/super-admin/login", {
+          email: superAdminData.username,
+          password: superAdminData.password,
+        });
+        if (res.data.status === "success") {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          navigate("/home");
+        } else {
+          alert(res.data.message || "Login gagal");
+        }
+      }
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.errors) {
+        const errors = err.response.data.errors;
+        alert(Object.values(errors).join("\n"));
+      } else {
+        alert("Terjadi error koneksi ke server");
+      }
+    }
+  };
+
 
   const [formData, setCabangData] = useState({
     cabang: "",
@@ -90,15 +159,6 @@ const Login = () => {
     password: "",
   });
 
-  const cabangOptions = [
-    "Jakarta Pusat",
-    "Jakarta Selatan",
-    "Jakarta Utara",
-    "Bandung",
-    "Surabaya",
-    "Medan",
-  ];
-
   const handleCabangChange = (field, value) => {
     setCabangData((prev) => ({ ...prev, [field]: value }));
   };
@@ -107,18 +167,26 @@ const Login = () => {
     setSuperAdminData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    if (activePanel === "cabang") {
-      console.log("Admin Cabang Login:", formData);
-    } else {
-      console.log("Super Admin Login:", superAdminData);
-    }
-  };
-
   const handleSwitchPanel = (panel) => {
     if (panel === activePanel) return;
     setPrevPanel(activePanel);
     setActivePanel(panel);
+    // Reset form data sesuai panel
+    if (panel === "cabang") {
+      setCabangData({
+        cabang: "",
+        passwordCabang: "",
+        personalPassword: "",
+      });
+      setShowPassword(false);
+      setShowPersonalPassword(false);
+    } else {
+      setSuperAdminData({
+        username: "",
+        password: "",
+      });
+      setShowPassword(false);
+    }
   };
 
   return (
