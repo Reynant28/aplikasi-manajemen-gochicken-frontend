@@ -1,10 +1,16 @@
 import React, { useState } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
 // Custom icon components
 const Eye = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+    />
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -40,7 +46,12 @@ const ChevronDown = ({ className }) => (
 
 const User = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    />
   </svg>
 );
 
@@ -61,8 +72,9 @@ const Shield = ({ className }) => (
 );
 
 const Login = () => {
-  const [activePanel, setActivePanel] = useState("cabang"); // 'cabang' or 'super'
-  const [prevPanel, setPrevPanel] = useState("cabang"); // track previous
+  const [activePanel, setActivePanel] = useState("cabang");
+  // eslint-disable-next-line no-unused-vars
+  const [prevPanel, setPrevPanel] = useState("cabang");
   const [showPassword, setShowPassword] = useState(false);
   const [showPersonalPassword, setShowPersonalPassword] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -103,21 +115,6 @@ const Login = () => {
     }
   };
 
-  // compute direction: 1 = cabang -> super, -1 = super -> cabang
-  const dir =
-    prevPanel === "cabang" && activePanel === "super"
-      ? 1
-      : prevPanel === "super" && activePanel === "cabang"
-      ? -1
-      : 0;
-
-  const getVariants = (d) => ({
-    initial: { opacity: 0, x: d === 1 ? 100 : d === -1 ? -100 : 0, scale: 0.995 },
-    animate: { opacity: 1, x: 0, scale: 1 },
-    exit: { opacity: 0, x: d === 1 ? -100 : d === -1 ? 100 : 0, scale: 0.995 },
-    transition: { duration: 0.45, ease: "easeInOut" },
-  });
-
   const handleSwitchPanel = (panel) => {
     if (panel === activePanel) return;
     setPrevPanel(activePanel);
@@ -125,225 +122,346 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-          {/* Content */}
-          <div className="relative z-10 p-6">
-            {/* Header */}
-            <div className="text-center mb-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
-                GoChicken <span className="text-gray-800">: Admin</span>
-              </h1>
-              <p className="text-sm text-gray-600">Masuk ke sistem administrasi</p>
-            </div>
+    <>
+      {/* Styles */}
+      <style>
+        {`
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
 
-            {/* Panel Switcher */}
-            <div className="bg-white rounded-lg p-1 mb-5 shadow-sm border border-gray-100">
-              <div className="grid grid-cols-2 gap-1">
-                <motion.button
-                  onClick={() => handleSwitchPanel("cabang")}
-                  animate={{
-                    backgroundColor: activePanel === "cabang" ? "#ef4444" : "#ffffff",
-                    color: activePanel === "cabang" ? "#ffffff" : "#374151",
-                  }}
-                  transition={{ duration: 0.35, ease: "easeInOut" }}
-                  className="flex items-center justify-center py-3 px-4 rounded-md text-sm font-medium shadow-sm"
+        :root {
+          --themered: #ef4444;
+          --themeorange: #f97316;
+          --light-text-muted: #8b8b8b;
+        }
+
+        body {
+          background-color: #f3f4f6;
+          font-family: 'Inter', sans-serif;
+          overflow: hidden;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        body::-webkit-scrollbar {
+          display: none;
+        }
+
+        @media (max-width: 640px) {
+          .mobile-hidden {
+            display: none;
+          }
+        }
+        `}
+      </style>
+
+      <div className="h-screen w-screen flex items-center justify-center p-8 sm:p-12">
+        {/* Main Card */}
+        <div className="w-full max-w-5xl max-h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
+          {/* Left Panel: Image */}
+          <div className="mobile-hidden md:w-1/2 flex items-center justify-center p-8">
+            <img
+              src="/images/LogoGoChickenReal.png"
+              alt="GoChicken Logo"
+              className="w-full max-h-[50vh] object-contain rounded-2xl"
+            />
+          </div>
+
+          {/* Right Panel */}
+          <div className="w-full md:w-1/2 flex items-center justify-center py-8 px-4 sm:p-10">
+            <div className="w-full max-w-md flex flex-col">
+              {/* Header */}
+              <div className="text-center mb-1 mt-4">
+                <h1
+                  className="text-2xl sm:text-3xl font-semibold mb-1"
+                  style={{ fontFamily: "'Fredoka', system-ui, sans-serif" }}
                 >
-                  <User className="w-4 h-4 mr-2" />
-                  Admin Cabang
-                </motion.button>
-                <motion.button
-                  onClick={() => handleSwitchPanel("super")}
-                  animate={{
-                    backgroundColor: activePanel === "super" ? "#f97316" : "#ffffff",
-                    color: activePanel === "super" ? "#ffffff" : "#374151",
+                  <span className="text-gray-900">GoChicken</span>{" "}
+                  <motion.span
+                    initial={false}
+                    animate={{
+                      color: activePanel === "cabang" ? "var(--themered)" : "var(--themeorange)",
+                    }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  >
+                    : Admin
+                  </motion.span>
+                </h1>
+                <p
+                  className="text-sm"
+                  style={{
+                    color: "var(--light-text-muted)",
+                    fontFamily: "'Fredoka', system-ui, sans-serif",
                   }}
-                  transition={{ duration: 0.35, ease: "easeInOut" }}
-                  className="flex items-center justify-center py-3 px-4 rounded-md text-sm font-medium shadow-sm"
                 >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Super Admin
-                </motion.button>
+                  Website Administrasi Cabang GoChicken
+                </p>
               </div>
-            </div>
 
-            {/* Forms */}
-            <div className="relative min-h-[340px]">
-              <AnimatePresence mode="wait" initial={false}>
-                {activePanel === "cabang" && (
-                  <motion.div
-                    key="cabang"
-                    variants={getVariants(dir)}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="absolute inset-0"
+              {/* Panel Switcher */}
+              <div className="relative bg-white rounded-lg p-1 mb-5 shadow-sm border border-gray-100">
+                <motion.div
+                  className="absolute top-1 bottom-1 w-1/2 rounded-md shadow-sm"
+                  animate={{
+                    x: activePanel === "cabang" ? "0%" : "100%",
+                    backgroundColor: activePanel === "cabang" ? "#ef4444" : "#f97316",
+                  }}
+                  transition={{ duration: 0.35, ease: "easeInOut" }}
+                />
+                <div className="relative grid grid-cols-2 gap-1 text-sm font-medium">
+                  <button
+                    onClick={() => handleSwitchPanel("cabang")}
+                    className={`flex items-center justify-center py-3 px-4 rounded-md z-10 transition-colors duration-300 ${
+                      activePanel === "cabang" ? "text-white" : "text-gray-700"
+                    }`}
                   >
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        {/* Dropdown Cabang */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Pilih Cabang
-                          </label>
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-left flex items-center justify-between hover:border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors"
-                            >
-                              <span className={formData.cabang ? "text-gray-800" : "text-gray-500"}>
-                                {formData.cabang || "Pilih cabang..."}
-                              </span>
-                              <ChevronDown
-                                className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                    <User className="w-4 h-4 mr-2" />
+                    Admin Cabang
+                  </button>
+                  <button
+                    onClick={() => handleSwitchPanel("super")}
+                    className={`flex items-center justify-center py-3 px-4 rounded-md z-10 transition-colors duration-300 ${
+                      activePanel === "super" ? "text-white" : "text-gray-700"
+                    }`}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Super Admin
+                  </button>
+                </div>
+              </div>
+
+              {/* Forms */}
+              <div className="relative min-h-[300px] overflow-hidden">
+                <AnimatePresence initial={false}>
+                  {/* Admin Cabang */}
+                  {activePanel === "cabang" && (
+                    <motion.div
+                      key="cabang"
+                      initial={{ x: "-100%", opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: "-100%", opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      className="absolute inset-0"
+                    >
+                      <div className="p-6">
+                        <div className="space-y-4">
+                          {/* Dropdown */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Pilih Cabang
+                            </label>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-left flex items-center justify-between hover:border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors"
+                              >
+                                <span
+                                  className={
+                                    formData.cabang ? "text-gray-800" : "text-gray-500"
+                                  }
+                                >
+                                  {formData.cabang || "Pilih cabang..."}
+                                </span>
+                                <ChevronDown
+                                  className={`w-4 h-4 text-gray-400 transition-transform ${
+                                    isDropdownOpen ? "rotate-180" : ""
+                                  }`}
+                                />
+                              </button>
+                              {isDropdownOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
+                                  {cabangOptions.map((cabang, index) => (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => {
+                                        handleCabangChange("cabang", cabang);
+                                        setIsDropdownOpen(false);
+                                      }}
+                                      className="w-full px-4 py-3 text-left text-gray-800 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                    >
+                                      {cabang}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Password Cabang */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Password Cabang
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={formData.passwordCabang}
+                                onChange={(e) =>
+                                  handleCabangChange("passwordCabang", e.target.value)
+                                }
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
+                                placeholder="Masukkan password cabang"
                               />
-                            </button>
-                            {isDropdownOpen && (
-                              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
-                                {cabangOptions.map((cabang, index) => (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() => {
-                                      handleCabangChange("cabang", cabang);
-                                      setIsDropdownOpen(false);
-                                    }}
-                                    className="w-full px-4 py-3 text-left text-gray-800 hover:bg-red-50 hover:text-red-700 transition-colors"
-                                  >
-                                    {cabang}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-5 h-5" />
+                                ) : (
+                                  <Eye className="w-5 h-5" />
+                                )}
+                              </button>
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Password Cabang */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Password Cabang
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              value={formData.passwordCabang}
-                              onChange={(e) => handleCabangChange("passwordCabang", e.target.value)}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
-                              placeholder="Masukkan password cabang"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Personal Password */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Password Personal
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={showPersonalPassword ? "text" : "password"}
-                              value={formData.personalPassword}
-                              onChange={(e) => handleCabangChange("personalPassword", e.target.value)}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
-                              placeholder="Masukkan password personal"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPersonalPassword(!showPersonalPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                              {showPersonalPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
+                          {/* Personal Password */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Password Personal
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showPersonalPassword ? "text" : "password"}
+                                value={formData.personalPassword}
+                                onChange={(e) =>
+                                  handleCabangChange("personalPassword", e.target.value)
+                                }
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
+                                placeholder="Masukkan password personal"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowPersonalPassword(!showPersonalPassword)
+                                }
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showPersonalPassword ? (
+                                  <EyeOff className="w-5 h-5" />
+                                ) : (
+                                  <Eye className="w-5 h-5" />
+                                )}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
 
-                {activePanel === "super" && (
+                  {/* Super Admin */}
+                  {activePanel === "super" && (
+                    <motion.div
+                      key="super"
+                      initial={{ x: "100%", opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: "100%", opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      className="absolute inset-0"
+                    >
+                      <div className="p-6">
+                        <div className="space-y-4">
+                          {/* Username */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Username
+                            </label>
+                            <input
+                              type="text"
+                              value={superAdminData.username}
+                              onChange={(e) =>
+                                handleSuperAdminChange("username", e.target.value)
+                              }
+                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors text-gray-800"
+                              placeholder="Masukkan username"
+                            />
+                          </div>
+
+                          {/* Password */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Password
+                            </label>
+                            <div className="relative">
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={superAdminData.password}
+                                onChange={(e) =>
+                                  handleSuperAdminChange("password", e.target.value)
+                                }
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors pr-12 text-gray-800"
+                                placeholder="Masukkan password"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-5 h-5" />
+                                ) : (
+                                  <Eye className="w-5 h-5" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Submit */}
+              <div className="px-2 mt-4">
+                <div
+                  className="relative w-full overflow-hidden rounded-lg shadow-lg hover:shadow-xl 
+                             transform hover:scale-[1.02] transition-transform duration-300"
+                >
                   <motion.div
-                    key="super"
-                    variants={getVariants(dir)}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="absolute inset-0"
+                    animate={{ x: activePanel === "cabang" ? "0%" : "-50%" }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="flex w-[200%]"
                   >
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        {/* Username */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                          <input
-                            type="text"
-                            value={superAdminData.username}
-                            onChange={(e) => handleSuperAdminChange("username", e.target.value)}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors text-gray-800"
-                            placeholder="Masukkan username"
-                          />
-                        </div>
+                    {/* Cabang */}
+                    <div className="w-1/2">
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        className="w-full py-3 px-6 flex items-center justify-center 
+                                   font-medium text-white 
+                                   bg-gradient-to-r from-red-500 to-red-600
+                                   hover:from-red-600 hover:to-red-700
+                                   rounded-l-lg rounded-r-none"
+                      >
+                        Masuk sebagai Admin Cabang
+                      </button>
+                    </div>
 
-                        {/* Password */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                          <div className="relative">
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              value={superAdminData.password}
-                              onChange={(e) => handleSuperAdminChange("password", e.target.value)}
-                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors pr-12 text-gray-800"
-                              placeholder="Masukkan password"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                    {/* Super */}
+                    <div className="w-1/2">
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        className="w-full py-3 px-6 flex items-center justify-center 
+                                   font-medium text-white 
+                                   bg-gradient-to-r from-orange-400 to-orange-500
+                                   hover:from-orange-500 hover:to-orange-600
+                                   rounded-r-lg rounded-l-none"
+                      >
+                        Masuk sebagai Super Admin
+                      </button>
                     </div>
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Submit */}
-            <div className="px-2 mt-6">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-all duration-300 transform hover:scale-[1.02] ${
-                  activePanel === "cabang"
-                    ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl"
-                    : "bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 shadow-lg hover:shadow-xl"
-                }`}
-              >
-                Masuk sebagai {activePanel === "cabang" ? "Admin Cabang" : "Super Admin"}
-              </button>
-            </div>
-
-            {/* Footer */}
-            <div className="text-center mt-5">
-              <p className="text-gray-800 text-sm">© 2024 GoChicken : Admin. All rights reserved.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div>  
+    </>
   );
 };
 
