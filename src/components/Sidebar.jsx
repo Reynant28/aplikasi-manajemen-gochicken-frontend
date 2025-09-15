@@ -1,10 +1,21 @@
 // src/components/Sidebar.jsx
 
 import { NavLink } from 'react-router-dom';
-import { Home, BarChart2, Users, Layers, Map, Target, Settings, HelpCircle } from 'lucide-react';
+import { 
+  Home, 
+  BarChart2, 
+  Users, 
+  Layers, 
+  Map, 
+  Target, 
+  Settings, 
+  HelpCircle,
+  Building2,
+  UserCog,
+  Wallet
+} from 'lucide-react';
 
 const Sidebar = () => {
-  // Kelas CSS untuk link. Akan berbeda jika link sedang aktif.
   const linkClass = ({ isActive }) => 
     isActive 
       ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
@@ -28,18 +39,21 @@ const Sidebar = () => {
             <BarChart2 size={20} className="mr-3" /> Reports
           </NavLink>
           <NavLink to="/advertising" className={linkClass}>
-            <Target size={20} className="mr-3" /> Kelola Cabang
-            <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">1</span>
+            <Building2 size={20} className="mr-3" /> Kelola Cabang
+            <span className="mr-3"></span>
           </NavLink>
-          <NavLink to="/audience" className={linkClass}>
+          <NavLink to="/karyawan" className={linkClass}>
             <Users size={20} className="mr-3" /> Karyawan
           </NavLink>
           <NavLink to="/branch" className={linkClass}>
-            <Users size={20} className="mr-3" /> Kelola Admin Cabang
+            <UserCog size={20} className="mr-3" /> Kelola Admin Cabang
           </NavLink>
-          {/* Tambahkan NavLink untuk link lainnya */}
+          <NavLink to="/pengeluaran" className={linkClass}>
+            <Wallet size={20} className="mr-3" /> Pengeluaran
+          </NavLink>
+          {/* Link lainnya */}
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Layers size={20} className="mr-3" /> Retention
+            <Layers size={20} className="mr-3" /> Bahan
           </a>
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Map size={20} className="mr-3" /> Heatmap
