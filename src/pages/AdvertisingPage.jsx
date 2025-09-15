@@ -1,4 +1,3 @@
-// src/pages/AdvertisingPage.jsx
 import { useState } from "react";
 import { Plus, Edit, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,9 +26,7 @@ const AdvertisingPage = () => {
 
   const handleUpdate = () => {
     setBranches(
-      branches.map((b) =>
-        b.id === editBranch.id ? { ...editBranch } : b
-      )
+      branches.map((b) => (b.id === editBranch.id ? { ...editBranch } : b))
     );
     setEditBranch(null);
   };
@@ -37,7 +34,7 @@ const AdvertisingPage = () => {
   return (
     <div className="p-6">
       <motion.h1
-        className="text-3xl font-bold text-gray-800 mb-6"
+        className="text-3xl font-bold text-black mb-6"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -50,14 +47,16 @@ const AdvertisingPage = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-lg font-semibold mb-3 text-green-700">Tambah Cabang</h2>
+        <h2 className="text-lg font-semibold mb-3 text-black">
+          Tambah Cabang
+        </h2>
         <div className="flex flex-col md:flex-row gap-3">
           <input
             type="text"
             placeholder="Nama Cabang"
             value={newBranch.name}
             onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })}
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none"
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-black"
           />
           <input
             type="text"
@@ -66,7 +65,7 @@ const AdvertisingPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, address: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none"
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-black"
           />
           <button
             onClick={handleAdd}
@@ -91,10 +90,10 @@ const AdvertisingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <h3 className="text-xl font-semibold text-gray-700">
+            <h3 className="text-xl font-semibold text-black">
               {branch.name}
             </h3>
-            <p className="text-gray-500 mt-1">{branch.address}</p>
+            <p className="text-black mt-1">{branch.address}</p>
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setEditBranch(branch)}
@@ -128,14 +127,16 @@ const AdvertisingPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
             >
-              <h2 className="text-xl font-semibold mb-4 text-green-700">Edit Cabang</h2>
+              <h2 className="text-xl font-semibold mb-4 text-black">
+                Edit Cabang
+              </h2>
               <input
                 type="text"
                 value={editBranch.name}
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, name: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-black"
               />
               <input
                 type="text"
@@ -143,7 +144,7 @@ const AdvertisingPage = () => {
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, address: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-black"
               />
               <div className="flex justify-end gap-3">
                 <button

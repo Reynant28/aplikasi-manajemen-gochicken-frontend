@@ -24,7 +24,7 @@ const Sidebar = () => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">KOKISO</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Management</h1>
       </div>
       <div className="flex-grow p-4 space-y-2">
         <div className="p-2 rounded-lg border border-gray-200 flex justify-between items-center">
