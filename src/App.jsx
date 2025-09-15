@@ -1,9 +1,15 @@
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState } from 'react'
-import { Routes, Route } from "react-router-dom";
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import Login from './pages/Login'
+import Login from "./pages/Login";
 import Dashboard from "./components/Dashboard";
+import DashboardLayout from './components/DashboardLayout.jsx';
+import GeneralPage from './pages/GeneralPage.jsx';
+import ReportsPage from './pages/ReportsPage.jsx';
+import AdvertisingPage from './pages/AdvertisingPage.jsx';
+import AudiencePage from './pages/AudiencePage.jsx';
+import BranchAdminPage from "./pages/BranchAdminPage.jsx";
+import PengeluaranPage from "./pages/PengeluaranPage.jsx";
+import KaryawanPage from "./pages/KaryawanPage.jsx";
 import './App.css'
 
 
@@ -13,6 +19,18 @@ function App() {
       <Routes>
         {/* Halaman Login */}
         <Route path="/" element={<Login />} />
+
+        <Route path="/" element={<DashboardLayout />}>
+          {/* Rute default akan diarahkan ke /reports */}
+          <Route index element={<Navigate to="/reports" replace />} />
+          <Route path="/general" element={<GeneralPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/advertising" element={<AdvertisingPage />} />
+          <Route path="/branch" element={<BranchAdminPage />} />
+          <Route path="/audience" element={<AudiencePage />} />
+          <Route path="/pengeluaran" element={<PengeluaranPage />} />
+          <Route path="/karyawan" element={<KaryawanPage />} />
+        </Route>
 
         {/* Halaman Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />

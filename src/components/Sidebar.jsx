@@ -1,11 +1,30 @@
 // src/components/Sidebar.jsx
-import { Home, BarChart2, Users, Layers, Map, Target, Settings, HelpCircle } from 'lucide-react';
+
+import { NavLink } from 'react-router-dom';
+import { 
+  Home, 
+  BarChart2, 
+  Users, 
+  Layers, 
+  Map, 
+  Target, 
+  Settings, 
+  HelpCircle,
+  Building2,
+  UserCog,
+  Wallet
+} from 'lucide-react';
 
 const Sidebar = () => {
+  const linkClass = ({ isActive }) => 
+    isActive 
+      ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
+      : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Super Admin</h1>
+        <h1 className="text-2xl font-bold text-gray-800">KOKISO</h1>
       </div>
       <div className="flex-grow p-4 space-y-2">
         <div className="p-2 rounded-lg border border-gray-200 flex justify-between items-center">
@@ -13,25 +32,33 @@ const Sidebar = () => {
           <span className="text-gray-500">⌄</span>
         </div>
         <nav className="space-y-1">
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <NavLink to="/general" className={linkClass}>
             <Home size={20} className="mr-3" /> General
-          </a>
-          <a href="#" className="flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg">
+          </NavLink>
+          <NavLink to="/reports" className={linkClass}>
             <BarChart2 size={20} className="mr-3" /> Reports
+          </NavLink>
+          <NavLink to="/advertising" className={linkClass}>
+            <Building2 size={20} className="mr-3" /> Kelola Cabang
+            <span className="mr-3"></span>
+          </NavLink>
+          <NavLink to="/karyawan" className={linkClass}>
+            <Users size={20} className="mr-3" /> Karyawan
+          </NavLink>
+          <NavLink to="/branch" className={linkClass}>
+            <UserCog size={20} className="mr-3" /> Kelola Admin Cabang
+          </NavLink>
+          <NavLink to="/pengeluaran" className={linkClass}>
+            <Wallet size={20} className="mr-3" /> Pengeluaran
+          </NavLink>
+          {/* Link lainnya */}
+          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
+            <Layers size={20} className="mr-3" /> Bahan
           </a>
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            <Target size={20} className="mr-3" /> Advertising <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">1</span>
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            <Users size={20} className="mr-3" /> Audience
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-            <Layers size={20} className="mr-3" /> Retention
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Map size={20} className="mr-3" /> Heatmap
           </a>
-          <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Home size={20} className="mr-3" /> Domain
           </a>
         </nav>

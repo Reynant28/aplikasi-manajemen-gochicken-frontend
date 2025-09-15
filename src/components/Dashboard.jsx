@@ -29,7 +29,7 @@ const Dashboard = () => {
 
           <div className="flex items-center space-x-2 mb-6">
             <button className='bg-green-100 text-green-700 px-4 py-1.5 rounded-full font-semibold'>All Users</button>
-            <button className='bg-white border border-gray-300 px-4 py-1.5 rounded-full font-semibold text-gray-600 hover:bg-gray-50'>Add Comparison +</button>
+            <button className='bg-white border border-gray-300 px-4 py-1.5 rounded-full font-semibold text-gray-600 hover:bg-gray-50'>Add Branch +</button>
           </div>
 
           {/* Main Grid */}
@@ -61,7 +61,7 @@ const Dashboard = () => {
                    </div>
                 </DashboardCard>
                 <DashboardCard title="Total User">
-                    <p className="text-3xl font-bold text-gray-800 mb-2">666K</p>
+                    <p className="text-3xl font-bold text-gray-800 mb-2">123</p>
                     {/* Placeholder for doughnut chart */}
                     <div className="w-16 h-16 mx-auto bg-green-200 rounded-full flex items-center justify-center">
                         <div className="w-12 h-12 bg-white rounded-full"></div>
