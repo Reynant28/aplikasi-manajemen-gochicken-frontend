@@ -34,6 +34,9 @@ const Sidebar = () => {
           <NavLink to="/audience" className={linkClass}>
             <Users size={20} className="mr-3" /> Karyawan
           </NavLink>
+          <NavLink to="/branch" className={linkClass}>
+            <Users size={20} className="mr-3" /> Kelola Admin Cabang
+          </NavLink>
           {/* Tambahkan NavLink untuk link lainnya */}
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Layers size={20} className="mr-3" /> Retention

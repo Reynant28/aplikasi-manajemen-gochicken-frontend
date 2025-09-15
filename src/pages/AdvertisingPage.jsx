@@ -46,11 +46,11 @@ const AdvertisingPage = () => {
 
       {/* Form tambah cabang */}
       <motion.div
-        className="bg-white shadow-md rounded-xl p-4 mb-6"
+        className="bg-white shadow-md rounded-xl p-5 mb-6 border-l-4 border-green-600"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-lg font-semibold mb-3">Tambah Cabang</h2>
+        <h2 className="text-lg font-semibold mb-3 text-green-700">Tambah Cabang</h2>
         <div className="flex flex-col md:flex-row gap-3">
           <input
             type="text"
@@ -86,9 +86,9 @@ const AdvertisingPage = () => {
         {branches.map((branch, index) => (
           <motion.div
             key={branch.id}
-            className="bg-white shadow-lg rounded-xl p-5 hover:shadow-2xl transition-all duration-300"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white shadow-lg rounded-xl p-5 hover:shadow-2xl transition-all duration-300 border-l-4 border-green-600"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
             <h3 className="text-xl font-semibold text-gray-700">
@@ -98,7 +98,7 @@ const AdvertisingPage = () => {
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setEditBranch(branch)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200"
+                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200"
               >
                 <Edit size={16} /> Edit
               </button>
@@ -123,19 +123,19 @@ const AdvertisingPage = () => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md"
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
             >
-              <h2 className="text-xl font-semibold mb-4">Edit Cabang</h2>
+              <h2 className="text-xl font-semibold mb-4 text-green-700">Edit Cabang</h2>
               <input
                 type="text"
                 value={editBranch.name}
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, name: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none"
               />
               <input
                 type="text"
@@ -143,7 +143,7 @@ const AdvertisingPage = () => {
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, address: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none"
               />
               <div className="flex justify-end gap-3">
                 <button
@@ -154,7 +154,7 @@ const AdvertisingPage = () => {
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-200"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-200"
                 >
                   Simpan
                 </button>

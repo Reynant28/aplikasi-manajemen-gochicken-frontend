@@ -6,6 +6,7 @@ import GeneralPage from './pages/GeneralPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import AdvertisingPage from './pages/AdvertisingPage.jsx';
 import AudiencePage from './pages/AudiencePage.jsx';
+import BranchAdminPage from "./pages/BranchAdminPage.jsx";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
           <Route path="/general" element={<GeneralPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/advertising" element={<AdvertisingPage />} />
-          <Route path="/audience" element={<AudiencePage />} />
+          <Route path="/branch" element={<BranchAdminPage />} />
         </Route>
 
         {/* Halaman Dashboard */}
