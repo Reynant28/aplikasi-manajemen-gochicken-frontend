@@ -32,22 +32,22 @@ const AdvertisingPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
       <motion.h1
-        className="text-3xl font-bold text-black mb-6"
+        className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Kelola Cabang
+      Kelola Cabang
       </motion.h1>
 
       {/* Form tambah cabang */}
       <motion.div
-        className="bg-white shadow-md rounded-xl p-5 mb-6 border-l-4 border-green-600"
+        className="bg-green-50 shadow-md rounded-xl p-6 mb-8 border border-green-200"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h2 className="text-lg font-semibold mb-3 text-black">
+        <h2 className="text-lg font-semibold mb-3 text-green-800">
           Tambah Cabang
         </h2>
         <div className="flex flex-col md:flex-row gap-3">
@@ -55,8 +55,10 @@ const AdvertisingPage = () => {
             type="text"
             placeholder="Nama Cabang"
             value={newBranch.name}
-            onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })}
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-black"
+            onChange={(e) =>
+              setNewBranch({ ...newBranch, name: e.target.value })
+            }
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
           />
           <input
             type="text"
@@ -65,11 +67,11 @@ const AdvertisingPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, address: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-black"
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
           />
           <button
             onClick={handleAdd}
-            className="bg-green-600 hover:bg-green-700 transition-all duration-200 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-md"
+            className="bg-green-600 hover:bg-green-700 transition-all duration-200 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md"
           >
             <Plus size={18} /> Tambah
           </button>
@@ -85,25 +87,25 @@ const AdvertisingPage = () => {
         {branches.map((branch, index) => (
           <motion.div
             key={branch.id}
-            className="bg-white shadow-lg rounded-xl p-5 hover:shadow-2xl transition-all duration-300 border-l-4 border-green-600"
+            className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition-all duration-300 border-t-4 border-green-600"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <h3 className="text-xl font-semibold text-black">
+            <h3 className="text-xl font-semibold text-green-800">
               {branch.name}
             </h3>
-            <p className="text-black mt-1">{branch.address}</p>
-            <div className="flex gap-3 mt-4">
+            <p className="text-gray-700 mt-1">{branch.address}</p>
+            <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setEditBranch(branch)}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200 shadow"
               >
                 <Edit size={16} /> Edit
               </button>
               <button
                 onClick={() => handleDelete(branch.id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200"
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200 shadow"
               >
                 <Trash size={16} /> Hapus
               </button>
@@ -127,8 +129,8 @@ const AdvertisingPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
             >
-              <h2 className="text-xl font-semibold mb-4 text-black">
-                Edit Cabang
+              <h2 className="text-xl font-semibold mb-4 text-green-700">
+                ✏️ Edit Cabang
               </h2>
               <input
                 type="text"
@@ -136,7 +138,7 @@ const AdvertisingPage = () => {
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, name: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-black"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-green-50"
               />
               <input
                 type="text"
@@ -144,12 +146,12 @@ const AdvertisingPage = () => {
                 onChange={(e) =>
                   setEditBranch({ ...editBranch, address: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-black"
+                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-green-50"
               />
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setEditBranch(null)}
-                  className="px-4 py-2 rounded-lg border hover:bg-gray-100 transition-all duration-200"
+                  className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100 transition-all duration-200"
                 >
                   Batal
                 </button>

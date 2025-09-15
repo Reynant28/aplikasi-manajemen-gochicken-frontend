@@ -64,7 +64,7 @@ const BranchAdminPage = () => {
           password_cabang: "",
         });
         fetchAdmins();
-        setShowForm(false); // sembunyikan form setelah berhasil
+        setShowForm(false);
       } else {
         setMessage("❌ " + data.message);
       }
@@ -84,7 +84,7 @@ const BranchAdminPage = () => {
       branch: admin.branch,
       password_cabang: "",
     });
-    setShowForm(true); // munculkan form untuk edit
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -109,17 +109,30 @@ const BranchAdminPage = () => {
     }
   };
 
+  const branchBadge = (branch) => {
+    switch (branch) {
+      case "jakarta":
+        return "bg-red-100 text-red-700";
+      case "bandung":
+        return "bg-green-100 text-green-700";
+      case "surabaya":
+        return "bg-purple-100 text-purple-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
   return (
     <div className="p-6 space-y-8">
-      {/* Card form tambah/edit admin */}
+      {/* Form tambah/edit admin */}
       {showForm && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg mx-auto"
+          className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg mx-auto border-l-4 border-blue-600"
         >
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-blue-700">
             <UserPlus className="text-blue-600" />{" "}
             {formData.id ? "Edit Admin Cabang" : "Tambah Admin Cabang"}
           </h2>
@@ -131,7 +144,7 @@ const BranchAdminPage = () => {
               placeholder="Nama Lengkap"
               value={formData.name}
               onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               required
             />
             <input
@@ -140,7 +153,7 @@ const BranchAdminPage = () => {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               required
             />
             <input
@@ -149,14 +162,14 @@ const BranchAdminPage = () => {
               placeholder="Password Pribadi"
               value={formData.password_pribadi}
               onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               required={!formData.id}
             />
             <select
               name="branch"
               value={formData.branch}
               onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900"
               required
             >
               <option value="">Pilih Cabang</option>
@@ -170,21 +183,25 @@ const BranchAdminPage = () => {
               placeholder="Password Cabang"
               value={formData.password_cabang}
               onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               required
             />
 
             <motion.button
               whileTap={{ scale: 0.95 }}
               disabled={loading}
-              className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition font-semibold"
             >
               {loading ? "Menyimpan..." : formData.id ? "Update Admin" : "Tambah Admin"}
             </motion.button>
           </form>
 
           {message && (
-            <p className="mt-4 text-center text-sm font-medium text-gray-700">
+            <p
+              className={`mt-4 text-center text-sm font-medium ${
+                message.includes("✅") ? "text-green-600" : "text-red-600"
+              }`}
+            >
               {message}
             </p>
           )}
@@ -193,7 +210,7 @@ const BranchAdminPage = () => {
 
       {/* List admin */}
       <div>
-        <h3 className="text-xl font-semibold mb-4">Daftar Admin Cabang</h3>
+        <h3 className="text-xl font-semibold mb-4 text-blue-700">Daftar Admin Cabang</h3>
         <div className="grid md:grid-cols-2 gap-5">
           {admins.map((admin) => (
             <motion.div
@@ -201,11 +218,17 @@ const BranchAdminPage = () => {
               whileHover={{ scale: 1.02 }}
               className="bg-white p-5 rounded-xl shadow-md border-l-4 border-blue-600"
             >
-              <h2 className="text-lg font-semibold">{admin.name}</h2>
-              <p className="text-gray-600 text-sm">{admin.email}</p>
-              <p className="text-gray-500 text-sm">Cabang: {admin.branch}</p>
+              <h2 className="text-lg font-semibold text-gray-900">{admin.name}</h2>
+              <p className="text-gray-700 text-sm">{admin.email}</p>
+              <span
+                className={`inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full ${branchBadge(
+                  admin.branch
+                )}`}
+              >
+                Cabang: {admin.branch}
+              </span>
 
-              <div className="flex gap-3 mt-3">
+              <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => handleEdit(admin)}
                   className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"

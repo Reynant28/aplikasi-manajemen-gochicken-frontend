@@ -20,17 +20,14 @@ const PengeluaranPage = () => {
     e.preventDefault();
 
     if (editingIndex !== null) {
-      // update data
       const updated = [...pengeluaran];
       updated[editingIndex] = formData;
       setPengeluaran(updated);
       setEditingIndex(null);
     } else {
-      // tambah data baru
       setPengeluaran([...pengeluaran, formData]);
     }
 
-    // reset form
     setFormData({ jenis: "", deskripsi: "" });
   };
 
@@ -52,9 +49,9 @@ const PengeluaranPage = () => {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl mx-auto"
+        className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl mx-auto border-l-4 border-green-600"
       >
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-800">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-green-700">
           <Plus className="text-green-600" />{" "}
           {editingIndex !== null ? "Edit Pengeluaran" : "Tambah Pengeluaran"}
         </h2>
@@ -66,7 +63,7 @@ const PengeluaranPage = () => {
             placeholder="Jenis Pengeluaran"
             value={formData.jenis}
             onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
             required
           />
           <textarea
@@ -74,14 +71,14 @@ const PengeluaranPage = () => {
             placeholder="Deskripsi penggunaan"
             value={formData.deskripsi}
             onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
             rows="3"
             required
           />
 
           <motion.button
             whileTap={{ scale: 0.95 }}
-            className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition"
+            className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
           >
             {editingIndex !== null ? "Update" : "Simpan"}
           </motion.button>
@@ -90,7 +87,9 @@ const PengeluaranPage = () => {
 
       {/* List Pengeluaran */}
       <div>
-        <h3 className="text-xl font-semibold mb-4">Daftar Pengeluaran</h3>
+        <h3 className="text-xl font-semibold mb-4 text-green-700">
+          Daftar Pengeluaran
+        </h3>
         {pengeluaran.length === 0 ? (
           <p className="text-gray-500">Belum ada data pengeluaran.</p>
         ) : (
@@ -101,7 +100,9 @@ const PengeluaranPage = () => {
                 whileHover={{ scale: 1.02 }}
                 className="bg-white p-5 rounded-xl shadow-md border-l-4 border-green-600"
               >
-                <h2 className="text-lg font-semibold">{item.jenis}</h2>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {item.jenis}
+                </h2>
                 <p className="text-gray-600 text-sm">{item.deskripsi}</p>
 
                 <div className="flex gap-3 mt-3">
