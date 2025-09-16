@@ -5,6 +5,7 @@ import {
   HelpCircle, Building2, UserCog, Wallet, ChevronDown,
   Receipt, Package, Boxes
 } from "lucide-react";
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = () => {
@@ -14,6 +15,18 @@ const Sidebar = () => {
     isActive
       ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
       : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
+
+ // Ambil user & cabang dari localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const cabang = JSON.parse(localStorage.getItem("cabang"));
+
+
+  // Tentukan basePath berdasarkan role
+  let basePath = "/super-admin/dashboard";
+  if (user?.role === "admin cabang" && cabang?.id_cabang) {
+    basePath = `/admin-cabang/${cabang.id_cabang}/dashboard`;
+  }
+
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
@@ -46,36 +59,42 @@ const Sidebar = () => {
               exit={{ opacity: 0, y: -10, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <NavLink to="/general" className={linkClass}>
+              <NavLink to={`${basePath}/general`} className={linkClass}>
                 <Home size={18} className="mr-2" /> General
               </NavLink>
-              <NavLink to="/reports" className={linkClass}>
+
+              <NavLink to={`${basePath}/reports`} className={linkClass}>
                 <BarChart2 size={18} className="mr-2" /> Reports
               </NavLink>
-              <NavLink to="/advertising" className={linkClass}>
+
+              <NavLink to={`${basePath}/advertising`} className={linkClass}>
                 <Building2 size={18} className="mr-2" /> Kelola Cabang
               </NavLink>
-              <NavLink to="/karyawan" className={linkClass}>
+
+              <NavLink to={`${basePath}/karyawan`} className={linkClass}>
                 <Users size={18} className="mr-2" /> Karyawan
               </NavLink>
-              <NavLink to="/branch" className={linkClass}>
+
+              <NavLink to={`${basePath}/branch`} className={linkClass}>
                 <UserCog size={18} className="mr-2" /> Admin Cabang
               </NavLink>
-              <NavLink to="/pengeluaran" className={linkClass}>
+
+              <NavLink to={`${basePath}/pengeluaran`} className={linkClass}>
                 <Wallet size={18} className="mr-2" /> Pengeluaran
               </NavLink>
-              <NavLink to="/transaksi" className={linkClass}>
+
+              <NavLink to={`${basePath}/transaksi`} className={linkClass}>
                 <Receipt size={18} className="mr-2" /> Transaksi
               </NavLink>
-              <NavLink to="/bahan" className={linkClass}>
+
+              <NavLink to={`${basePath}/bahan`} className={linkClass}>
                 <Package size={18} className="mr-2" /> Bahan
               </NavLink>
-              <NavLink to="/stok" className={linkClass}>
+
+              <NavLink to={`${basePath}/stok`} className={linkClass}>
                 <Boxes size={18} className="mr-2" /> Stok
               </NavLink>
-              <NavLink to="/stok" className={linkClass}>
-                <Boxes size={18} className="mr-2" /> Stok
-              </NavLink>
+              
             </motion.div>
           )}
         </AnimatePresence>

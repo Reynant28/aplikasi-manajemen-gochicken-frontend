@@ -1,55 +1,67 @@
 import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
-import { useState } from 'react'
 import Login from "./pages/Login";
-import Dashboard from "./components/Dashboard";
 import DashboardLayout from './components/DashboardLayout.jsx';
-import GeneralPage from './pages/GeneralPage.jsx';
-import ReportsPage from './pages/ReportsPage.jsx';
-import AdvertisingPage from './pages/AdvertisingPage.jsx';
-import AudiencePage from './pages/AudiencePage.jsx';
-import BranchAdminPage from "./pages/BranchAdminPage.jsx";
-import PengeluaranPage from "./pages/PengeluaranPage.jsx";
-import KaryawanPage from "./pages/KaryawanPage.jsx";
-import BahanPage from "./pages/BahanPage.jsx";
-import TransaksiPage from "./pages/TransaksiPage.jsx";
-import StokPage from "./pages/StokPage.jsx";
+//import protected route
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+// Super Admin pages
+import GeneralPageSuper from './pages/super-admin/GeneralPage.jsx';
+import ReportsPageSuper from './pages/super-admin/ReportsPage.jsx';
+import AdvertisingPageSuper from './pages/super-admin/AdvertisingPage.jsx';
+import AudiencePageSuper from './pages/super-admin/AudiencePage.jsx';
+import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
+import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
+import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
+
+// Admin Cabang pages
+import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
+import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
+import AdvertisingPageCabang from './pages/admin-cabang/AdvertisingPage.jsx';
+import AudiencePageCabang from './pages/admin-cabang/AudiencePage.jsx';
+import BranchAdminPageCabang from "./pages/admin-cabang/BranchAdminPage.jsx";
+import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
+import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
+
+import Dashboard from "./components/Dashboard";
 import './App.css'
 
 function App() {
   return (
-    // Tambahkan komponen BrowserRouter di sini untuk membungkus seluruh aplikasi
     <BrowserRouter>
       <div className="min-h-screen min-w-screen bg-gray-100">
         <Routes>
           {/* Halaman Login */}
           <Route path="/" element={<Login />} />
 
-          <Route path="/general" element={<Navigate to="/super-admin/dashboard/general" replace />} />
-          <Route path="/advertising" element={<Navigate to="/super-admin/dashboard/advertising" replace />} />
-          <Route path="/reports" element={<Navigate to="/super-admin/dashboard/reports" replace />} />
-          <Route path="/branch" element={<Navigate to="/super-admin/dashboard/branch" replace />} />
-          <Route path="/audience" element={<Navigate to="/super-admin/dashboard/audience" replace />} />
-          <Route path="/pengeluaran" element={<Navigate to="/super-admin/dashboard/pengeluaran" replace />} />
-          <Route path="/karyawan" element={<Navigate to="/super-admin/dashboard/karyawan" replace />} />
-
-          <Route path="/admin-cabang/dashboard" element={<DashboardLayout />}>
-            {/* Tambahkan rute anak untuk Admin Cabang di sini */}
+          {/* Super Admin */}
+          <Route element={<ProtectedRoute allowedRole="super admin" />}>
+            <Route path="/super-admin/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Navigate to="general" replace />} />
+              <Route path="general" element={<GeneralPageSuper />} />
+              <Route path="reports" element={<ReportsPageSuper />} />
+              <Route path="advertising" element={<AdvertisingPageSuper />} />
+              <Route path="branch" element={<BranchAdminPageSuper />} />
+              <Route path="audience" element={<AudiencePageSuper />} />
+              <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
+              <Route path="karyawan" element={<KaryawanPageSuper />} />
+            </Route>
           </Route>
 
-          <Route path="/super-admin/dashboard" element={<DashboardLayout />}>
-            {/* Rute anak sekarang bersifat relatif (tanpa '/') */}
-            <Route path="general" element={<GeneralPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="advertising" element={<AdvertisingPage />} />
-            <Route path="branch" element={<BranchAdminPage />} />
-            <Route path="audience" element={<AudiencePage />} />
-            <Route path="pengeluaran" element={<PengeluaranPage />} />
-            <Route path="karyawan" element={<KaryawanPage />} />
-            {/* Tambahkan rute indeks untuk default ke /super-admin/dashboard */}
-            <Route index element={<GeneralPage />} />
+          {/* Admin Cabang */}
+          <Route element={<ProtectedRoute allowedRole="admin cabang" />}>
+            <Route path="/admin-cabang/:id_cabang/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Navigate to="general" replace />} />
+              <Route path="general" element={<GeneralPageCabang />} />
+              <Route path="reports" element={<ReportsPageCabang />} />
+              <Route path="advertising" element={<AdvertisingPageCabang />} />
+              <Route path="branch" element={<BranchAdminPageCabang />} />
+              <Route path="audience" element={<AudiencePageCabang />} />
+              <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
+              <Route path="karyawan" element={<KaryawanPageCabang />} />
+            </Route>
           </Route>
 
-          {/* Halaman Dashboard */}
+          {/* Default Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>

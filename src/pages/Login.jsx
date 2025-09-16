@@ -103,6 +103,7 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+
   const handleCabangLogin = async () => {
     try {
       setIsLoading(true);
@@ -123,13 +124,18 @@ const Login = () => {
           localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
         }
         localStorage.setItem("token", res.data.token);
-        navigate("/admin-cabang/dashboard");
+        navigate(`/admin-cabang/${id_cabang}/dashboard`);
+
       } else {
         alert(res.data.message || "Login failed");
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {
+        const errors = err.response.data.errors;
         alert(Object.values(errors).join("\n"));
+      } else if (err.response && err.response.data && err.response.data.message) {
+        // fallback for message
+        alert(err.response.data.message);
       } else {
         alert("Terjadi error koneksi ke server");
       }
@@ -155,7 +161,10 @@ const Login = () => {
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {
+        const errors = err.response.data.errors;
         alert(Object.values(errors).join("\n"));
+      } else if (err.response && err.response.data && err.response.data.message) {
+        alert(err.response.data.message);
       } else {
         alert("Terjadi error koneksi ke server");
       }

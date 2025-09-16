@@ -1,8 +1,19 @@
 // src/components/Header.jsx
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, LogOut } from "lucide-react";
+//eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("cabang");
+    navigate("/");
+  };
+
   return (
     <header className="bg-gradient-to-r from-white to-gray-50 p-4 flex justify-between items-center border-b border-gray-200 shadow-sm">
       {/* Search */}
@@ -42,6 +53,25 @@ const Header = () => {
           />
           <span className="text-sm font-semibold text-gray-700">Admin</span>
         </div>
+
+        {/* Logout Logo */}
+        <motion.div
+          onClick={handleLogout}
+          className="relative w-10 h-10 flex items-center justify-center rounded-full cursor-pointer overflow-hidden group"
+          whileTap={{ scale: 0.9 }}
+        >
+          {/* Red hover background */}
+          <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+
+          {/* Icon with animation */}
+          <motion.div
+            initial={{ x: 0 }}
+            whileHover={{ x: 4 }} // arrow slides out slightly
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <LogOut size={22} className="text-red-600" />
+          </motion.div>
+        </motion.div>
       </div>
     </header>
   );
