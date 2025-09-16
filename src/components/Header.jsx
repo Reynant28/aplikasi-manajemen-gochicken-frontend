@@ -10,7 +10,7 @@ const Header = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="pl-10 pr-4 py-2 w-full bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="pl-10 pr-4 py-2 w-full bg-gray-100 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
       </div>

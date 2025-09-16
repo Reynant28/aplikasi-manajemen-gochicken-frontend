@@ -28,7 +28,7 @@ const Sidebar = () => {
       </div>
       <div className="flex-grow p-4 space-y-2">
         <div className="p-2 rounded-lg border border-gray-200 flex justify-between items-center">
-          <span>All sites</span>
+          <span className='text-gray-600  '>All sites</span>
           <span className="text-gray-500">⌄</span>
         </div>
         <nav className="space-y-1">

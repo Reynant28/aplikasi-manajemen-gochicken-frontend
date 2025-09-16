@@ -14,9 +14,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --themered: #a42d1a;
+  /* Theme Colors */
+  --themered: #ef4444;
   --themeredhover: #7e2214;
-  --themeorange: #f8a110;
+  --themeorange: #f97316;
   --themeorangehover: #d28a0f;
 
   --light-bg: hsl(0 0% 95%);
