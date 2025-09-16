@@ -75,6 +75,7 @@ const Shield = ({ className }) => (
 
 const Login = () => {
   const [activePanel, setActivePanel] = useState("cabang");
+  const [isLoading, setIsLoading] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [prevPanel, setPrevPanel] = useState("cabang");
   const [showPassword, setShowPassword] = useState(false);
@@ -104,6 +105,8 @@ const Login = () => {
 
   const handleSubmit = async () => {
     try {
+      setIsLoading(true); // ⬅️ mulai loading
+
       if (activePanel === "cabang") {
         // Ambil id_cabang dari map
         const id_cabang = cabangMap[formData.cabang];
@@ -117,8 +120,12 @@ const Login = () => {
           password_pribadi: formData.personalPassword,
         });
         if (res.data.status === "success") {
-          localStorage.setItem("token", res.data.token);
+          console.log("Data user dari backend:", res.data.user);
           localStorage.setItem("user", JSON.stringify(res.data.user));
+          if (res.data.cabang) {
+            localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
+          }
+          localStorage.setItem("token", res.data.token);
           navigate("/home");
         } else {
           alert(res.data.message || "Login gagal");
@@ -144,8 +151,11 @@ const Login = () => {
       } else {
         alert("Terjadi error koneksi ke server");
       }
+    } finally {
+      setIsLoading(false); // ⬅️ selalu berhenti loading
     }
   };
+
 
 
   const [formData, setCabangData] = useState({
@@ -434,7 +444,7 @@ const Login = () => {
                           {/* Username */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Username
+                              Email
                             </label>
                             <input
                               type="text"
@@ -498,13 +508,38 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={handleSubmit}
+                        disabled={isLoading}
                         className="w-full py-3 px-6 flex items-center justify-center 
-                                   font-medium text-white 
-                                   bg-gradient-to-r from-red-500 to-red-600
-                                   hover:from-red-600 hover:to-red-700
-                                   rounded-l-lg rounded-r-none"
+                                  font-medium text-white 
+                                  bg-gradient-to-r from-red-500 to-red-600
+                                  hover:from-red-600 hover:to-red-700
+                                  rounded-l-lg rounded-r-none
+                                  disabled:opacity-70 disabled:cursor-not-allowed"
                       >
-                        Masuk sebagai Admin Cabang
+                        {isLoading ? (
+                          <svg
+                            className="animate-spin h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            ></path>
+                          </svg>
+                        ) : (
+                          "Masuk sebagai Admin Cabang"
+                        )}
                       </button>
                     </div>
 
@@ -513,13 +548,38 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={handleSubmit}
+                        disabled={isLoading}
                         className="w-full py-3 px-6 flex items-center justify-center 
-                                   font-medium text-white 
-                                   bg-gradient-to-r from-orange-400 to-orange-500
-                                   hover:from-orange-500 hover:to-orange-600
-                                   rounded-r-lg rounded-l-none"
+                                  font-medium text-white 
+                                  bg-gradient-to-r from-orange-400 to-orange-500
+                                  hover:from-orange-500 hover:to-orange-600
+                                  rounded-r-lg rounded-l-none
+                                  disabled:opacity-70 disabled:cursor-not-allowed"
                       >
-                        Masuk sebagai Super Admin
+                        {isLoading ? (
+                          <svg
+                            className="animate-spin h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            ></path>
+                          </svg>
+                        ) : (
+                          "Masuk sebagai Super Admin"
+                        )}
                       </button>
                     </div>
                   </motion.div>
