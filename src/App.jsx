@@ -10,6 +10,9 @@ import AudiencePage from './pages/AudiencePage.jsx';
 import BranchAdminPage from "./pages/BranchAdminPage.jsx";
 import PengeluaranPage from "./pages/PengeluaranPage.jsx";
 import KaryawanPage from "./pages/KaryawanPage.jsx";
+import BahanPage from "./pages/BahanPage.jsx";
+import TransaksiPage from "./pages/TransaksiPage.jsx";
+import StokPage from "./pages/StokPage.jsx";
 import './App.css'
 
 function App() {

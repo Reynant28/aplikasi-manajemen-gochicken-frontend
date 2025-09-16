@@ -1,60 +1,87 @@
-// src/components/Sidebar.jsx
-
-import { NavLink } from 'react-router-dom';
-import { 
-  Home, 
-  BarChart2, 
-  Users, 
-  Layers, 
-  Map, 
-  Target, 
-  Settings, 
-  HelpCircle,
-  Building2,
-  UserCog,
-  Wallet
-} from 'lucide-react';
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import {
+  Home, BarChart2, Users, Layers, Map, Settings,
+  HelpCircle, Building2, UserCog, Wallet, ChevronDown,
+  Receipt, Package, Boxes
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = () => {
-  const linkClass = ({ isActive }) => 
-    isActive 
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  const linkClass = ({ isActive }) =>
+    isActive
       ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
       : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
+      {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-gray-800">Management</h1>
       </div>
-      <div className="flex-grow p-4 space-y-2">
-        <div className="p-2 rounded-lg border border-gray-200 flex justify-between items-center">
-          <span className='text-gray-600  '>All sites</span>
-          <span className="text-gray-500">⌄</span>
+
+      {/* Isi Sidebar Scrollable */}
+      <div className="flex-grow p-4 space-y-2 overflow-y-auto scrollbar-hide">
+        {/* Dropdown All Sites */}
+        <div
+          onClick={() => setOpenDropdown(!openDropdown)}
+          className="p-2 rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+        >
+          <span className="font-semibold text-gray-800">All sites</span>
+          <ChevronDown
+            size={18}
+            className={`text-gray-500 transition-transform ${openDropdown ? "rotate-180" : ""}`}
+          />
         </div>
-        <nav className="space-y-1">
-          <NavLink to="/general" className={linkClass}>
-            <Home size={20} className="mr-3" /> General
-          </NavLink>
-          <NavLink to="/reports" className={linkClass}>
-            <BarChart2 size={20} className="mr-3" /> Reports
-          </NavLink>
-          <NavLink to="/advertising" className={linkClass}>
-            <Building2 size={20} className="mr-3" /> Kelola Cabang
-            <span className="mr-3"></span>
-          </NavLink>
-          <NavLink to="/karyawan" className={linkClass}>
-            <Users size={20} className="mr-3" /> Karyawan
-          </NavLink>
-          <NavLink to="/branch" className={linkClass}>
-            <UserCog size={20} className="mr-3" /> Kelola Admin Cabang
-          </NavLink>
-          <NavLink to="/pengeluaran" className={linkClass}>
-            <Wallet size={20} className="mr-3" /> Pengeluaran
-          </NavLink>
-          {/* Link lainnya */}
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Layers size={20} className="mr-3" /> Bahan
-          </a>
+
+        {/* Isi Dropdown dengan Animasi (ke bawah) */}
+        <AnimatePresence>
+          {openDropdown && (
+            <motion.div
+              className="ml-3 mt-2 space-y-1"
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <NavLink to="/general" className={linkClass}>
+                <Home size={18} className="mr-2" /> General
+              </NavLink>
+              <NavLink to="/reports" className={linkClass}>
+                <BarChart2 size={18} className="mr-2" /> Reports
+              </NavLink>
+              <NavLink to="/advertising" className={linkClass}>
+                <Building2 size={18} className="mr-2" /> Kelola Cabang
+              </NavLink>
+              <NavLink to="/karyawan" className={linkClass}>
+                <Users size={18} className="mr-2" /> Karyawan
+              </NavLink>
+              <NavLink to="/branch" className={linkClass}>
+                <UserCog size={18} className="mr-2" /> Admin Cabang
+              </NavLink>
+              <NavLink to="/pengeluaran" className={linkClass}>
+                <Wallet size={18} className="mr-2" /> Pengeluaran
+              </NavLink>
+              <NavLink to="/transaksi" className={linkClass}>
+                <Receipt size={18} className="mr-2" /> Transaksi
+              </NavLink>
+              <NavLink to="/bahan" className={linkClass}>
+                <Package size={18} className="mr-2" /> Bahan
+              </NavLink>
+              <NavLink to="/stok" className={linkClass}>
+                <Boxes size={18} className="mr-2" /> Stok
+              </NavLink>
+              <NavLink to="/stok" className={linkClass}>
+                <Boxes size={18} className="mr-2" /> Stok
+              </NavLink>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Menu utama lain */}
+        <nav className="space-y-1 mt-4">
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Map size={20} className="mr-3" /> Heatmap
           </a>
@@ -63,6 +90,8 @@ const Sidebar = () => {
           </a>
         </nav>
       </div>
+
+      {/* Footer */}
       <div className="p-4 border-t border-gray-200 space-y-2">
         <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
           <HelpCircle size={20} className="mr-3" /> Help Center
