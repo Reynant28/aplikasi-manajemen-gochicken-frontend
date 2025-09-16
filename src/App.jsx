@@ -9,6 +9,9 @@ import AudiencePage from './pages/AudiencePage.jsx';
 import BranchAdminPage from "./pages/BranchAdminPage.jsx";
 import PengeluaranPage from "./pages/PengeluaranPage.jsx";
 import KaryawanPage from "./pages/KaryawanPage.jsx";
+import BahanPage from "./pages/BahanPage.jsx";
+import TransaksiPage from "./pages/TransaksiPage.jsx";
+import StokPage from "./pages/StokPage.jsx";
 
 function App() {
   return (
@@ -27,6 +30,9 @@ function App() {
           <Route path="/audience" element={<AudiencePage />} />
           <Route path="/pengeluaran" element={<PengeluaranPage />} />
           <Route path="/karyawan" element={<KaryawanPage />} />
+          <Route path="/bahan" element={<BahanPage />} />
+          <Route path="/transaksi" element={<TransaksiPage />} />
+          <Route path="/stok" element={<StokPage />} />
         </Route>
 
         {/* Halaman Dashboard */}

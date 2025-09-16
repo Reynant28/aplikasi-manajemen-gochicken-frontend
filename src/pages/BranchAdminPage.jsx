@@ -1,4 +1,4 @@
-// src/pages/BranchAdminPage.jsx
+// src/pages/AkunAdminCabangPage.jsx
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserPlus, Edit, Trash } from "lucide-react";
