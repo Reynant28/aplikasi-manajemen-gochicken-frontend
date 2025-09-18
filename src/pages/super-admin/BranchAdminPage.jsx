@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { UserPlus } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api";
-const TOKEN = localStorage.getItem("token");
 
 const BranchAdminPage = () => {
     const [formData, setFormData] = useState({
@@ -75,7 +74,7 @@ const BranchAdminPage = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${TOKEN}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(formData), // ⬅️ Kirim formData tanpa id_user
             });

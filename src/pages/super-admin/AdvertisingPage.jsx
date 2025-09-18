@@ -1,69 +1,113 @@
 // src/pages/KelolaCabangPage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit, Trash } from "lucide-react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
+const API_URL = "http://localhost:8000/api";
+
 const AdvertisingPage = () => {
-  const [branches, setBranches] = useState({
+  const [branches, setBranches] = useState([]);
+  const [newBranch, setNewBranch] = useState({
     nama_cabang: "",
     alamat: "",
     telepon: "",
-    password_cabang: ""
+    password_cabang: "",
   });
-
-  useEffect(() => {
-    fetchAdmins();
-    fetchCabang();
-  }, []);
-  
-  const fetchAdmins = async () => {
-      try {
-          const res = await fetch(`${API_URL}/cabang`, {
-              headers: { Authorization: `Bearer ${TOKEN}` },
-          });
-          const data = await res.json();
-          setAdmins(data.data || []);
-      } catch (err) {
-          console.error("Failed to fetch admins:", err);
-          setAdmins([]);
-      }
-  };
-
-  const fetchCabang = async () => {
-      try {
-          const res = await fetch(`${API_URL}/cabang-without-admin`, {
-              headers: { Authorization: `Bearer ${TOKEN}` },
-          });
-          const data = await res.json();
-          setCabang(data.data || []);
-      } catch (err) {
-          console.error("Failed to fetch cabang:", err);
-          setCabang([]);
-      }
-  };
-
-  const [newBranch, setNewBranch] = useState({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
   const [editBranch, setEditBranch] = useState(null);
 
-  const handleAdd = () => {
-    if (!newBranch.nama_cabang || !newBranch.alamat || !newBranch.telepon || !newBranch.password_cabang) return;
-    setBranches([
-      ...branches,
-      { id: Date.now(), nama_cabang: newBranch.nama_cabang, alamat: newBranch.alamat, telepon: newBranch.telepon, password_cabang: newBranch.password_cabang },
-    ]);
-    setNewBranch({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchCabang = async () => {
+      try {
+        const res = await fetch(`${API_URL}/cabang`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setBranches(data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch cabang:", err);
+        setBranches([]);
+      }
+    };
+
+    if (token) fetchCabang();
+  }, [token]);
+
+
+  const fetchCabang = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cabang`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setBranches(data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch cabang:", err);
+      setBranches([]);
+    }
   };
 
-  const handleDelete = (id) => {
-    setBranches(branches.filter((b) => b.id !== id));
+  const handleAdd = async () => {
+    if (
+      !newBranch.nama_cabang ||
+      !newBranch.alamat ||
+      !newBranch.telepon ||
+      !newBranch.password_cabang
+    )
+      return;
+
+    try {
+      const res = await fetch(`${API_URL}/cabang`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newBranch),
+      });
+
+      if (res.ok) {
+        await fetchCabang();
+        setNewBranch({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
+      } else {
+        console.error("Failed to add cabang");
+      }
+    } catch (err) {
+      console.error("Add cabang error:", err);
+    }
   };
 
-  const handleUpdate = () => {
-    setBranches(
-      branches.map((b) => (b.id === editBranch.id ? { ...editBranch } : b))
-    );
-    setEditBranch(null);
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/cabang/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) fetchCabang();
+    } catch (err) {
+      console.error("Delete cabang error:", err);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cabang/${editBranch.id_cabang}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editBranch),
+      });
+      if (res.ok) {
+        await fetchCabang();
+        setEditBranch(null);
+      }
+    } catch (err) {
+      console.error("Update cabang error:", err);
+    }
   };
 
   return (
@@ -73,7 +117,7 @@ const AdvertisingPage = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-      Kelola Cabang
+        Kelola Cabang
       </motion.h1>
 
       {/* Form tambah cabang */}
@@ -93,7 +137,7 @@ const AdvertisingPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, nama_cabang: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+            className="border rounded-lg px-3 py-2 w-full"
           />
           <input
             type="text"
@@ -102,16 +146,7 @@ const AdvertisingPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, alamat: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
-          />
-          <input
-            type="text"
-            placeholder="Alamat"
-            value={newBranch.alamat}
-            onChange={(e) =>
-              setNewBranch({ ...newBranch, alamat: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+            className="border rounded-lg px-3 py-2 w-full"
           />
           <input
             type="text"
@@ -120,20 +155,20 @@ const AdvertisingPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, telepon: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+            className="border rounded-lg px-3 py-2 w-full"
           />
           <input
-            type="text"
+            type="password"
             placeholder="Password Cabang"
             value={newBranch.password_cabang}
             onChange={(e) =>
               setNewBranch({ ...newBranch, password_cabang: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+            className="border rounded-lg px-3 py-2 w-full"
           />
           <button
             onClick={handleAdd}
-            className="bg-green-600 hover:bg-green-700 transition-all duration-200 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md"
+            className="bg-green-600 text-white px-5 py-2 rounded-lg"
           >
             <Plus size={18} /> Tambah
           </button>
@@ -148,26 +183,27 @@ const AdvertisingPage = () => {
       >
         {branches.map((branch, index) => (
           <motion.div
-            key={branch.id}
-            className="bg-white shadow-lg rounded-xl p-6 hover:shadow-2xl transition-all duration-300 border-t-4 border-green-600"
+            key={branch.id_cabang}
+            className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
             <h3 className="text-xl font-semibold text-green-800">
-              {branch.name}
+              {branch.nama_cabang}
             </h3>
-            <p className="text-gray-700 mt-1">{branch.address}</p>
+            <p className="text-gray-700">{branch.alamat}</p>
+            <p className="text-gray-600 text-sm">📞 {branch.telepon}</p>
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setEditBranch(branch)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200 shadow"
+                className="bg-yellow-500 text-white px-3 py-1 rounded-lg"
               >
                 <Edit size={16} /> Edit
               </button>
               <button
-                onClick={() => handleDelete(branch.id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 transition-all duration-200 shadow"
+                onClick={() => handleDelete(branch.id_cabang)}
+                className="bg-red-500 text-white px-3 py-1 rounded-lg"
               >
                 <Trash size={16} /> Hapus
               </button>
@@ -176,7 +212,7 @@ const AdvertisingPage = () => {
         ))}
       </motion.div>
 
-      {/* Modal edit cabang */}
+      {/* Modal edit */}
       <AnimatePresence>
         {editBranch && (
           <motion.div
@@ -185,41 +221,44 @@ const AdvertisingPage = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
+            <motion.div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600">
               <h2 className="text-xl font-semibold mb-4 text-green-700">
                 ✏️ Edit Cabang
               </h2>
               <input
                 type="text"
-                value={editBranch.name}
+                value={editBranch.nama_cabang}
                 onChange={(e) =>
-                  setEditBranch({ ...editBranch, name: e.target.value })
+                  setEditBranch({ ...editBranch, nama_cabang: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-green-50"
+                className="border rounded-lg px-3 py-2 w-full mb-3"
               />
               <input
                 type="text"
-                value={editBranch.address}
+                value={editBranch.alamat}
                 onChange={(e) =>
-                  setEditBranch({ ...editBranch, address: e.target.value })
+                  setEditBranch({ ...editBranch, alamat: e.target.value })
                 }
-                className="border rounded-lg px-3 py-2 w-full mb-3 focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-green-50"
+                className="border rounded-lg px-3 py-2 w-full mb-3"
+              />
+              <input
+                type="text"
+                value={editBranch.telepon}
+                onChange={(e) =>
+                  setEditBranch({ ...editBranch, telepon: e.target.value })
+                }
+                className="border rounded-lg px-3 py-2 w-full mb-3"
               />
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setEditBranch(null)}
-                  className="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                  className="px-4 py-2 rounded-lg border"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all duration-200"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg"
                 >
                   Simpan
                 </button>
