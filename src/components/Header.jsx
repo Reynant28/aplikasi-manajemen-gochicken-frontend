@@ -14,6 +14,8 @@ const Header = () => {
     navigate("/");
   };
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return (
     <header className="bg-gradient-to-r from-white to-gray-50 p-4 flex justify-between items-center border-b border-gray-200 shadow-sm">
       {/* Search */}
@@ -37,21 +39,20 @@ const Header = () => {
         <motion.button
           className="p-2 rounded-full hover:bg-gray-100 relative"
           whileTap={{ scale: 0.9 }}
-          whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.4 } }}
+          whileHover={{
+            rotate: [0, -10, 10, -10, 0],
+            transition: { duration: 0.4 },
+          }}
         >
           <Bell size={20} className="text-gray-600" />
           <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
         </motion.button>
 
-        {/* Profile */}
-        <div className="flex items-center space-x-2">
-          <motion.img
-            src="https://i.pravatar.cc/40"
-            alt="Admin"
-            className="w-9 h-9 rounded-full border-2 border-green-400 shadow-sm"
-            whileHover={{ scale: 1.1 }}
-          />
-          <span className="text-sm font-semibold text-gray-700">Admin</span>
+        {/* Greeting User (No Profile Picture) */}
+        <div className="flex items-center">
+          <span className="text-sm font-semibold text-gray-700">
+            Hello, {user?.nama || "Guest"}
+          </span>
         </div>
 
         {/* Logout Logo */}
@@ -60,13 +61,10 @@ const Header = () => {
           className="relative w-10 h-10 flex items-center justify-center rounded-full cursor-pointer overflow-hidden group"
           whileTap={{ scale: 0.9 }}
         >
-          {/* Red hover background */}
           <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-
-          {/* Icon with animation */}
           <motion.div
             initial={{ x: 0 }}
-            whileHover={{ x: 4 }} // arrow slides out slightly
+            whileHover={{ x: 4 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
             <LogOut size={22} className="text-red-600" />

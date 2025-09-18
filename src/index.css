@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Hilangin scrollbar (Chrome, Safari, Edge) */
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* Optional: just to avoid a white box */
+}
+
+/* Hilangin scrollbar (Firefox) */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

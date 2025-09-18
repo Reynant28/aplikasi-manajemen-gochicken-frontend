@@ -11,7 +11,7 @@ const Dashboard = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 scrollbar-hide">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-4">
               <div className="flex space-x-1 border-b">
