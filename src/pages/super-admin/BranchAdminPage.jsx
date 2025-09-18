@@ -1,5 +1,5 @@
-// src/pages/AkunAdminCabangPage.jsx
-import React, { useState, useEffect } from "react";
+// src/pages/AkunAdminAdvertisingPage.jsx
+import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { UserPlus } from "lucide-react";
@@ -24,16 +24,8 @@ const BranchAdminPage = () => {
   // 🔑 Ambil token dari localStorage
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    if (token) {
-      fetchAdmins();
-      fetchCabang();
-    } else {
-      console.error("⚠️ Token tidak ditemukan, user belum login");
-    }
-  }, []);
-
-  const fetchAdmins = async () => {
+  // ✅ Bungkus pakai useCallback biar stable di dependency
+  const fetchAdmins = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/admin-cabang`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -44,9 +36,9 @@ const BranchAdminPage = () => {
       console.error("Failed to fetch admins:", err);
       setAdmins([]);
     }
-  };
+  }, [token]);
 
-  const fetchCabang = async () => {
+  const fetchCabang = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/cabang-without-admin`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +49,16 @@ const BranchAdminPage = () => {
       console.error("Failed to fetch cabang:", err);
       setCabang([]);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchAdmins();
+      fetchCabang();
+    } else {
+      console.error("⚠️ Token tidak ditemukan, user belum login");
+    }
+  }, [token, fetchAdmins, fetchCabang]); // ✅ sekarang aman
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -193,8 +194,7 @@ const BranchAdminPage = () => {
               </h2>
               <p className="text-gray-700 text-sm">{admin.email}</p>
               <p className="text-gray-600 text-xs">
-                Cabang:{" "}
-                {admin.cabang ? admin.cabang.nama_cabang : "N/A"}
+                Cabang: {admin.cabang ? admin.cabang.nama_cabang : "N/A"}
               </p>
             </motion.div>
           ))}
