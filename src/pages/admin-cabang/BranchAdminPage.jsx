@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { UserPlus } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api";
-const TOKEN = "duIqxf6RzlpaBj0d1ly5sNjZVwc9JVwm4upmEOty8c31fe28";
+const TOKEN = localStorage.getItem("token");
 
 const BranchAdminPage = () => {
     const [formData, setFormData] = useState({
