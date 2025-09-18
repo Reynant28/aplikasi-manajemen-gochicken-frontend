@@ -7,7 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 // Super Admin pages
 import GeneralPageSuper from './pages/super-admin/GeneralPage.jsx';
 import ReportsPageSuper from './pages/super-admin/ReportsPage.jsx';
-import AdvertisingPageSuper from './pages/super-admin/AdvertisingPage.jsx';
+import KelolaCabangPageSuper from './pages/super-admin/KelolaCabangPage.jsx';
 import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
 import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
 import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
@@ -35,7 +35,7 @@ function App() {
               <Route index element={<Navigate to="general" replace />} />
               <Route path="general" element={<GeneralPageSuper />} />
               <Route path="reports" element={<ReportsPageSuper />} />
-              <Route path="advertising" element={<AdvertisingPageSuper />} />
+              <Route path="kelola-cabang" element={<KelolaCabangPageSuper />} />
               <Route path="branch" element={<BranchAdminPageSuper />} />
               <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
               <Route path="karyawan" element={<KaryawanPageSuper />} />

@@ -31,7 +31,7 @@ const Sidebar = () => {
   const menuItems = [
     { to: "/general", label: "General", icon: <Home size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/advertising", label: "Kelola Cabang", icon: <Building2 size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },

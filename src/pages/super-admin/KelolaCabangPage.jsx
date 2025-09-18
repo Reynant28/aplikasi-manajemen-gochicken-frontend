@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = "http://localhost:8000/api";
 
-const AdvertisingPage = () => {
+const KelolaCabangPage = () => {
   const [branches, setBranches] = useState([]);
   const [newBranch, setNewBranch] = useState({
     nama_cabang: "",
@@ -271,4 +271,4 @@ const AdvertisingPage = () => {
   );
 };
 
-export default AdvertisingPage;
+export default KelolaCabangPage;
