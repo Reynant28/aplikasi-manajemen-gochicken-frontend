@@ -5,21 +5,54 @@ import { Plus, Edit, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const AdvertisingPage = () => {
-  const [branches, setBranches] = useState([
-    { id: 1, name: "Cabang Jakarta", address: "Jl. Sudirman No. 1" },
-    { id: 2, name: "Cabang Bandung", address: "Jl. Asia Afrika No. 10" },
-  ]);
+  const [branches, setBranches] = useState({
+    nama_cabang: "",
+    alamat: "",
+    telepon: "",
+    password_cabang: ""
+  });
 
-  const [newBranch, setNewBranch] = useState({ name: "", address: "" });
+  useEffect(() => {
+    fetchAdmins();
+    fetchCabang();
+  }, []);
+  
+  const fetchAdmins = async () => {
+      try {
+          const res = await fetch(`${API_URL}/cabang`, {
+              headers: { Authorization: `Bearer ${TOKEN}` },
+          });
+          const data = await res.json();
+          setAdmins(data.data || []);
+      } catch (err) {
+          console.error("Failed to fetch admins:", err);
+          setAdmins([]);
+      }
+  };
+
+  const fetchCabang = async () => {
+      try {
+          const res = await fetch(`${API_URL}/cabang-without-admin`, {
+              headers: { Authorization: `Bearer ${TOKEN}` },
+          });
+          const data = await res.json();
+          setCabang(data.data || []);
+      } catch (err) {
+          console.error("Failed to fetch cabang:", err);
+          setCabang([]);
+      }
+  };
+
+  const [newBranch, setNewBranch] = useState({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
   const [editBranch, setEditBranch] = useState(null);
 
   const handleAdd = () => {
-    if (!newBranch.name || !newBranch.address) return;
+    if (!newBranch.nama_cabang || !newBranch.alamat || !newBranch.telepon || !newBranch.password_cabang) return;
     setBranches([
       ...branches,
-      { id: Date.now(), name: newBranch.name, address: newBranch.address },
+      { id: Date.now(), nama_cabang: newBranch.nama_cabang, alamat: newBranch.alamat, telepon: newBranch.telepon, password_cabang: newBranch.password_cabang },
     ]);
-    setNewBranch({ name: "", address: "" });
+    setNewBranch({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
   };
 
   const handleDelete = (id) => {
@@ -56,18 +89,45 @@ const AdvertisingPage = () => {
           <input
             type="text"
             placeholder="Nama Cabang"
-            value={newBranch.name}
+            value={newBranch.nama_cabang}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, name: e.target.value })
+              setNewBranch({ ...newBranch, nama_cabang: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
           />
           <input
             type="text"
             placeholder="Alamat"
-            value={newBranch.address}
+            value={newBranch.alamat}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, address: e.target.value })
+              setNewBranch({ ...newBranch, alamat: e.target.value })
+            }
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+          />
+          <input
+            type="text"
+            placeholder="Alamat"
+            value={newBranch.alamat}
+            onChange={(e) =>
+              setNewBranch({ ...newBranch, alamat: e.target.value })
+            }
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+          />
+          <input
+            type="text"
+            placeholder="Telepon"
+            value={newBranch.telepon}
+            onChange={(e) =>
+              setNewBranch({ ...newBranch, telepon: e.target.value })
+            }
+            className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
+          />
+          <input
+            type="text"
+            placeholder="Password Cabang"
+            value={newBranch.password_cabang}
+            onChange={(e) =>
+              setNewBranch({ ...newBranch, password_cabang: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-green-500 outline-none text-gray-800 bg-white"
           />

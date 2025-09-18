@@ -8,7 +8,6 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import GeneralPageSuper from './pages/super-admin/GeneralPage.jsx';
 import ReportsPageSuper from './pages/super-admin/ReportsPage.jsx';
 import AdvertisingPageSuper from './pages/super-admin/AdvertisingPage.jsx';
-import AudiencePageSuper from './pages/super-admin/AudiencePage.jsx';
 import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
 import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
 import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
@@ -16,9 +15,6 @@ import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
 import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
-import AdvertisingPageCabang from './pages/admin-cabang/AdvertisingPage.jsx';
-import AudiencePageCabang from './pages/admin-cabang/AudiencePage.jsx';
-import BranchAdminPageCabang from "./pages/admin-cabang/BranchAdminPage.jsx";
 import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
 import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
 
@@ -41,7 +37,6 @@ function App() {
               <Route path="reports" element={<ReportsPageSuper />} />
               <Route path="advertising" element={<AdvertisingPageSuper />} />
               <Route path="branch" element={<BranchAdminPageSuper />} />
-              <Route path="audience" element={<AudiencePageSuper />} />
               <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
               <Route path="karyawan" element={<KaryawanPageSuper />} />
             </Route>
@@ -53,9 +48,6 @@ function App() {
               <Route index element={<Navigate to="general" replace />} />
               <Route path="general" element={<GeneralPageCabang />} />
               <Route path="reports" element={<ReportsPageCabang />} />
-              <Route path="advertising" element={<AdvertisingPageCabang />} />
-              <Route path="branch" element={<BranchAdminPageCabang />} />
-              <Route path="audience" element={<AudiencePageCabang />} />
               <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
               <Route path="karyawan" element={<KaryawanPageCabang />} />
             </Route>
