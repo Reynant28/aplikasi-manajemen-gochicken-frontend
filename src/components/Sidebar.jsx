@@ -27,6 +27,19 @@ const Sidebar = () => {
     basePath = `/admin-cabang/${cabang.id_cabang}/dashboard`;
   }
 
+  // Daftar menu berdasarkan role
+  const menuItems = [
+    { to: "/general", label: "General", icon: <Home size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
+    { to: "/reports", label: "Reports", icon: <BarChart2 size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
+    { to: "/advertising", label: "Kelola Cabang", icon: <Building2 size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/karyawan", label: "Karyawan", icon: <Users size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
+    { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
+    { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/bahan", label: "Bahan", icon: <Package size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/stok", label: "Stok", icon: <Boxes size={18} className="mr-2" />, roles: ["super admin"] },
+  ];
+
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
@@ -51,53 +64,29 @@ const Sidebar = () => {
 
         {/* Isi Dropdown dengan Animasi (ke bawah) */}
         <AnimatePresence>
-          {openDropdown && (
-            <motion.div
-              className="ml-3 mt-2 space-y-1"
-              initial={{ opacity: 0, y: -10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: -10, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <NavLink to={`${basePath}/general`} className={linkClass}>
-                <Home size={18} className="mr-2" /> General
-              </NavLink>
+        {openDropdown && (
+          <motion.div
+            className="ml-3 mt-2 space-y-1"
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {menuItems
+              .filter(item => item.roles.includes(user?.role))
+              .map((item, idx) => (
+                <NavLink
+                  key={idx}
+                  to={`${basePath}${item.to}`}
+                  className={linkClass}
+                >
+                  {item.icon} {item.label}
+                </NavLink>
+              ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <NavLink to={`${basePath}/reports`} className={linkClass}>
-                <BarChart2 size={18} className="mr-2" /> Reports
-              </NavLink>
-
-              <NavLink to={`${basePath}/advertising`} className={linkClass}>
-                <Building2 size={18} className="mr-2" /> Kelola Cabang
-              </NavLink>
-
-              <NavLink to={`${basePath}/karyawan`} className={linkClass}>
-                <Users size={18} className="mr-2" /> Karyawan
-              </NavLink>
-
-              <NavLink to={`${basePath}/branch`} className={linkClass}>
-                <UserCog size={18} className="mr-2" /> Admin Cabang
-              </NavLink>
-
-              <NavLink to={`${basePath}/pengeluaran`} className={linkClass}>
-                <Wallet size={18} className="mr-2" /> Pengeluaran
-              </NavLink>
-
-              <NavLink to={`${basePath}/transaksi`} className={linkClass}>
-                <Receipt size={18} className="mr-2" /> Transaksi
-              </NavLink>
-
-              <NavLink to={`${basePath}/bahan`} className={linkClass}>
-                <Package size={18} className="mr-2" /> Bahan
-              </NavLink>
-
-              <NavLink to={`${basePath}/stok`} className={linkClass}>
-                <Boxes size={18} className="mr-2" /> Stok
-              </NavLink>
-              
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Menu utama lain */}
         <nav className="space-y-1 mt-4">
