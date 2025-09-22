@@ -18,6 +18,7 @@ import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
 import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
 import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
 import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
+import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
@@ -52,6 +53,7 @@ function App() {
               <Route path="reports" element={<ReportsPageCabang />} />
               <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
               <Route path="karyawan" element={<KaryawanPageCabang />} />
+              <Route path="produk" element={<ProdukPage />} />
             </Route>
           </Route>
 

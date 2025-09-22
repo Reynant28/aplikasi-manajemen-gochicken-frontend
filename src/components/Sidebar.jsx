@@ -38,6 +38,7 @@ const Sidebar = () => {
     { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/bahan", label: "Bahan", icon: <Package size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/stok", label: "Stok", icon: <Boxes size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/produk", label: "Produk", icon: <Layers size={18} className="mr-2" />, roles: ["admin cabang"] },
   ];
 
 

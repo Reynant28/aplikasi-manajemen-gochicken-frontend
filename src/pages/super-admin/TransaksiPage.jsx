@@ -57,7 +57,39 @@ const TransaksiPage = () => {
 
   return (
     <div className="p-6">
-      <div className="bg-white shadow-lg rounded-2xl p-6">
+      {/* CSS untuk print */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .print-area, .print-area * {
+            visibility: visible;
+          }
+          .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+          }
+          .no-print {
+            display: none !important;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12pt;
+          }
+          table th, table td {
+            border: 1px solid #333;
+            padding: 6px;
+          }
+        }
+      `}</style>
+
+      <div className="bg-white shadow-lg rounded-2xl p-6 no-print">
         <h1 className="text-2xl font-bold mb-6 text-gray-800">
           📊 Laporan Transaksi
         </h1>
@@ -175,115 +207,86 @@ const TransaksiPage = () => {
 
       {/* Modal detail transaksi */}
       {detailTransaksi && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur-md flex justify-center items-center z-50">
-          <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl w-[550px] overflow-hidden border border-gray-200">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-[600px] overflow-hidden border border-gray-200 print-area">
             {/* Header */}
-            <div className="flex justify-between items-center bg-blue-600/90 px-6 py-3">
-              <h2 className="text-lg font-bold text-white drop-shadow">
-                🧾 Detail Transaksi {detailTransaksi.kode}
+            <div className="p-6 border-b">
+              <h2 className="text-lg font-bold text-gray-800">
+                🐔 GoChicken Administrator
               </h2>
-              <button
-                onClick={() => setDetailTransaksi(null)}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg shadow"
-              >
-                ✕
-              </button>
+              <p className="text-sm text-gray-500">
+                Detail Transaksi {detailTransaksi.kode}
+              </p>
             </div>
 
             {/* Body */}
-            <div className="p-6 space-y-4">
-              {/* Info transaksi */}
-              <div className="grid grid-cols-2 gap-y-2">
-                <p className="text-gray-700 font-semibold">👤 Pelanggan:</p>
-                <p className="text-gray-600">{detailTransaksi.pelanggan}</p>
+        <div className="p-6 space-y-4">
+          {/* Info transaksi */}
+            <div className="grid grid-cols-2 gap-y-2 text-sm">
+              <p className="font-semibold text-gray-700">👤 Pelanggan:</p>
+              <p className="text-gray-900">{detailTransaksi.pelanggan}</p>
 
-                <p className="text-gray-700 font-semibold">
-                  📅 Tanggal & Waktu:
-                </p>
-                <p className="text-gray-600">{detailTransaksi.tanggal}</p>
+              <p className="font-semibold text-gray-700">📅 Tanggal & Waktu:</p>
+              <p className="text-gray-900">{detailTransaksi.tanggal}</p>
 
-                <p className="text-gray-700 font-semibold">
-                  💳 Metode Pembayaran:
-                </p>
-                <p className="text-blue-600 font-medium">
-                  {detailTransaksi.metode}
-                </p>
-              </div>
-
-              {/* Tabel Item */}
-              <div className="border rounded-xl overflow-hidden bg-white/70 backdrop-blur">
-                <table className="w-full text-sm border-collapse">
-                  <thead className="bg-gray-100/70">
-                    <tr>
-                      <th className="border px-3 py-2 text-left text-gray-700">
-                        Produk
-                      </th>
-                      <th className="border px-3 py-2 text-center text-gray-700">
-                        Qty
-                      </th>
-                      <th className="border px-3 py-2 text-right text-gray-700">
-                        Harga
-                      </th>
-                      <th className="border px-3 py-2 text-right text-gray-700">
-                        Subtotal
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detailTransaksi.items.map((i, idx) => (
-                      <tr
-                        key={idx}
-                        className={
-                          idx % 2 === 0 ? "bg-white/80" : "bg-gray-50/80"
-                        }
-                      >
-                        <td className="border px-3 py-2 text-gray-600">
-                          {i.nama}
-                        </td>
-                        <td className="border px-3 py-2 text-center text-blue-600 font-semibold">
-                          {i.qty}
-                        </td>
-                        <td className="border px-3 py-2 text-right text-gray-600">
-                          Rp {i.harga.toLocaleString()}
-                        </td>
-                        <td className="border px-3 py-2 text-right font-medium text-green-600">
-                          Rp {(i.qty * i.harga).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Ringkasan */}
-              <div className="bg-gray-50/80 p-4 rounded-xl space-y-2">
-                <div className="flex justify-between text-gray-700">
-                  <span>Subtotal</span>
-                  <span>
-                    Rp{" "}
-                    {detailTransaksi.items
-                      .reduce((a, b) => a + b.qty * b.harga, 0)
-                      .toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold text-green-700 text-lg">
-                  <span>Total</span>
-                  <span>
-                    Rp{" "}
-                    {detailTransaksi.items
-                      .reduce((a, b) => a + b.qty * b.harga, 0)
-                      .toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-red-600 font-medium">
-                  <span>Sisa / Kembalian</span>
-                  <span>Rp 0</span>
-                </div>
-              </div>
+              <p className="font-semibold text-gray-700">💳 Metode Pembayaran:</p>
+              <p className="text-gray-900">{detailTransaksi.metode}</p>
             </div>
 
+          {/* Tabel Item */}
+          <table className="w-full text-sm border mt-4">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border px-3 py-2 text-left text-gray-900">Produk</th>
+                <th className="border px-3 py-2 text-center text-gray-900">Qty</th>
+                <th className="border px-3 py-2 text-right text-gray-900">Harga</th>
+                <th className="border px-3 py-2 text-right text-gray-900">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detailTransaksi.items.map((i, idx) => (
+                <tr key={idx}>
+                  <td className="border px-3 py-2 text-gray-900">{i.nama}</td>
+                  <td className="border px-3 py-2 text-center text-gray-900">{i.qty}</td>
+                  <td className="border px-3 py-2 text-right text-gray-900">
+                    Rp {i.harga.toLocaleString()}
+                  </td>
+                  <td className="border px-3 py-2 text-right text-gray-900">
+                    Rp {(i.qty * i.harga).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Ringkasan */}
+          <div className="mt-4 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-800">
+              <span>Subtotal</span>
+              <span>
+                Rp{" "}
+                {detailTransaksi.items
+                  .reduce((a, b) => a + b.qty * b.harga, 0)
+                  .toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between font-bold text-green-700 text-base">
+              <span>Total</span>
+              <span>
+                Rp{" "}
+                {detailTransaksi.items
+                  .reduce((a, b) => a + b.qty * b.harga, 0)
+                  .toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between text-red-600">
+              <span>Sisa / Kembalian</span>
+              <span>Rp 0</span>
+            </div>
+          </div>
+        </div>
             {/* Footer */}
-            <div className="flex justify-end gap-3 bg-gray-50 px-6 py-4 border-t">
+            <div className="flex justify-end gap-3 bg-gray-50 px-6 py-4 border-t no-print">
               <button
                 onClick={() => window.print()}
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow"
