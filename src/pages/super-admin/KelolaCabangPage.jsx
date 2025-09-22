@@ -7,14 +7,16 @@ import { motion, AnimatePresence } from "framer-motion";
 const API_URL = "http://localhost:8000/api";
 
 const KelolaCabangPage = () => {
-  const [branches, setBranches] = useState([]);
-  const [newBranch, setNewBranch] = useState({
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [cabang, setCabang] = useState([]);
+  const [newCabang, setNewCabang] = useState({
     nama_cabang: "",
     alamat: "",
     telepon: "",
     password_cabang: "",
   });
-  const [editBranch, setEditBranch] = useState(null);
+  const [editCabang, setEditCabang] = useState(null);
 
   const token = localStorage.getItem("token");
 
@@ -25,10 +27,10 @@ const KelolaCabangPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setBranches(data.data || []);
+        setCabang(data.data || []);
       } catch (err) {
         console.error("Failed to fetch cabang:", err);
-        setBranches([]);
+        setCabang([]);
       }
     };
 
@@ -42,41 +44,47 @@ const KelolaCabangPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setBranches(data.data || []);
+      setCabang(data.data || []);
     } catch (err) {
       console.error("Failed to fetch cabang:", err);
-      setBranches([]);
+      setCabang([]);
     }
   };
 
-  const handleAdd = async () => {
-    if (
-      !newBranch.nama_cabang ||
-      !newBranch.alamat ||
-      !newBranch.telepon ||
-      !newBranch.password_cabang
-    )
-      return;
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
     try {
-      const res = await fetch(`${API_URL}/cabang`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newBranch),
-      });
+        const res = await fetch(`${API_URL}/cabang`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(newCabang), // ⬅️ Kirim newCabang tanpa id_cabang
+        });
 
-      if (res.ok) {
-        await fetchCabang();
-        setNewBranch({ nama_cabang: "", alamat: "", telepon: "", password_cabang: "" });
-      } else {
-        console.error("Failed to add cabang");
-      }
+        const data = await res.json();
+        if (res.status === 201) {
+            setMessage("✅ " + data.message);
+            setNewCabang({
+              nama_cabang: "",
+              alamat: "",
+              telepon: "",
+              password_cabang: "",
+            });
+            fetchCabang();
+        } else {
+            setMessage("❌ " + (data.message || "Error"));
+        }
     } catch (err) {
-      console.error("Add cabang error:", err);
+        console.error("Fetch error:", err);
+        setMessage("❌ Error koneksi server");
     }
+
+    setLoading(false);
   };
 
   const handleDelete = async (id) => {
@@ -93,17 +101,17 @@ const KelolaCabangPage = () => {
 
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`${API_URL}/cabang/${editBranch.id_cabang}`, {
+      const res = await fetch(`${API_URL}/cabang/${editCabang.id_cabang}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(editBranch),
+        body: JSON.stringify(editCabang),
       });
       if (res.ok) {
         await fetchCabang();
-        setEditBranch(null);
+        setEditCabang(null);
       }
     } catch (err) {
       console.error("Update cabang error:", err);
@@ -133,45 +141,47 @@ const KelolaCabangPage = () => {
           <input
             type="text"
             placeholder="Nama Cabang"
-            value={newBranch.nama_cabang}
+            value={newCabang.nama_cabang}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, nama_cabang: e.target.value })
+              setNewCabang({ ...newCabang, nama_cabang: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="text"
             placeholder="Alamat"
-            value={newBranch.alamat}
+            value={newCabang.alamat}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, alamat: e.target.value })
+              setNewCabang({ ...newCabang, alamat: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="text"
             placeholder="Telepon"
-            value={newBranch.telepon}
+            value={newCabang.telepon}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, telepon: e.target.value })
+              setNewCabang({ ...newCabang, telepon: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="password"
             placeholder="Password Cabang"
-            value={newBranch.password_cabang}
+            value={newCabang.password_cabang}
             onChange={(e) =>
-              setNewBranch({ ...newBranch, password_cabang: e.target.value })
+              setNewCabang({ ...newCabang, password_cabang: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
-          <button
-            onClick={handleAdd}
-            className="bg-green-600 text-white px-5 py-2 rounded-lg"
+          <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAdd}
+              disabled={loading || cabang.length === 0}
+              className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
           >
-            <Plus size={18} /> Tambah
-          </button>
+              {loading ? "Menyimpan..." : "Tambah Admin"}
+          </motion.button>
         </div>
       </motion.div>
 
@@ -181,7 +191,7 @@ const KelolaCabangPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          {branches.map((branch, index) => (
+          {cabang.map((branch, index) => (
             <motion.div
               key={branch.id_cabang}
               className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
@@ -196,7 +206,7 @@ const KelolaCabangPage = () => {
               <p className="text-gray-600 text-sm mt-1">📞 {branch.telepon}</p>
               <div className="flex gap-3 mt-5">
                 <button
-                  onClick={() => setEditBranch(branch)}
+                  onClick={() => setEditCabang(branch)}
                   className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
                 >
                   <Edit size={16} /> <span>Edit</span>
@@ -214,7 +224,7 @@ const KelolaCabangPage = () => {
 
         {/* Modal edit */}
         <AnimatePresence> 
-          {editBranch && (
+          {editCabang && (
             <motion.div
               className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
               initial={{ opacity: 0 }}
@@ -230,9 +240,9 @@ const KelolaCabangPage = () => {
                 </label>
                 <input
                   type="text"
-                  value={editBranch.nama_cabang}
+                  value={editCabang.nama_cabang}
                   onChange={(e) =>
-                    setEditBranch({ ...editBranch, nama_cabang: e.target.value })
+                    setEditCabang({ ...editCabang, nama_cabang: e.target.value })
                   }
                   className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
                 />
@@ -241,9 +251,9 @@ const KelolaCabangPage = () => {
                 </label>
                 <input
                   type="text"
-                  value={editBranch.alamat}
+                  value={editCabang.alamat}
                   onChange={(e) =>
-                    setEditBranch({ ...editBranch, alamat: e.target.value })
+                    setEditCabang({ ...editCabang, alamat: e.target.value })
                   }
                   className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
                 />
@@ -252,15 +262,15 @@ const KelolaCabangPage = () => {
                 </label>
                 <input
                   type="text"
-                  value={editBranch.telepon}
+                  value={editCabang.telepon}
                   onChange={(e) =>
-                    setEditBranch({ ...editBranch, telepon: e.target.value })
+                    setEditCabang({ ...editCabang, telepon: e.target.value })
                   }
                   className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
                 />
                 <div className="flex justify-end gap-3 mt-4">
                   <button
-                    onClick={() => setEditBranch(null)}
+                    onClick={() => setEditCabang(null)}
                     className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
                   >
                     Batal
