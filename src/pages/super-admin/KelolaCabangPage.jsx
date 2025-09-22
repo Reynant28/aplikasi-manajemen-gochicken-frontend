@@ -137,7 +137,7 @@ const KelolaCabangPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, nama_cabang: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full"
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="text"
@@ -146,7 +146,7 @@ const KelolaCabangPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, alamat: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full"
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="text"
@@ -155,7 +155,7 @@ const KelolaCabangPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, telepon: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full"
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <input
             type="password"
@@ -164,7 +164,7 @@ const KelolaCabangPage = () => {
             onChange={(e) =>
               setNewBranch({ ...newBranch, password_cabang: e.target.value })
             }
-            className="border rounded-lg px-3 py-2 w-full"
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
           />
           <button
             onClick={handleAdd}
@@ -176,97 +176,106 @@ const KelolaCabangPage = () => {
       </motion.div>
 
       {/* Grid daftar cabang */}
-      <motion.div
-        className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        {branches.map((branch, index) => (
-          <motion.div
-            key={branch.id_cabang}
-            className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <h3 className="text-xl font-semibold text-green-800">
-              {branch.nama_cabang}
-            </h3>
-            <p className="text-gray-700">{branch.alamat}</p>
-            <p className="text-gray-600 text-sm">📞 {branch.telepon}</p>
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={() => setEditBranch(branch)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded-lg"
-              >
-                <Edit size={16} /> Edit
-              </button>
-              <button
-                onClick={() => handleDelete(branch.id_cabang)}
-                className="bg-red-500 text-white px-3 py-1 rounded-lg"
-              >
-                <Trash size={16} /> Hapus
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Modal edit */}
-      <AnimatePresence>
-        {editBranch && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600">
-              <h2 className="text-xl font-semibold mb-4 text-green-700">
-                ✏️ Edit Cabang
-              </h2>
-              <input
-                type="text"
-                value={editBranch.nama_cabang}
-                onChange={(e) =>
-                  setEditBranch({ ...editBranch, nama_cabang: e.target.value })
-                }
-                className="border rounded-lg px-3 py-2 w-full mb-3"
-              />
-              <input
-                type="text"
-                value={editBranch.alamat}
-                onChange={(e) =>
-                  setEditBranch({ ...editBranch, alamat: e.target.value })
-                }
-                className="border rounded-lg px-3 py-2 w-full mb-3"
-              />
-              <input
-                type="text"
-                value={editBranch.telepon}
-                onChange={(e) =>
-                  setEditBranch({ ...editBranch, telepon: e.target.value })
-                }
-                className="border rounded-lg px-3 py-2 w-full mb-3"
-              />
-              <div className="flex justify-end gap-3">
+        <motion.div
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          {branches.map((branch, index) => (
+            <motion.div
+              key={branch.id_cabang}
+              className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <h3 className="text-xl font-bold text-green-800 mb-1">
+                {branch.nama_cabang}
+              </h3>
+              <p className="text-gray-700 font-medium">🏠 {branch.alamat}</p>
+              <p className="text-gray-600 text-sm mt-1">📞 {branch.telepon}</p>
+              <div className="flex gap-3 mt-5">
                 <button
-                  onClick={() => setEditBranch(null)}
-                  className="px-4 py-2 rounded-lg border"
+                  onClick={() => setEditBranch(branch)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
                 >
-                  Batal
+                  <Edit size={16} /> <span>Edit</span>
                 </button>
                 <button
-                  onClick={handleUpdate}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                  onClick={() => handleDelete(branch.id_cabang)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
                 >
-                  Simpan
+                  <Trash size={16} /> <span>Hapus</span>
                 </button>
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </motion.div>
+
+        {/* Modal edit */}
+        <AnimatePresence> 
+          {editBranch && (
+            <motion.div
+              className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600">
+                <h2 className="text-xl font-semibold mb-4 text-green-700">
+                  ✏️ Edit Cabang
+                </h2>
+                <label className="text-sm font-medium text-gray-700">
+                  Nama Cabang
+                </label>
+                <input
+                  type="text"
+                  value={editBranch.nama_cabang}
+                  onChange={(e) =>
+                    setEditBranch({ ...editBranch, nama_cabang: e.target.value })
+                  }
+                  className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                />
+                <label className="text-sm font-medium text-gray-700">
+                  Alamat
+                </label>
+                <input
+                  type="text"
+                  value={editBranch.alamat}
+                  onChange={(e) =>
+                    setEditBranch({ ...editBranch, alamat: e.target.value })
+                  }
+                  className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                />
+                <label className="text-sm font-medium text-gray-700">
+                  Telepon
+                </label>
+                <input
+                  type="text"
+                  value={editBranch.telepon}
+                  onChange={(e) =>
+                    setEditBranch({ ...editBranch, telepon: e.target.value })
+                  }
+                  className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                />
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => setEditBranch(null)}
+                    className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
     </div>
   );
 };

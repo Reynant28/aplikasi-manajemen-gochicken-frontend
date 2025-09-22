@@ -11,6 +11,7 @@ import KelolaCabangPageSuper from './pages/super-admin/KelolaCabangPage.jsx';
 import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
 import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
 import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
+import TransaksiPage from "./pages/super-admin/TransaksiPage.jsx";
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -39,6 +40,7 @@ function App() {
               <Route path="branch" element={<BranchAdminPageSuper />} />
               <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
               <Route path="karyawan" element={<KaryawanPageSuper />} />
+              <Route path="transaksi" element={<TransaksiPage />} />
             </Route>
           </Route>
 
