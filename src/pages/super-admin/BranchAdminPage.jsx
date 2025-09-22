@@ -207,25 +207,25 @@ const BranchAdminPage = () => {
               required={!editingAdmin}
             />
 
-                  <select
-                    name="id_cabang"
-                    value={formData.id_cabang}
-                    onChange={handleChange}
-                    className="w-full p-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                    required
-                    disabled={cabang.length === 0} // ⬅️ kalau kosong, select jadi disable
-                  >
-                    <option value="">
-                      {cabang.length === 0
-                        ? "Tidak ada cabang yang belum memiliki admin"
-                        : "Pilih Cabang"}
-                    </option>
-                    {cabang.map((cab) => (
-                      <option key={cab.id_cabang} value={cab.id_cabang}>
-                        {cab.nama_cabang}
-                      </option>
-                    ))}
-                  </select>
+            <select
+              name="id_cabang"
+              value={formData.id_cabang}
+              onChange={handleChange}
+              className="w-full p-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
+              required
+              disabled={cabang.length === 0} // ⬅️ kalau kosong, select jadi disable
+            >
+              <option value="">
+                {cabang.length === 0
+                  ? "Tidak ada cabang yang belum memiliki admin"
+                  : "Pilih Cabang"}
+              </option>
+              {cabang.map((cab) => (
+                <option key={cab.id_cabang} value={cab.id_cabang}>
+                  {cab.nama_cabang}
+                </option>
+              ))}
+            </select>
 
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -257,17 +257,16 @@ const BranchAdminPage = () => {
               </button>
             )}
           </form>
-
-              {message && (
-                  <p
-                      className={`mt-4 text-center text-sm font-medium ${
-                          message.includes("✅") ? "text-green-600" : "text-red-600"
-                      }`}
-                  >
-                      {message}
-                  </p>
-              )}
-          </motion.div>
+            {message && (
+              <p
+                  className={`mt-4 text-center text-sm font-medium ${
+                      message.includes("✅") ? "text-green-600" : "text-red-600"
+                  }`}
+              >
+                  {message}
+              </p>
+            )}
+        </motion.div>
       )}
 
       {/* List Admin */}
