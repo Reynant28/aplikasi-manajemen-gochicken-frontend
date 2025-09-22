@@ -14,11 +14,12 @@ const BranchAdminPage = () => {
     id_cabang: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [admins, setAdmins] = useState([]);
-  const [cabang, setCabang] = useState([]);
-  const [showForm, setShowForm] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [admins, setAdmins] = useState([]);
+    const [cabang, setCabang] = useState([]);
+    //eslint-disable-next-line no-unused-vars
+    const [showForm, setShowForm] = useState(true);
 
   // State untuk edit mode
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -73,32 +74,32 @@ const BranchAdminPage = () => {
     setMessage("");
 
     try {
-      const res = await fetch(`${API_URL}/admin-cabang`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (res.status === 201) {
-        setMessage("✅ " + data.message);
-        setFormData({
-          nama: "",
-          email: "",
-          password: "",
-          id_cabang: "",
+        const res = await fetch(`${API_URL}/create-admin-cabang`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(formData), // ⬅️ Kirim formData tanpa id_user
         });
-        fetchAdmins();
-        fetchCabang();
-      } else {
-        setMessage("❌ " + (data.message || "Error"));
-      }
+
+        const data = await res.json();
+        if (res.status === 201) {
+            setMessage("✅ " + data.message);
+            setFormData({
+                nama: "",
+                email: "",
+                password: "",
+                id_cabang: "",
+            });
+            fetchAdmins();
+            fetchCabang();
+        } else {
+            setMessage("❌ " + (data.message || "Error"));
+        }
     } catch (err) {
-      console.error("Fetch error:", err);
-      setMessage("❌ Error koneksi server");
+        console.error("Fetch error:", err);
+        setMessage("❌ Error koneksi server");
     }
 
     setLoading(false);
@@ -206,20 +207,25 @@ const BranchAdminPage = () => {
               required={!editingAdmin}
             />
 
-            <select
-              name="id_cabang"
-              value={formData.id_cabang}
-              onChange={handleChange}
-              className="w-full p-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">-- Pilih Cabang --</option>
-              {cabang.map((cab) => (
-                <option key={cab.id_cabang} value={cab.id_cabang}>
-                  {cab.nama_cabang}
-                </option>
-              ))}
-            </select>
+                  <select
+                    name="id_cabang"
+                    value={formData.id_cabang}
+                    onChange={handleChange}
+                    className="w-full p-3 border text-gray-800 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                    required
+                    disabled={cabang.length === 0} // ⬅️ kalau kosong, select jadi disable
+                  >
+                    <option value="">
+                      {cabang.length === 0
+                        ? "Tidak ada cabang yang belum memiliki admin"
+                        : "Pilih Cabang"}
+                    </option>
+                    {cabang.map((cab) => (
+                      <option key={cab.id_cabang} value={cab.id_cabang}>
+                        {cab.nama_cabang}
+                      </option>
+                    ))}
+                  </select>
 
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -252,16 +258,16 @@ const BranchAdminPage = () => {
             )}
           </form>
 
-          {message && (
-            <p
-              className={`mt-4 text-center text-sm font-medium ${
-                message.includes("✅") ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
-        </motion.div>
+              {message && (
+                  <p
+                      className={`mt-4 text-center text-sm font-medium ${
+                          message.includes("✅") ? "text-green-600" : "text-red-600"
+                      }`}
+                  >
+                      {message}
+                  </p>
+              )}
+          </motion.div>
       )}
 
       {/* List Admin */}
