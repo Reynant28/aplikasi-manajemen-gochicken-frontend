@@ -1,17 +1,17 @@
+// src/pages/KaryawanPage.jsx
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Edit,
-  Trash,
-  CircleDollarSign,
-  PlusCircle,
-  User,
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { PlusCircle, Edit, Trash2, X, CircleDollarSign, User, AlertTriangle } from "lucide-react";
 
 const KaryawanPage = () => {
   const [formData, setFormData] = useState({ nama: "", gaji: "" });
   const [karyawan, setKaryawan] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  // state untuk custom confirm
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,124 +27,195 @@ const KaryawanPage = () => {
       setKaryawan([...karyawan, formData]);
     }
     setFormData({ nama: "", gaji: "" });
+    setShowForm(false);
   };
 
   const handleEdit = (index) => {
     setFormData(karyawan[index]);
     setEditingIndex(index);
+    setShowForm(true);
   };
 
-  const handleDelete = (index) => {
-    if (window.confirm("Yakin hapus data karyawan ini?")) {
-      setKaryawan(karyawan.filter((_, i) => i !== index));
-    }
+  const confirmDelete = (index) => {
+    setDeleteIndex(index);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = () => {
+    setKaryawan(karyawan.filter((_, i) => i !== deleteIndex));
+    setShowConfirm(false);
+    setDeleteIndex(null);
   };
 
   return (
-    <div className="p-6 space-y-8">
-      {/* Form Tambah / Edit */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
+    <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
+      <motion.h1
+        className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white shadow-lg rounded-2xl overflow-hidden max-w-lg mx-auto"
       >
-        {/* Header Card */}
-        <div className="bg-green-600 p-4 flex items-center gap-2">
-          <PlusCircle className="text-white" size={22} />
-          <h2 className="text-lg font-bold text-white">
-            {editingIndex !== null ? "Edit Karyawan" : "Tambah Karyawan"}
-          </h2>
-        </div>
+        Kelola Karyawan
+      </motion.h1>
 
-        {/* Body Form */}
-        <div className="p-6 space-y-4">
-          {/* Input Nama */}
-          <div className="flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-green-500">
-            <User className="text-gray-400 mr-2" size={18} />
-            <input
-              type="text"
-              name="nama"
-              placeholder="Nama Karyawan"
-              value={formData.nama}
-              onChange={handleChange}
-              className="w-full outline-none text-gray-900 placeholder-gray-500"
-              required
-            />
-          </div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-semibold text-green-700">Daftar Karyawan</h3>
+        <button
+          onClick={() => {
+            setFormData({ nama: "", gaji: "" });
+            setEditingIndex(null);
+            setShowForm(true);
+          }}
+          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+        >
+          <PlusCircle size={18} /> Tambah Karyawan
+        </button>
+      </div>
 
-          {/* Input Gaji */}
-          <div className="flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-green-500">
-            <CircleDollarSign className="text-gray-400 mr-2" size={18} />
-            <input
-              type="number"
-              name="gaji"
-              placeholder="Masukkan Gaji"
-              value={formData.gaji}
-              onChange={handleChange}
-              className="w-full outline-none text-gray-900 placeholder-gray-500"
-              required
-            />
-          </div>
-
-          {/* Tombol Submit */}
-          <motion.button
-            type="submit"
-            whileTap={{ scale: 0.97 }}
-            whileHover={{ scale: 1.02 }}
-            onClick={handleSubmit}
-            className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold shadow-md"
-          >
-            {editingIndex !== null ? "Update" : "Simpan"}
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* List Karyawan */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 text-green-700">
-          Daftar Karyawan
-        </h3>
+      {/* Grid daftar karyawan */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {karyawan.length === 0 ? (
-          <p className="text-gray-500 italic">Belum ada data.</p>
+          <p className="text-gray-500 italic col-span-full">
+            Belum ada data karyawan.
+          </p>
         ) : (
-          <div className="space-y-4">
-            {karyawan.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex justify-between items-center bg-white shadow-md rounded-xl p-4 hover:shadow-lg transition"
-              >
-                {/* Info Karyawan */}
-                <div>
-                  <p className="text-gray-900 font-semibold">{item.nama}</p>
-                  <p className="text-green-700 font-bold flex items-center gap-1">
-                    <CircleDollarSign size={18} /> Rp{" "}
-                    {parseInt(item.gaji).toLocaleString()}
-                  </p>
-                </div>
-
-                {/* Aksi di kanan */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"
-                  >
-                    <Edit size={16} /> Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(index)}
-                    className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700"
-                  >
-                    <Trash size={16} /> Hapus
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          karyawan.map((item, index) => (
+            <motion.div
+              key={index}
+              className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <h2 className="text-lg font-bold text-green-800 flex items-center gap-2">
+                <User size={18} /> {item.nama}
+              </h2>
+              <p className="text-green-700 font-semibold flex items-center gap-1 mt-2">
+                <CircleDollarSign size={16} /> Rp{" "}
+                {parseInt(item.gaji || 0).toLocaleString()}
+              </p>
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={() => handleEdit(index)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                >
+                  <Edit size={16} /> Edit
+                </button>
+                <button
+                  onClick={() => confirmDelete(index)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                >
+                  <Trash2 size={16} /> Hapus
+                </button>
+              </div>
+            </motion.div>
+          ))
         )}
       </div>
+
+      {/* Modal Tambah/Edit */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600 relative"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+            >
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingIndex(null);
+                  setFormData({ nama: "", gaji: "" });
+                }}
+                className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="text-xl font-semibold mb-4 text-green-700">
+                {editingIndex !== null ? "✏️ Edit Karyawan" : "➕ Tambah Karyawan"}
+              </h2>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <input
+                  type="text"
+                  name="nama"
+                  placeholder="Nama Karyawan"
+                  value={formData.nama}
+                  onChange={handleChange}
+                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
+                  required
+                />
+                <input
+                  type="number"
+                  name="gaji"
+                  placeholder="Masukkan Gaji"
+                  value={formData.gaji}
+                  onChange={handleChange}
+                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
+                  required
+                />
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
+                >
+                  {editingIndex !== null ? "Simpan Perubahan" : "Tambah Karyawan"}
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Confirm Modal */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <AlertTriangle className="text-red-500" size={28} />
+                <h2 className="text-lg font-bold text-gray-800">
+                  Konfirmasi Hapus
+                </h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus karyawan ini? Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
