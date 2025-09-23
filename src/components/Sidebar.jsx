@@ -32,13 +32,13 @@ const Sidebar = () => {
     { to: "/general", label: "General", icon: <Home size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/produk", label: "Produk", icon: <Layers size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
     { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/bahan", label: "Bahan", icon: <Package size={18} className="mr-2" />, roles: ["super admin"] },
     { to: "/stok", label: "Stok", icon: <Boxes size={18} className="mr-2" />, roles: ["super admin"] },
-    { to: "/produk", label: "Produk", icon: <Layers size={18} className="mr-2" />, roles: ["admin cabang"] },
   ];
 
 
