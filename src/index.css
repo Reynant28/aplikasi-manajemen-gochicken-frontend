@@ -1,5 +1,15 @@
 @import "tailwindcss";
-@tailwind utilities;
+
+/* Hilangin scrollbar (Chrome, Safari, Edge) */
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* Optional: just to avoid a white box */
+}
+
+/* Hilangin scrollbar (Firefox) */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -21,14 +31,12 @@
   --themeorange: #f97316;
   --themeorangehover: #d28a0f;
 
-  /* Light Theme */
   --light-bg: hsl(0 0% 95%);
   --light-bg-dark: hsl(0 0% 90%);
   --light-bg-light: hsl(0 0% 100%);
   --light-text: hsl(0 0% 5%);
   --light-text-muted: hsl(0 0% 30%);
 
-  /* Dark Theme */
   --dark-bg: hsl(0 0% 5%);
   --dark-bg-dark: hsl(0 0% 0%);
   --dark-bg-light: hsl(0 0% 10%);

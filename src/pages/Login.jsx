@@ -18,8 +18,8 @@ const Eye = ({ className }) => (
       strokeLinejoin="round"
       strokeWidth={2}
       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 
-         9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 
-         0-8.268-2.943-9.542-7z"
+          9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 
+          0-8.268-2.943-9.542-7z"
     />
   </svg>
 );
@@ -31,11 +31,11 @@ const EyeOff = ({ className }) => (
       strokeLinejoin="round"
       strokeWidth={2}
       d="M13.875 18.825A10.05 10.05 0 0112 
-         19c-4.478 0-8.268-2.943-9.543-7a9.97 
-         9.97 0 011.563-3.029m5.858.908a3 
-         3 0 114.243 4.243M9.878 9.878l4.242 
-         4.242M9.878 9.878L3 3m6.878 
-         6.878L21 21"
+          19c-4.478 0-8.268-2.943-9.543-7a9.97 
+          9.97 0 011.563-3.029m5.858.908a3 
+          3 0 114.243 4.243M9.878 9.878l4.242 
+          4.242M9.878 9.878L3 3m6.878 
+          6.878L21 21"
     />
   </svg>
 );
@@ -64,11 +64,11 @@ const Shield = ({ className }) => (
       strokeLinejoin="round"
       strokeWidth={2}
       d="M9 12l2 2 4-4m5.618-4.016A11.955 
-         11.955 0 0112 2.944a11.955 11.955 
-         0 01-8.618 3.04A12.02 12.02 0 
-         003 9c0 5.591 3.824 10.29 9 
-         11.622 5.176-1.332 9-6.03 
-         9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          11.955 0 0112 2.944a11.955 11.955 
+          0 01-8.618 3.04A12.02 12.02 0 
+          003 9c0 5.591 3.824 10.29 9 
+          11.622 5.176-1.332 9-6.03 
+          9-11.622 0-1.042-.133-2.052-.382-3.016z"
     />
   </svg>
 );
@@ -85,12 +85,12 @@ const Login = () => {
   const [cabangMap, setCabangMap] = useState({});
 
   useEffect(() => {
-    // Fetch cabang dari backend
+    // Fetch cabang from backend
     axios.get("http://localhost:8000/api/cabang")
       .then((res) => {
         if (res.data.status === "success") {
           setCabangOptions(res.data.data.map(c => c.nama_cabang));
-          // Map nama_cabang ke id_cabang
+          // Map nama_cabang to id_cabang
           const map = {};
           res.data.data.forEach(c => { map[c.nama_cabang] = c.id_cabang; });
           setCabangMap(map);
@@ -103,60 +103,75 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async () => {
-    try {
-      setIsLoading(true); // ⬅️ mulai loading
 
-      if (activePanel === "cabang") {
-        // Ambil id_cabang dari map
-        const id_cabang = cabangMap[formData.cabang];
-        if (!id_cabang) {
-          alert("Pilih cabang terlebih dahulu.");
-          return;
+  const handleCabangLogin = async () => {
+    try {
+      setIsLoading(true);
+      // Logika login Admin Cabang
+      const id_cabang = cabangMap[formData.cabang];
+      if (!id_cabang) {
+        alert("Pilih cabang terlebih dahulu.");
+        return;
+      }
+      const res = await axios.post("http://localhost:8000/api/admin-cabang/login", {
+        id_cabang,
+        password_cabang: formData.passwordCabang,
+        password_pribadi: formData.personalPassword,
+      });
+      if (res.data.status === "success") {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        if (res.data.cabang) {
+          localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
         }
-        const res = await axios.post("http://localhost:8000/api/admin-cabang/login", {
-          id_cabang,
-          password_cabang: formData.passwordCabang,
-          password_pribadi: formData.personalPassword,
-        });
-        if (res.data.status === "success") {
-          console.log("Data user dari backend:", res.data.user);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-          if (res.data.cabang) {
-            localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
-          }
-          localStorage.setItem("token", res.data.token);
-          navigate("/home");
-        } else {
-          alert(res.data.message || "Login gagal");
-        }
+        localStorage.setItem("token", res.data.token);
+        navigate(`/admin-cabang/${id_cabang}/dashboard`);
+
       } else {
-        // Super Admin login
-        const res = await axios.post("http://localhost:8000/api/super-admin/login", {
-          email: superAdminData.username,
-          password: superAdminData.password,
-        });
-        if (res.data.status === "success") {
-          localStorage.setItem("token", res.data.token);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-          navigate("/home");
-        } else {
-          alert(res.data.message || "Login gagal");
-        }
+        alert(res.data.message || "Login failed");
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors) {
         const errors = err.response.data.errors;
         alert(Object.values(errors).join("\n"));
+      } else if (err.response && err.response.data && err.response.data.message) {
+        // fallback for message
+        alert(err.response.data.message);
       } else {
         alert("Terjadi error koneksi ke server");
       }
     } finally {
-      setIsLoading(false); // ⬅️ selalu berhenti loading
+      setIsLoading(false);
     }
   };
 
-
+  const handleSuperAdminLogin = async () => {
+    try {
+      setIsLoading(true);
+      // Logika login Super Admin
+      const res = await axios.post("http://localhost:8000/api/super-admin/login", {
+        email: superAdminData.username,
+        password: superAdminData.password,
+      });
+      if (res.data.status === "success") {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/super-admin/dashboard");
+      } else {
+        alert(res.data.message || "Login failed");
+      }
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.errors) {
+        const errors = err.response.data.errors;
+        alert(Object.values(errors).join("\n"));
+      } else if (err.response && err.response.data && err.response.data.message) {
+        alert(err.response.data.message);
+      } else {
+        alert("Terjadi error koneksi ke server");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const [formData, setCabangData] = useState({
     cabang: "",
@@ -181,7 +196,7 @@ const Login = () => {
     if (panel === activePanel) return;
     setPrevPanel(activePanel);
     setActivePanel(panel);
-    // Reset form data sesuai panel
+    // Reset form data according to the panel
     if (panel === "cabang") {
       setCabangData({
         cabang: "",
@@ -497,7 +512,7 @@ const Login = () => {
               <div className="px-2 mt-4">
                 <div
                   className="relative w-full overflow-hidden rounded-lg shadow-lg hover:shadow-xl 
-                             transform hover:scale-[1.02] transition-transform duration-300"
+                                transform hover:scale-[1.02] transition-transform duration-300"
                 >
                   <motion.div
                     animate={{ x: activePanel === "cabang" ? "0%" : "-50%" }}
@@ -508,7 +523,7 @@ const Login = () => {
                     <div className="w-1/2">
                       <button
                         type="button"
-                        onClick={handleSubmit}
+                        onClick={handleCabangLogin}
                         disabled={isLoading}
                         className="w-full py-3 px-6 flex items-center justify-center 
                                   font-medium text-white 
@@ -548,7 +563,7 @@ const Login = () => {
                     <div className="w-1/2">
                       <button
                         type="button"
-                        onClick={handleSubmit}
+                        onClick={handleSuperAdminLogin}
                         disabled={isLoading}
                         className="w-full py-3 px-6 flex items-center justify-center 
                                   font-medium text-white 
@@ -589,7 +604,7 @@ const Login = () => {
             </div>
           </div>
         </div>
-      </div>  
+      </div>
     </>
   );
 };
