@@ -11,10 +11,12 @@ import { motion, AnimatePresence } from "framer-motion";
 const Sidebar = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
 
+  //eslint-disable-next-line no-unused-vars
   const linkClass = ({ isActive }) =>
-    isActive
-      ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
-      : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
+  isActive
+    ? "flex items-center p-2 font-semibold rounded-lg bg-[color:rgba(239,68,68,0.15)] text-[var(--themered)]"
+    : "flex items-center p-2 text-gray-600 hover:bg-[var(--light-bg-dark)] rounded-lg";
+
 
  // Ambil user & cabang dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
@@ -46,7 +48,7 @@ const Sidebar = () => {
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Management</h1>
+        <h1 className="text-2xl font-bold text-gray-800">GoChicken Admin</h1>
       </div>
 
       {/* Isi Sidebar Scrollable */}
@@ -56,7 +58,7 @@ const Sidebar = () => {
           onClick={() => setOpenDropdown(!openDropdown)}
           className="p-2 rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50"
         >
-          <span className="font-semibold text-gray-800">All sites</span>
+          <span className="font-semibold text-gray-800">Lihat Halaman</span>
           <ChevronDown
             size={18}
             className={`text-gray-500 transition-transform ${openDropdown ? "rotate-180" : ""}`}
@@ -74,30 +76,46 @@ const Sidebar = () => {
             transition={{ duration: 0.3 }}
           >
             {menuItems
-              .filter(item => item.roles.includes(user?.role))
-              .map((item, idx) => (
-                <NavLink
-                  key={idx}
-                  to={`${basePath}${item.to}`}
-                  className={linkClass}
-                >
-                  {item.icon} {item.label}
-                </NavLink>
-              ))}
+            .filter(item => item.roles.includes(user?.role))
+            .map((item, idx) => (
+              <NavLink
+                key={idx}
+                to={`${basePath}${item.to}`}
+                //eslint-disable-next-line no-unused-vars
+                className={({ isActive }) =>
+                  "relative flex items-center p-2 rounded-lg font-medium"
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {/* Animated background */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeIndicator"
+                        className="absolute inset-0 rounded-lg"
+                        style={{
+                          backgroundColor: "rgba(239,68,68,0.15)",
+                        }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+
+                    {/* Icon + label (keep above background) */}
+                    <span
+                      className={`relative flex items-center ${
+                        isActive ? "text-[var(--themered)] font-semibold" : "text-gray-600"
+                      }`}
+                    >
+                      {item.icon} {item.label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+
           </motion.div>
         )}
       </AnimatePresence>
-
-
-        {/* Menu utama lain */}
-        <nav className="space-y-1 mt-4">
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Map size={20} className="mr-3" /> Heatmap
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Home size={20} className="mr-3" /> Domain
-          </a>
-        </nav>
       </div>
 
       {/* Footer */}
