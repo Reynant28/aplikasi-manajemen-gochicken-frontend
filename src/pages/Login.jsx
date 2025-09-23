@@ -258,6 +258,7 @@ const Login = () => {
             />
           </div>
 
+
           {/* Right Panel */}
           <div className="w-full md:w-1/2 flex items-center justify-center py-8 px-4 sm:p-10">
             <div className="w-full max-w-md flex flex-col">
