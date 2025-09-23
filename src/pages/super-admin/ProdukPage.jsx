@@ -7,6 +7,7 @@ const API_URL = "http://localhost:8000/api";
 const ProdukPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduk, setEditingProduk] = useState(null);
+    const [currentImageUrl, setCurrentImageUrl] = useState("");
     const [formData, setFormData] = useState({
         nama_produk: "",
         harga: "",
@@ -77,6 +78,7 @@ const ProdukPage = () => {
             deskripsi: prod.deskripsi,
             gambar_produk: null,
         });
+        setCurrentImageUrl(prod.gambar_produk_url);
         setIsModalOpen(true);
     };
 
@@ -149,22 +151,29 @@ const ProdukPage = () => {
     };
 
     return (
-        <div className="p-6 space-y-12">
-            {/* Button to open the modal for adding new product */}
-            <div className="flex justify-end">
+        <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
+            <motion.h1
+                className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+            >
+                Kelola Produk
+            </motion.h1>
+
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold text-green-700">
+                📦 Daftar Produk
+                </h3>
                 <button
                     onClick={handleAddProduk}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold flex items-center gap-2"
+                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
                 >
-                    <Plus size={20} /> Tambah Produk Baru
+                    <Plus size={18} /> Tambah Produk
                 </button>
             </div>
 
             {/* List Produk */}
             <div>
-                <h3 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-                    📦 Daftar Produk
-                </h3>
                 {produk.length === 0 ? (
                     <p className="text-gray-500">Belum ada produk ditambahkan.</p>
                 ) : (
@@ -190,19 +199,19 @@ const ProdukPage = () => {
                                     <div className="flex gap-3">
                                         <button
                                             onClick={() => handleDetail(prod)}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition ease-in-out"
                                         >
                                             👁️ Lihat
                                         </button>
                                         <button
                                             onClick={() => handleEdit(prod)}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition ease-in-out"
                                         >
                                             <Edit size={16} /> Edit
                                         </button>
                                         <button
                                             onClick={() => handleDelete(prod.id_produk)}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition ease-in-out"
                                         >
                                             <Trash2 size={16} /> Hapus
                                         </button>
@@ -221,7 +230,7 @@ const ProdukPage = () => {
                         initial={{ opacity: 0, y: -50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-xl mx-auto border-t-4 border-blue-600 relative"
+                        className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-xl mx-auto border-t-4 border-orange-400 relative"
                     >
                         <button
                             onClick={handleCloseModal}
@@ -229,8 +238,8 @@ const ProdukPage = () => {
                         >
                             ✖
                         </button>
-                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-blue-700">
-                            <Package className="text-blue-600" />
+                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-orange-500">
+                            <Package className="text-orange-400" />
                             {editingProduk ? "Edit Produk" : "Tambah Produk"}
                         </h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -240,7 +249,7 @@ const ProdukPage = () => {
                                 placeholder="Nama Produk"
                                 value={formData.nama_produk}
                                 onChange={handleChange}
-                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-400 text-gray-900 placeholder:text-gray-400"
                                 required
                             />
                             <input
@@ -249,7 +258,7 @@ const ProdukPage = () => {
                                 placeholder="Harga"
                                 value={formData.harga}
                                 onChange={handleChange}
-                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-400 text-gray-900 placeholder:text-gray-400"
                                 required
                             />
                             <input
@@ -258,7 +267,7 @@ const ProdukPage = () => {
                                 placeholder="Kategori"
                                 value={formData.kategori}
                                 onChange={handleChange}
-                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-400 text-gray-900 placeholder:text-gray-400"
                                 required
                             />
                             <textarea
@@ -266,20 +275,28 @@ const ProdukPage = () => {
                                 placeholder="Deskripsi"
                                 value={formData.deskripsi}
                                 onChange={handleChange}
-                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder:text-gray-400 h-24"
+                                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-400 text-gray-900 placeholder:text-gray-400 h-24"
                                 required
                             ></textarea>
+                            {editingProduk && currentImageUrl && (
+                                <div className="flex items-center space-x-2 mb-4">
+                                    <span className="text-gray-700">File Saat Ini:</span>
+                                    <span className="font-medium text-gray-800 break-all">
+                                        {currentImageUrl.split('/').pop()}
+                                    </span>
+                                </div>
+                            )}
                             <input
                                 type="file"
                                 name="gambar_produk"
                                 accept="image/*"
                                 onChange={handleChange}
-                                className="w-full border p-2 rounded-lg text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                                className="w-full border p-2 rounded-lg text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-orange-500 hover:file:bg-blue-100"
                             />
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 disabled={loading}
-                                className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                                className="w-full bg-orange-500 text-white p-3 rounded-lg hover:bg-orange-500 transition font-semibold"
                             >
                                 {loading ? "Menyimpan..." : editingProduk ? "Simpan Perubahan" : "Tambah Produk"}
                             </motion.button>

@@ -90,14 +90,14 @@ const Sidebar = () => {
 
 
         {/* Menu utama lain */}
-        <nav className="space-y-1 mt-4">
+        {/* <nav className="space-y-1 mt-4">
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Map size={20} className="mr-3" /> Heatmap
           </a>
           <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
             <Home size={20} className="mr-3" /> Domain
           </a>
-        </nav>
+        </nav> */}
       </div>
 
       {/* Footer */}
