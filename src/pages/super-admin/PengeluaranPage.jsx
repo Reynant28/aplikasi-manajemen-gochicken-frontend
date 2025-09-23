@@ -11,18 +11,16 @@ const PengeluaranPage = () => {
 
   const [pengeluaran, setPengeluaran] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+
+  const [showForm, setShowForm] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
 
-  const [showForm, setShowForm] = useState(false);
-
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (editingIndex !== null) {
       const updated = [...pengeluaran];
       updated[editingIndex] = formData;
@@ -31,9 +29,8 @@ const PengeluaranPage = () => {
     } else {
       setPengeluaran([...pengeluaran, formData]);
     }
-
     setFormData({ jenis: "", deskripsi: "" });
-    setShowForm(false); // tutup form setelah submit
+    setShowForm(false);
   };
 
   const handleEdit = (index) => {
@@ -74,67 +71,7 @@ const PengeluaranPage = () => {
         </motion.button>
       </div>
 
-      {/* Form Input */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white shadow-lg rounded-xl p-6 w-full max-w-2xl mx-auto border-t-4 border-green-600 mb-8"
-          >
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-green-700">
-              <Plus className="text-green-600" />{" "}
-              {editingIndex !== null ? "✏️ Edit Pengeluaran" : "➕ Tambah Pengeluaran"}
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="jenis"
-                placeholder="Jenis Pengeluaran"
-                value={formData.jenis}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
-                required
-              />
-              <textarea
-                name="deskripsi"
-                placeholder="Deskripsi penggunaan"
-                value={formData.deskripsi}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
-                rows="3"
-                required
-              />
-
-              <div className="flex gap-3">
-                <motion.button
-                  type="submit"
-                  whileTap={{ scale: 0.95 }}
-                  className="flex-1 bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
-                >
-                  {editingIndex !== null ? "Simpan Perubahan" : "Tambah Pengeluaran"}
-                </motion.button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setFormData({ jenis: "", deskripsi: "" });
-                    setEditingIndex(null);
-                  }}
-                  className="flex-1 bg-gray-300 text-gray-800 p-3 rounded-lg hover:bg-gray-400 transition font-semibold"
-                >
-                  Batal
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* List Pengeluaran */}
+      {/* Daftar Pengeluaran */}
       <div className="mt-10">
         <h3 className="text-xl font-semibold mb-4 text-green-700">
           Daftar Pengeluaran
@@ -177,20 +114,86 @@ const PengeluaranPage = () => {
         )}
       </div>
 
-      {/* Custom Delete Modal */}
+      {/* Modal Tambah/Edit */}
       <AnimatePresence>
-        {showDelete && (
+        {showForm && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative border-t-4 border-red-600"
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600 relative"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
+            >
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingIndex(null);
+                  setFormData({ jenis: "", deskripsi: "" });
+                }}
+                className="absolute top-3 right-3 text-red-500 hover:text-red-700"
+              >
+                <X size={20} />
+              </button>
+
+              <h2 className="text-xl font-semibold mb-4 text-green-700">
+                {editingIndex !== null
+                  ? "✏️ Edit Pengeluaran"
+                  : "➕ Tambah Pengeluaran"}
+              </h2>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <input
+                  type="text"
+                  name="jenis"
+                  placeholder="Jenis Pengeluaran"
+                  value={formData.jenis}
+                  onChange={handleChange}
+                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
+                  required
+                />
+                <textarea
+                  name="deskripsi"
+                  placeholder="Deskripsi penggunaan"
+                  value={formData.deskripsi}
+                  onChange={handleChange}
+                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
+                  rows="3"
+                  required
+                />
+
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
+                >
+                  {editingIndex !== null
+                    ? "Simpan Perubahan"
+                    : "Tambah Pengeluaran"}
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Delete Modal */}
+      <AnimatePresence>
+        {showDelete && (
+          <motion.div
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative border-t-4 border-red-600"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
             >
               <button
                 onClick={() => setShowDelete(false)}
@@ -207,13 +210,13 @@ const PengeluaranPage = () => {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDelete(false)}
-                  className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
                 >
                   Hapus
                 </button>
