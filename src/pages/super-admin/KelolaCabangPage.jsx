@@ -182,7 +182,7 @@ const KelolaCabangPage = () => {
       <AnimatePresence>
         {showAddForm && (
           <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -273,7 +273,7 @@ const KelolaCabangPage = () => {
       <AnimatePresence>
         {editCabang && (
           <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -335,48 +335,47 @@ const KelolaCabangPage = () => {
       </AnimatePresence>
 
       {/* 🔥 Modal Konfirmasi Hapus */}
-      <AnimatePresence>
-        {showConfirm && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+        <AnimatePresence>
+          {showConfirm && (
             <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="text-red-500" size={28} />
-                <h2 className="text-lg font-bold text-gray-800">
-                  Konfirmasi Hapus
-                </h2>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak
-                dapat dibatalkan.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                >
-                  Hapus
-                </button>
-              </div>
+              <motion.div
+                className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <AlertTriangle className="text-red-500" size={28} />
+                  <h2 className="text-lg font-bold text-gray-800">
+                    Konfirmasi Hapus
+                  </h2>
+                </div>
+                <p className="text-gray-600 mb-6">
+                  Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowConfirm(false)}
+                    className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
     </div>
   );
 };

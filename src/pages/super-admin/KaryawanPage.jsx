@@ -116,7 +116,7 @@ const KaryawanPage = () => {
       <AnimatePresence>
         {showForm && (
           <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -178,7 +178,7 @@ const KaryawanPage = () => {
       <AnimatePresence>
         {showConfirm && (
           <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

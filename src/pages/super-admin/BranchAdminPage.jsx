@@ -1,7 +1,7 @@
 // src/pages/AkunAdminAdvertisingPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserPlus, Edit, Trash2, X } from "lucide-react";
+import { UserPlus, Edit, Trash2, X, AlertTriangle } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -20,7 +20,10 @@ const BranchAdminPage = () => {
   const [showForm, setShowForm] = useState(false);
 
   const [editingAdmin, setEditingAdmin] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null); // 👈 target hapus
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteName, setDeleteName] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -92,24 +95,10 @@ const BranchAdminPage = () => {
     setLoading(false);
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      const res = await fetch(`${API_URL}/admin-cabang/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage("✅ " + data.message);
-        fetchAdmins();
-      } else {
-        setMessage("❌ " + (data.message || "Gagal hapus"));
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
-    setDeleteTarget(null);
+  const confirmDelete = (id, name) => {
+    setDeleteId(id);
+    setDeleteName(name);
+    setShowConfirm(true);
   };
 
   const handleEdit = (admin) => {
@@ -140,6 +129,7 @@ const BranchAdminPage = () => {
         setEditingAdmin(null);
         setFormData({ nama: "", email: "", password: "", id_cabang: "" });
         fetchAdmins();
+        fetchCabang();
         setShowForm(false);
       } else {
         setMessage("❌ " + (data.message || "Gagal update"));
@@ -147,6 +137,23 @@ const BranchAdminPage = () => {
     } catch (err) {
       console.error("Update error:", err);
     }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin-cabang/${deleteId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        fetchAdmins();
+        fetchCabang();
+      }
+    } catch (err) {
+      console.error("Delete admin error:", err);
+    }
+    setShowConfirm(false);
+    setDeleteId(null);
   };
 
   return (
@@ -195,7 +202,7 @@ const BranchAdminPage = () => {
               </button>
               <button
                 onClick={() =>
-                  setDeleteTarget({ id: admin.id_user, nama: admin.nama })
+                  confirmDelete(admin.id_user, admin.nama)
                 }
                 className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
               >
@@ -210,7 +217,7 @@ const BranchAdminPage = () => {
       <AnimatePresence>
         {showForm && (
           <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -320,38 +327,40 @@ const BranchAdminPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Modal Konfirmasi Hapus */}
+      {/* Custom Confirm Modal */}
       <AnimatePresence>
-        {deleteTarget && (
+        {showConfirm && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center"
-              initial={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
+              initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.8, opacity: 0 }}
             >
-              <h2 className="text-lg font-semibold text-red-600 mb-3">
-                Konfirmasi Hapus
-              </h2>
-              <p className="text-gray-700 mb-5">
-                Yakin ingin menghapus admin{" "}
-                <span className="font-bold">{deleteTarget.nama}</span>?
+              <div className="flex items-center gap-3 mb-4">
+                <AlertTriangle className="text-red-500" size={28} />
+                <h2 className="text-lg font-bold text-gray-800">
+                  Konfirmasi Hapus
+                </h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus akun admin cabang ini? Tindakan ini tidak dapat dibatalkan.
               </p>
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-end gap-3">
                 <button
-                  onClick={() => setDeleteTarget(null)}
+                  onClick={() => setShowConfirm(false)}
                   className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
                 >
                   Batal
                 </button>
                 <button
-                  onClick={confirmDelete}
-                  className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                  onClick={handleDelete}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
                 >
                   Hapus
                 </button>
