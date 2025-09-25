@@ -13,13 +13,12 @@ const Sidebar = () => {
 
   const linkClass = ({ isActive }) =>
     isActive
-      ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
-      : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
+      ? "flex items-center gap-3 px-3 py-2 bg-green-600 text-white font-semibold rounded-xl shadow-sm transition-all"
+      : "flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all";
 
- // Ambil user & cabang dari localStorage
+  // Ambil user & cabang dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const cabang = JSON.parse(localStorage.getItem("cabang"));
-
 
   // Tentukan basePath berdasarkan role
   let basePath = "/super-admin/dashboard";
@@ -29,84 +28,84 @@ const Sidebar = () => {
 
   // Daftar menu berdasarkan role
   const menuItems = [
-    { to: "/general", label: "General", icon: <Home size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/reports", label: "Reports", icon: <BarChart2 size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} className="mr-2" />, roles: ["super admin"] },
-    { to: "/produk", label: "Produk", icon: <Layers size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/karyawan", label: "Karyawan", icon: <Users size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} className="mr-2" />, roles: ["super admin"] },
-    { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} className="mr-2" />, roles: ["super admin", "admin cabang"] },
-    { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} className="mr-2" />, roles: ["super admin"] },
-    { to: "/bahan", label: "Bahan", icon: <Package size={18} className="mr-2" />, roles: ["super admin"] },
-    { to: "/stok", label: "Stok", icon: <Boxes size={18} className="mr-2" />, roles: ["super admin"] },
+    { to: "/general", label: "General", icon: <Home size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/reports", label: "Reports", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
+    { to: "/produk", label: "Produk", icon: <Layers size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} />, roles: ["super admin"] },
+    { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin"] },
+    { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
+    { to: "/stok", label: "Stok", icon: <Boxes size={18} />, roles: ["super admin"] },
   ];
 
-
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
+    <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col h-screen shadow-lg">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Management</h1>
+      <div className="p-5 border-b border-gray-200 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-green-700 tracking-wide">Management</h1>
+        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-lg">
+          {user?.role || "Guest"}
+        </span>
       </div>
 
       {/* Isi Sidebar Scrollable */}
-      <div className="flex-grow p-4 space-y-2 overflow-y-auto scrollbar-hide">
+      <div className="flex-grow px-4 py-5 space-y-3 overflow-y-auto scrollbar-hide">
         {/* Dropdown All Sites */}
         <div
           onClick={() => setOpenDropdown(!openDropdown)}
-          className="p-2 rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+          className="px-3 py-2 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-green-50 transition-all"
         >
-          <span className="font-semibold text-gray-800">All sites</span>
+          <span className="font-semibold text-gray-800">All Sites</span>
           <ChevronDown
             size={18}
-            className={`text-gray-500 transition-transform ${openDropdown ? "rotate-180" : ""}`}
+            className={`text-gray-500 transition-transform duration-300 ${openDropdown ? "rotate-180" : ""}`}
           />
         </div>
 
-        {/* Isi Dropdown dengan Animasi (ke bawah) */}
+        {/* Isi Dropdown dengan Animasi */}
         <AnimatePresence>
-        {openDropdown && (
-          <motion.div
-            className="ml-3 mt-2 space-y-1"
-            initial={{ opacity: 0, y: -10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -10, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {menuItems
-              .filter(item => item.roles.includes(user?.role))
-              .map((item, idx) => (
-                <NavLink
-                  key={idx}
-                  to={`${basePath}${item.to}`}
-                  className={linkClass}
-                >
-                  {item.icon} {item.label}
-                </NavLink>
-              ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-
-        {/* Menu utama lain */}
-        {/* <nav className="space-y-1 mt-4">
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Map size={20} className="mr-3" /> Heatmap
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Home size={20} className="mr-3" /> Domain
-          </a>
-        </nav> */}
+          {openDropdown && (
+            <motion.div
+              className="ml-4 mt-2 space-y-2"
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {menuItems
+                .filter(item => item.roles.includes(user?.role))
+                .map((item, idx) => (
+                  <NavLink
+                    key={idx}
+                    to={`${basePath}${item.to}`}
+                    className={linkClass}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-green-600">{item.icon}</span>
+                      {item.label}
+                    </span>
+                  </NavLink>
+                ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 space-y-2">
-        <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-          <HelpCircle size={20} className="mr-3" /> Help Center
+      <div className="p-4 border-t border-gray-200 space-y-2 bg-gray-50">
+        <a
+          href="#"
+          className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+        >
+          <HelpCircle size={20} /> Help Center
         </a>
-        <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-          <Settings size={20} className="mr-3" /> Settings
+        <a
+          href="#"
+          className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+        >
+          <Settings size={20} /> Settings
         </a>
       </div>
     </div>
