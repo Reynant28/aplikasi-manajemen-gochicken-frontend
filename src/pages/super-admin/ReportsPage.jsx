@@ -1,9 +1,5 @@
 // src/pages/ReportsPage.jsx
 
-import DashboardCard from '../../components/DashboardCard.jsx';
-import UserTrafficChart from '../../components/UserTrafficChart.jsx';
-import TopTrafficChart from '../../components/TopTrafficChart.jsx';
-
 const ReportsPage = () => {
   return (
     <>

@@ -2,8 +2,8 @@
 import Header from './Header.jsx';
 import Sidebar from './Sidebar.jsx';
 import DashboardCard from './DashboardCard.jsx';
-import UserTrafficChart from './UserTrafficChart.jsx';
-import TopTrafficChart from './TopTrafficChart.jsx';
+import UserTrafficChart from './SalesTrendChart.jsx';
+import TopTrafficChart from './TopProductsChart.jsx';
 
 const Dashboard = () => {
   return (
