@@ -10,12 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const Sidebar = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
 
-  const linkClass = ({ isActive }) =>
-    isActive
-      ? "flex items-center p-2 bg-green-100 text-green-700 font-semibold rounded-lg"
-      : "flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg";
-
- // Ambil user & cabang dari localStorage
+  // Ambil user & cabang dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const cabang = JSON.parse(localStorage.getItem("cabang"));
 
@@ -42,8 +37,11 @@ const Sidebar = () => {
   return (
     <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col h-screen shadow-lg">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">Management</h1>
+      <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 text-white">
+        <h1 className="text-xl font-bold tracking-wide">Management</h1>
+        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-lg">
+          {user?.role || "Guest"}
+        </span>
       </div>
 
       {/* Isi Sidebar Scrollable */}
@@ -62,44 +60,61 @@ const Sidebar = () => {
 
         {/* Isi Dropdown dengan Animasi */}
         <AnimatePresence>
-        {openDropdown && (
-          <motion.div
-            className="ml-3 mt-2 space-y-1"
-            initial={{ opacity: 0, y: -10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -10, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {menuItems
-              .filter(item => item.roles.includes(user?.role))
-              .map((item, idx) => (
-                <NavLink
-                  key={idx}
-                  to={`${basePath}${item.to}`}
-                  className={linkClass}
-                >
-                  {item.icon} {item.label}
-                </NavLink>
-              ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {openDropdown && (
+            <motion.div
+              className="ml-4 mt-2 space-y-2"
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {menuItems
+                .filter(item => item.roles.includes(user?.role))
+                .map((item, idx) => (
+                  <NavLink
+                    key={idx}
+                    to={`${basePath}${item.to}`}
+                    className="relative flex items-center px-3 py-2 rounded-xl font-medium transition-all"
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {/* Animated active background */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeIndicator"
+                            className="absolute inset-0 rounded-xl"
+                            style={{ backgroundColor: "rgba(22,163,74,0.15)" }} // hijau transparan
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        )}
 
-        {/* Menu utama lain */}
-        <nav className="space-y-1 mt-4">
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Map size={20} className="mr-3" /> Heatmap
-          </a>
-          <a href="#" className="flex items-center p-2 text-gray-400 cursor-not-allowed">
-            <Home size={20} className="mr-3" /> Domain
-          </a>
-        </nav> 
+                        {/* Icon + label */}
+                        <span
+                          className={`relative flex items-center gap-3 ${
+                            isActive
+                              ? "text-green-700 font-semibold"
+                              : "text-gray-600 hover:text-green-600"
+                          }`}
+                        >
+                          <span className="text-green-600">{item.icon}</span>
+                          {item.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 space-y-2">
-        <a href="#" className="flex items-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-          <HelpCircle size={20} className="mr-3" /> Help Center
+      <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
+        <a
+          href="#"
+          className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+        >
+          <HelpCircle size={20} /> Help Center
         </a>
         <a
           href="#"

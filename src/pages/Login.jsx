@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
-// Custom icon components
+// Custom icon components (using the existing ones)
 const Eye = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
@@ -73,6 +72,137 @@ const Shield = ({ className }) => (
   </svg>
 );
 
+const CheckCircle = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+    />
+  </svg>
+);
+
+const XCircle = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+const ExclamationCircle = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+// --- AlertPopup Component ---
+
+const AlertPopup = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  type,
+  confirmText,
+  cancelText,
+  showCancel = true,
+}) => {
+  const getColors = () => {
+    switch (type) {
+      case "success":
+        return {
+          icon: CheckCircle,
+          iconColor: "text-green-500",
+          confirmClass: "bg-green-500 hover:bg-green-600",
+        };
+      case "error":
+        return {
+          icon: XCircle,
+          iconColor: "text-red-500",
+          confirmClass: "bg-red-500 hover:bg-red-600",
+        };
+      case "warning":
+      case "confirmation": 
+      default:
+        return {
+          icon: ExclamationCircle,
+          iconColor: "text-yellow-500",
+          confirmClass: "bg-red-500 hover:bg-red-600",
+        };
+    }
+  };
+
+  const { icon: Icon, iconColor, confirmClass } = getColors();
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          // DIUBAH DI SINI: bg-white bg-opacity-70 untuk putih transparan
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={showCancel ? onClose : undefined} 
+        >
+          <motion.div
+            className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-sm mx-auto"
+            initial={{ y: -50, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 50, opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            onClick={(e) => e.stopPropagation()} 
+          >
+            {/* Header / Icon */}
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Icon className={`w-12 h-12 ${iconColor} stroke-2`} />
+              <h3 className="text-xl font-semibold text-gray-800 text-center">{title}</h3>
+            </div>
+
+            {/* Message */}
+            <div className="mt-4 mb-6">
+              <p className="text-sm text-gray-600 text-center">{message}</p>
+            </div>
+
+            {/* Buttons */}
+            <div className={`flex ${showCancel ? "justify-between space-x-3" : "justify-center"}`}>
+              {showCancel && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-3 px-4 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  {cancelText || "Batal"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onConfirm}
+                className={`w-full py-3 px-4 text-sm font-medium rounded-lg text-white transition-colors ${confirmClass}`}
+              >
+                {confirmText || (type === "confirmation" ? "Hapus" : "OK")}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// --- Login Component ---
+
 const Login = () => {
   const [activePanel, setActivePanel] = useState("cabang");
   const [isLoading, setIsLoading] = useState(false);
@@ -84,15 +214,30 @@ const Login = () => {
   const [cabangOptions, setCabangOptions] = useState([]);
   const [cabangMap, setCabangMap] = useState({});
 
+  // State for the custom popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupData, setPopupData] = useState({
+    title: "",
+    message: "",
+    type: "warning",
+    confirmText: "OK",
+    showCancel: false,
+  });
+
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Fetch cabang from backend
-    axios.get("http://localhost:8000/api/cabang")
+    axios
+      .get("http://localhost:8000/api/cabang")
       .then((res) => {
         if (res.data.status === "success") {
-          setCabangOptions(res.data.data.map(c => c.nama_cabang));
+          setCabangOptions(res.data.data.map((c) => c.nama_cabang));
           // Map nama_cabang to id_cabang
           const map = {};
-          res.data.data.forEach(c => { map[c.nama_cabang] = c.id_cabang; });
+          res.data.data.forEach((c) => {
+            map[c.nama_cabang] = c.id_cabang;
+          });
           setCabangMap(map);
         }
       })
@@ -101,43 +246,76 @@ const Login = () => {
       });
   }, []);
 
-  const navigate = useNavigate();
+  // Function to show the custom popup
+  const showPopup = useCallback((title, message, type = "warning", confirmText = "OK") => {
+    setPopupData({
+      title,
+      message,
+      type,
+      confirmText,
+      showCancel: false, // Default is a simple alert/message
+    });
+    setIsPopupOpen(true);
+  }, []);
 
+  const closePopup = useCallback(() => {
+    setIsPopupOpen(false);
+  }, []);
 
   const handleCabangLogin = async () => {
+    const { cabang, passwordCabang, personalPassword } = formData;
     try {
       setIsLoading(true);
-      // Logika login Admin Cabang
-      const id_cabang = cabangMap[formData.cabang];
+
+      const id_cabang = cabangMap[cabang];
+
       if (!id_cabang) {
-        alert("Pilih cabang terlebih dahulu.");
+        showPopup("Gagal Login", "Mohon pilih cabang terlebih dahulu.", "error");
         return;
       }
+
       const res = await axios.post("http://localhost:8000/api/admin-cabang/login", {
         id_cabang,
-        password_cabang: formData.passwordCabang,
-        password_pribadi: formData.personalPassword,
+        password_cabang: passwordCabang,
+        password_pribadi: personalPassword,
       });
+
       if (res.data.status === "success") {
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        if (res.data.cabang) {
-          localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
-        }
-        localStorage.setItem("token", res.data.token);
-        navigate(`/admin-cabang/${id_cabang}/dashboard`);
+        // Success Popup
+        showPopup(
+          "Login Berhasil! 🎉",
+          "Selamat datang, Anda akan diarahkan ke dashboard.",
+          "success",
+          "Lanjut"
+        );
+
+        // Store data and navigate after a brief delay for the user to see the popup
+        setTimeout(() => {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          if (res.data.cabang) {
+            localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
+          }
+          localStorage.setItem("token", res.data.token);
+          navigate(`/admin-cabang/${id_cabang}/dashboard`);
+        }, 1500); // 1.5 seconds delay
 
       } else {
-        alert(res.data.message || "Login failed");
+        // General Login Error
+        showPopup("Gagal Login", res.data.message || "Login Admin Cabang gagal. Cek kembali kredensial Anda.", "error");
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.errors) {
-        const errors = err.response.data.errors;
-        alert(Object.values(errors).join("\n"));
-      } else if (err.response && err.response.data && err.response.data.message) {
-        // fallback for message
-        alert(err.response.data.message);
+      if (err.response && err.response.data) {
+        let message = "Terjadi kesalahan saat mencoba login.";
+        if (err.response.data.errors) {
+          // Handle validation errors
+          message = Object.values(err.response.data.errors).join("\n");
+        } else if (err.response.data.message) {
+          // Fallback for specific message errors (e.g., 'Password Cabang Salah')
+          message = err.response.data.message;
+        }
+        showPopup("Gagal Login 🚨", message, "error");
       } else {
-        alert("Terjadi error koneksi ke server");
+        showPopup("Error Koneksi 😟", "Terjadi error koneksi ke server. Mohon coba lagi.", "error");
       }
     } finally {
       setIsLoading(false);
@@ -145,28 +323,46 @@ const Login = () => {
   };
 
   const handleSuperAdminLogin = async () => {
+    const { username, password } = superAdminData;
     try {
       setIsLoading(true);
       // Logika login Super Admin
       const res = await axios.post("http://localhost:8000/api/super-admin/login", {
-        email: superAdminData.username,
-        password: superAdminData.password,
+        email: username,
+        password: password,
       });
+
       if (res.data.status === "success") {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        navigate("/super-admin/dashboard");
+        // Success Popup
+        showPopup(
+          "Login Berhasil! 👑",
+          "Selamat datang, Anda akan diarahkan ke dashboard Super Admin.",
+          "success",
+          "Lanjut"
+        );
+
+        // Store data and navigate after a brief delay
+        setTimeout(() => {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          navigate("/super-admin/dashboard");
+        }, 1500); // 1.5 seconds delay
+
       } else {
-        alert(res.data.message || "Login failed");
+        // General Login Error
+        showPopup("Gagal Login", res.data.message || "Login Super Admin gagal. Cek email dan password Anda.", "error");
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.errors) {
-        const errors = err.response.data.errors;
-        alert(Object.values(errors).join("\n"));
-      } else if (err.response && err.response.data && err.response.data.message) {
-        alert(err.response.data.message);
+      if (err.response && err.response.data) {
+        let message = "Terjadi kesalahan saat mencoba login.";
+        if (err.response.data.errors) {
+          message = Object.values(err.response.data.errors).join("\n");
+        } else if (err.response.data.message) {
+          message = err.response.data.message;
+        }
+        showPopup("Gagal Login 🚨", message, "error");
       } else {
-        alert("Terjadi error koneksi ke server");
+        showPopup("Error Koneksi 😟", "Terjadi error koneksi ke server. Mohon coba lagi.", "error");
       }
     } finally {
       setIsLoading(false);
@@ -220,6 +416,7 @@ const Login = () => {
       <style>
         {`
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
         :root {
           --themered: #ef4444;
@@ -246,6 +443,18 @@ const Login = () => {
         `}
       </style>
 
+      {/* Custom Alert Popup */}
+      <AlertPopup
+        isOpen={isPopupOpen}
+        onClose={closePopup}
+        onConfirm={closePopup} // Simple alert: confirm is just close
+        title={popupData.title}
+        message={popupData.message}
+        type={popupData.type}
+        confirmText={popupData.confirmText}
+        showCancel={popupData.showCancel}
+      />
+
       <div className="h-screen w-screen flex items-center justify-center p-8 sm:p-12">
         {/* Main Card */}
         <div className="w-full max-w-5xl max-h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
@@ -257,7 +466,6 @@ const Login = () => {
               className="w-full max-h-[50vh] object-contain rounded-2xl"
             />
           </div>
-
 
           {/* Right Panel */}
           <div className="w-full md:w-1/2 flex items-center justify-center py-8 px-4 sm:p-10">
@@ -457,7 +665,7 @@ const Login = () => {
                     >
                       <div className="p-6">
                         <div className="space-y-4">
-                          {/* Username */}
+                          {/* Username (Email) */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Email
@@ -469,7 +677,7 @@ const Login = () => {
                                 handleSuperAdminChange("username", e.target.value)
                               }
                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors text-gray-800"
-                              placeholder="Masukkan username"
+                              placeholder="Masukkan email"
                             />
                           </div>
 
