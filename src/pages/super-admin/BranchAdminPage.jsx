@@ -1,7 +1,12 @@
 // src/pages/AkunAdminAdvertisingPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserPlus, Edit, Trash2, X, AlertTriangle } from "lucide-react";
+import { UserPlus, Edit, Trash2, X, AlertTriangle, Plus } from "lucide-react";
+
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import Modal from "../../components/Modal";
+import { Link } from "react-router-dom";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -17,7 +22,7 @@ const BranchAdminPage = () => {
   const [message, setMessage] = useState("");
   const [admins, setAdmins] = useState([]);
   const [cabang, setCabang] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const [editingAdmin, setEditingAdmin] = useState(null);
 
@@ -84,7 +89,7 @@ const BranchAdminPage = () => {
         setFormData({ nama: "", email: "", password: "", id_cabang: "" });
         fetchAdmins();
         fetchCabang();
-        setShowForm(false);
+        setShowAddForm(false);
       } else {
         setMessage("❌ " + (data.message || "Error"));
       }
@@ -109,7 +114,7 @@ const BranchAdminPage = () => {
       password: "",
       id_cabang: admin.cabang?.id_cabang || "",
     });
-    setShowForm(true);
+    setShowAddForm(true);
   };
 
   const handleUpdate = async (e) => {
@@ -130,7 +135,7 @@ const BranchAdminPage = () => {
         setFormData({ nama: "", email: "", password: "", id_cabang: "" });
         fetchAdmins();
         fetchCabang();
-        setShowForm(false);
+        setShowAddForm(false);
       } else {
         setMessage("❌ " + (data.message || "Gagal update"));
       }
@@ -170,20 +175,17 @@ const BranchAdminPage = () => {
         <h3 className="text-xl font-semibold text-green-700">
           Daftar Admin Cabang
         </h3>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-        >
+        <Button onClick={() => setShowAddForm(true)}>
           <UserPlus size={18} /> Tambah Admin
-        </button>
+        </Button>
       </div>
 
       {/* Grid daftar admin */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {admins.map((admin, index) => (
-          <motion.div
+          <Card
             key={admin.id_user}
-            className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
+            className="relative"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
@@ -194,138 +196,101 @@ const BranchAdminPage = () => {
               Cabang: {admin.cabang ? admin.cabang.nama_cabang : "N/A"}
             </p>
             <div className="flex gap-3 mt-5">
-              <button
+              <Button
                 onClick={() => handleEdit(admin)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                variant="warning"
               >
                 <Edit size={16} /> Edit
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() =>
                   confirmDelete(admin.id_user, admin.nama)
                 }
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                variant="danger"
               >
                 <Trash2 size={16} /> Hapus
-              </button>
+              </Button>
             </div>
-          </motion.div>
+          </Card>
         ))}
       </div>
 
       {/* Modal Tambah/Edit */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      <Modal isOpen={showAddForm} onClose={() => setShowAddForm(false)}>
+        <h2 className="text-xl font-semibold mb-4 text-green-700 flex items-center gap-2">
+          <Plus size={18} /> Tambah Cabang
+        </h2>
+        <form
+          onSubmit={editingAdmin ? handleUpdate : handleSubmit}
+          className="space-y-3"
+        >
+          <input
+            type="text"
+            name="nama"
+            placeholder="Nama Lengkap"
+            value={formData.nama}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 w-full text-gray-800"
+            required={!editingAdmin}
+          />
+
+          <select
+            name="id_cabang"
+            value={formData.id_cabang}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 w-full text-gray-800 disabled:opacity-70 disabled:cursor-not-allowed"
+            required
+            disabled={cabang.length === 0}
           >
-            <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600 relative"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
+            <option value="">
+              {cabang.length === 0
+                ? "Tidak ada cabang tersedia"
+                : "Pilih Cabang"}
+            </option>
+            {cabang.map((cab) => (
+              <option key={cab.id_cabang} value={cab.id_cabang}>
+                {cab.nama_cabang}
+              </option>
+            ))}
+          </select>
+
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
             >
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingAdmin(null);
-                  setFormData({
-                    nama: "",
-                    email: "",
-                    password: "",
-                    id_cabang: "",
-                  });
-                }}
-                className="absolute top-3 right-3 text-red-500 hover:text-red-700"
-              >
-                <X size={20} />
-              </button>
-
-              <h2 className="text-xl font-semibold mb-4 text-green-700">
-                {editingAdmin ? "✏️ Edit Admin Cabang" : "➕ Tambah Admin Cabang"}
-              </h2>
-
-              <form
-                onSubmit={editingAdmin ? handleUpdate : handleSubmit}
-                className="space-y-3"
-              >
-                <input
-                  type="text"
-                  name="nama"
-                  placeholder="Nama Lengkap"
-                  value={formData.nama}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
-                  required
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
-                  required
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
-                  required={!editingAdmin}
-                />
-
-                <select
-                  name="id_cabang"
-                  value={formData.id_cabang}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800 disabled:opacity-70 disabled:cursor-not-allowed"
-                  required
-                  disabled={cabang.length === 0}
-                >
-                  <option value="">
-                    {cabang.length === 0
-                      ? "Tidak ada cabang tersedia"
-                      : "Pilih Cabang"}
-                  </option>
-                  {cabang.map((cab) => (
-                    <option key={cab.id_cabang} value={cab.id_cabang}>
-                      {cab.nama_cabang}
-                    </option>
-                  ))}
-                </select>
-
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  disabled={loading}
-                  className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
-                >
-                  {loading
-                    ? "Menyimpan..."
-                    : editingAdmin
-                    ? "Simpan Perubahan"
-                    : "Tambah Admin"}
-                </motion.button>
-              </form>
-
-              {message && (
-                <p
-                  className={`mt-4 text-center text-sm font-medium ${
-                    message.includes("✅") ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {message}
-                </p>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+            >
+              {loading ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+      
 
       {/* Custom Confirm Modal */}
       <AnimatePresence>
