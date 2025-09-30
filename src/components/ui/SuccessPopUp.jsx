@@ -1,73 +1,59 @@
+import React, { useEffect } from "react";
+import { X, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle } from "lucide-react";
-import { useEffect, useState } from "react";
 
-const SuccessPopup = ({ isOpen, onClose, title, message }) => {
-  const [countdown, setCountdown] = useState(4);
-
+const SuccessPopUp = ({ isOpen, onClose, title, message, duration = 3000 }) => {
   useEffect(() => {
-    if (isOpen) {
-      setCountdown(4);
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            onClose();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [isOpen, onClose]);
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      onClose();
+    }, duration);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, onClose, duration]);
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {message && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
+          key="popup"
+          initial={{ x: 300, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 300, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="fixed top-6 right-6 z-50 w-96"
         >
-          <motion.div
-            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border-t-4 border-green-500"
-            initial={{ y: -50, opacity: 0, scale: 0.8 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 50, opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <CheckCircle className="w-12 h-12 text-green-500 stroke-2" />
-              <h3 className="text-xl font-semibold text-gray-800 text-center">
-                {title}
-              </h3>
+          <div className="relative bg-green-500 rounded-lg shadow-lg text-white flex items-center justify-between px-4 py-3 overflow-hidden">
+            {/* Konten */}
+            <div className="flex items-center gap-2">
+              <CheckCircle size={22} className="text-white" />
+              <p className="font-medium">{message}</p>
             </div>
 
-            <div className="mt-4 mb-6">
-              <p className="text-sm text-gray-600 text-center">{message}</p>
-              <p className="text-xs text-gray-500 font-bold text-center mt-2">
-                (Otomatis tertutup dalam {countdown} detik)
-              </p>
-            </div>
+            {/* Tombol close */}
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 transition"
+            >
+              <X size={18} />
+            </button>
 
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full py-3 px-4 text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors"
-              >
-                Tutup
-              </button>
-            </div>
-          </motion.div>
+            {/* Progress Bar pakai animasi */}
+            <motion.div
+              key="progress"
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 4, ease: "linear" }}
+              className="absolute bottom-0 left-0 h-1 bg-green-300"
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 };
 
-export default SuccessPopup;
+export default SuccessPopUp;
