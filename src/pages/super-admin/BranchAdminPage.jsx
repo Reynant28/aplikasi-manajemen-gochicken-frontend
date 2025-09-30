@@ -3,9 +3,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, Edit, Trash2, X, AlertTriangle, Plus } from "lucide-react";
 
-import Button from "../../components/Button";
-import Card from "../../components/Card";
-import Modal from "../../components/Modal";
+import { ConfirmDeletePopup, SuccessPopup, Card, Button, Modal } from "../../components/ui";
 import { Link } from "react-router-dom";
 
 const API_URL = "http://localhost:8000/api";
@@ -29,6 +27,10 @@ const BranchAdminPage = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteName, setDeleteName] = useState("");
+
+  // state untuk custom sukses
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -104,6 +106,11 @@ const BranchAdminPage = () => {
     setDeleteId(id);
     setDeleteName(name);
     setShowConfirm(true);
+  };
+
+  // Handler untuk menutup success popup
+  const closeSuccessPopup = () => {
+      setShowSuccess(false);
   };
 
   const handleEdit = (admin) => {
@@ -292,48 +299,20 @@ const BranchAdminPage = () => {
       </Modal>
       
 
-      {/* Custom Confirm Modal */}
-      <AnimatePresence>
-        {showConfirm && (
-          <motion.div
-            className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="text-red-500" size={28} />
-                <h2 className="text-lg font-bold text-gray-800">
-                  Konfirmasi Hapus
-                </h2>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Apakah Anda yakin ingin menghapus akun admin cabang ini? Tindakan ini tidak dapat dibatalkan.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                >
-                  Hapus
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Modal Konfirmasi Hapus */}
+      <ConfirmDeletePopup
+          isOpen={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={handleDelete}
+      />
+
+      {/* Modal Sukses */}
+      <SuccessPopup
+          isOpen={showSuccess}
+          onClose={closeSuccessPopup} // Menggunakan handler untuk menutup
+          title="Aksi Berhasil! 🎉"
+          message={successMessage}
+      />
     </div>
   );
 };

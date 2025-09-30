@@ -2,138 +2,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash, AlertTriangle, CheckCircle } from "lucide-react"; 
 import { motion, AnimatePresence } from "framer-motion";
-import Button from "../../components/Button";
-import Card from "../../components/Card";
-import Modal from "../../components/Modal";
 import { Link } from "react-router-dom";
+import { ConfirmDeletePopup, SuccessPopup, Card, Button, Modal } from "../../components/ui";
+
 
 const API_URL = "http://localhost:8000/api";
-
-// --- Custom SuccessPopup Component DENGAN COUNTDOWN ---
-const SuccessPopup = ({ isOpen, onClose, title, message }) => {
-    const [countdown, setCountdown] = useState(4); // State untuk hitungan mundur
-
-    // Efek untuk mengelola countdown
-    useEffect(() => {
-        if (isOpen) {
-            setCountdown(4); // Reset hitungan saat modal dibuka
-            
-            const timerInterval = setInterval(() => {
-                setCountdown((prevCount) => {
-                    if (prevCount <= 1) {
-                        clearInterval(timerInterval);
-                        onClose(); // Tutup modal saat hitungan mencapai 0
-                        return 0;
-                    }
-                    return prevCount - 1;
-                });
-            }, 1000); // Hitungan setiap 1 detik
-
-            // Cleanup function untuk membersihkan interval
-            return () => clearInterval(timerInterval);
-        }
-    }, [isOpen, onClose]); // Dependensi: isOpen dan onClose
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    // Background putih transparan
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm" 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                >
-                    <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border-t-4 border-green-500"
-                        initial={{ y: -50, opacity: 0, scale: 0.8 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 50, opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <CheckCircle className="w-12 h-12 text-green-500 stroke-2" /> 
-                            <h3 className="text-xl font-semibold text-gray-800 text-center">{title}</h3>
-                        </div>
-
-                        <div className="mt-4 mb-6">
-                            <p className="text-sm text-gray-600 text-center">{message}</p>
-                            
-                            {/* Tampilan Countdown */}
-                            <p className="text-xs text-gray-500 font-bold text-center mt-2">
-                                (Otomatis tertutup dalam {countdown} detik)
-                            </p>
-                        </div>
-
-                        <div className="flex justify-center">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                // Tombol dinonaktifkan sementara selama hitungan mundur (opsional)
-                                // disabled={countdown > 0} 
-                                className="w-full py-3 px-4 text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors disabled:bg-green-300"
-                            >
-                                Tutup
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-// --- Custom ConfirmDeletePopup Component ---
-const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm }) => {
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                >
-                    <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative border-t-4 border-red-500"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertTriangle className="text-red-500" size={28} />
-                            <h2 className="text-lg font-bold text-gray-800">
-                                Konfirmasi Hapus
-                            </h2>
-                        </div>
-                        <p className="text-gray-600 mb-6">
-                            Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={onClose}
-                                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={onConfirm}
-                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-                            >
-                                Hapus
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
 
 // --- KelolaCabangPage Component ---
 const KelolaCabangPage = () => {
@@ -222,6 +95,11 @@ const KelolaCabangPage = () => {
         setShowConfirm(true);
     };
 
+    // Handler untuk menutup success popup
+    const closeSuccessPopup = () => {
+        setShowSuccess(false);
+    };
+
     // eksekusi hapus setelah konfirmasi
     const handleDelete = async () => {
         try {
@@ -243,36 +121,36 @@ const KelolaCabangPage = () => {
     };
 
     const handleUpdate = async () => {
-        try {
-            const res = await fetch(`${API_URL}/cabang/${editCabang.id_cabang}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(editCabang),
-            });
-            if (res.ok) {
-                // Tampilkan pesan sukses setelah update
-                setSuccessMessage(`Cabang ${editCabang.nama_cabang} berhasil diupdate!`);
-                setShowSuccess(true);
-                await fetchCabang();
-                setEditCabang(null);
-            }
-        } catch (err) {
-            console.error("Update cabang error:", err);
-        }
+      try {
+          const res = await fetch(`${API_URL}/cabang/${editCabang.id_cabang}`, {
+              method: "PUT",
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(editCabang),
+          });
+          if (res.ok) {
+              // Tampilkan pesan sukses setelah update
+              setSuccessMessage(`Cabang ${editCabang.nama_cabang} berhasil diupdate!`);
+              setShowSuccess(true);
+              await fetchCabang();
+              setEditCabang(null);
+          }
+      } catch (err) {
+          console.error("Update cabang error:", err);
+      }
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-            <motion.h1
-                className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                Kelola Cabang
-            </motion.h1>
+      <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
+        <motion.h1
+            className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+        >
+            Kelola Cabang
+        </motion.h1>
 
       {/* Tombol tambah cabang */}
       <div className="mb-6">
@@ -446,24 +324,20 @@ const KelolaCabangPage = () => {
         </div>
       </Modal>
 
-      {/* 🔥 Modal Konfirmasi Hapus */}
-        <Modal isOpen={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="max-w-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <AlertTriangle className="text-red-500" size={28} />
-          <h2 className="text-lg font-bold text-gray-800">Konfirmasi Hapus</h2>
-        </div>
-        <p className="text-gray-600 mb-6">
-          Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
-        </p>
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setShowConfirm(false)}>
-            Batal
-          </Button>
-          <Button variant="danger" onClick={handleDelete}>
-            Hapus
-          </Button>
-        </div>
-      </Modal>
+      {/* Modal Konfirmasi Hapus */}
+      <ConfirmDeletePopup
+          isOpen={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={handleDelete}
+      />
+
+      {/* Modal Sukses */}
+      <SuccessPopup
+          isOpen={showSuccess}
+          onClose={closeSuccessPopup} // Menggunakan handler untuk menutup
+          title="Aksi Berhasil! 🎉"
+          message={successMessage}
+      />
     </div>
   );
 };
