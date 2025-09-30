@@ -1,301 +1,365 @@
-import { useState, useMemo } from "react";
+// src/pages/TransaksiPage.jsx
+import { useState, useEffect, useCallback } from "react";
 
-const transaksiData = [
-  {
-    id: 1,
-    kode: "TRX001",
-    tanggal: "2025-09-10 14:23",
-    pelanggan: "Budi",
-    metode: "DANA",
-    items: [
-      { nama: "Produk A", qty: 2, harga: 50000 },
-      { nama: "Produk B", qty: 1, harga: 100000 },
-    ],
-  },
-  {
-    id: 2,
-    kode: "TRX002",
-    tanggal: "2025-09-11 09:15",
-    pelanggan: "Siti",
-    metode: "ShopeePay",
-    items: [{ nama: "Produk C", qty: 3, harga: 75000 }],
-  },
-  {
-    id: 3,
-    kode: "TRX003",
-    tanggal: "2025-09-12 18:40",
-    pelanggan: "Andi",
-    metode: "Transfer Bank",
-    items: [
-      { nama: "Produk D", qty: 1, harga: 200000 },
-      { nama: "Produk E", qty: 2, harga: 120000 },
-    ],
-  },
-];
+const API_URL = "http://localhost:8000/api";
 
 const TransaksiPage = () => {
+  const [transaksi, setTransaksi] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [detailTransaksi, setDetailTransaksi] = useState(null);
 
-  const filteredData = transaksiData.filter(
-    (t) => !selectedDate || t.tanggal.startsWith(selectedDate)
+  // pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const token = localStorage.getItem("token");
+
+  const fetchTransaksi = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/transaksi`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTransaksi(data.data || []);
+      } else {
+        console.error("Fetch transaksi error:", data.message);
+      }
+    } catch (err) {
+      console.error("Fetch transaksi error:", err);
+      setTransaksi([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token) fetchTransaksi();
+  }, [token, fetchTransaksi]);
+
+  // filter berdasarkan tanggal
+  const filteredData = transaksi.filter(
+    (t) => !selectedDate || t.tanggal_waktu.startsWith(selectedDate)
   );
 
-  const summary = useMemo(() => {
-    const total = filteredData.reduce((sum, t) => {
-      const totalItem = t.items.reduce(
-        (subtotal, i) => subtotal + i.qty * i.harga,
-        0
+  // pagination logic
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirst, indexOfLast);
+
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // --- Fungsi untuk mengontrol tombol yang ditampilkan ---
+  const getPageNumbers = () => {
+    const maxPagesToShow = 5; 
+    const pages = [];
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(
+        2,
+        currentPage - Math.floor((maxPagesToShow - 3) / 2)
       );
-      return sum + totalItem;
-    }, 0);
-    return {
-      jumlahTransaksi: filteredData.length,
-      totalPemasukan: total,
-    };
-  }, [filteredData]);
+      const endPage = Math.min(
+        totalPages - 1,
+        currentPage + Math.ceil((maxPagesToShow - 3) / 2)
+      );
+
+      pages.push(1);
+
+      if (startPage > 2) {
+        pages.push("...");
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
+
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+
+    if (pages[0] === "...") {
+      pages.shift();
+    }
+    if (pages[pages.length - 1] === "...") {
+      pages.pop();
+    }
+    
+    return pages.filter((value, index, self) => self.indexOf(value) === index);
+  };
+  // --------------------------------------------------------
 
   return (
     <div className="p-6">
-      {/* CSS untuk print */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-area, .print-area * {
-            visibility: visible;
-          }
-          .print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-          }
-          .no-print {
-            display: none !important;
-          }
-          table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 12pt;
-          }
-          table th, table td {
-            border: 1px solid #333;
-            padding: 6px;
-          }
-        }
-      `}</style>
+      
+      {/* Judul dengan warna hijau */}
+      <h1 className="text-3xl font-bold mb-6 text-green-700">
+          Kelola Transaksi
+      </h1>
 
-      <div className="bg-white shadow-lg rounded-2xl p-6 no-print">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">
-          📊 Laporan Transaksi
-        </h1>
-
-        {/* Filter tanggal */}
-        <div className="mb-6">
+      {/* Filter tanggal dan Pagination */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
           <label className="block text-sm font-medium text-gray-600 mb-2">
             Pilih Tanggal
           </label>
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border rounded-xl px-4 py-2 w-60 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-700"
+            onChange={(e) => {
+              setSelectedDate(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border rounded-xl px-4 py-2 w-60 shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
           />
         </div>
 
-        {/* Tabel transaksi */}
-        <div className="overflow-x-auto border rounded-xl shadow-sm">
+        {/* Pagination dengan warna hijau */}
+        {totalPages > 1 && (
+          <div className="flex items-center border border-gray-200 rounded-xl shadow-md divide-x divide-gray-200">
+            <button
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-3 text-gray-600 rounded-l-xl transition duration-150 ease-in-out ${
+                currentPage === 1
+                  ? "bg-gray-100 cursor-not-allowed text-gray-400"
+                  : "bg-white hover:bg-green-50 hover:text-green-600"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+            </button>
+            
+            {/* Tampilkan tombol halaman */}
+            {getPageNumbers().map((page, i) => (
+              <button
+                key={i}
+                onClick={() => typeof page === 'number' && changePage(page)}
+                disabled={page === "..."}
+                className={`px-4 py-2 text-sm font-medium transition duration-150 ease-in-out ${
+                  currentPage === page
+                    ? "bg-green-600 text-white shadow-inner shadow-green-800/20" 
+                    : page === "..."
+                    ? "bg-white text-gray-400 cursor-default"
+                    : "bg-white text-gray-700 hover:bg-green-50 hover:text-green-600" 
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => changePage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-3 text-gray-600 rounded-r-xl transition duration-150 ease-in-out ${
+                currentPage === totalPages
+                  ? "bg-gray-100 cursor-not-allowed text-gray-400"
+                  : "bg-white hover:bg-green-50 hover:text-green-600"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Tabel transaksi */}
+      <div className="overflow-x-auto border rounded-lg shadow-md bg-white">
+        {loading ? (
+          <p className="text-center py-6 text-gray-500">⏳ Memuat data...</p>
+        ) : (
           <table className="min-w-full border-collapse">
-            <thead className="bg-blue-100">
+            <thead className="bg-white border-b border-gray-300">
               <tr>
-                <th className="border px-4 py-3 text-left font-semibold text-blue-700">
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">
                   Kode
                 </th>
-                <th className="border px-4 py-3 text-left font-semibold text-blue-700">
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">
                   Tanggal & Waktu
                 </th>
-                <th className="border px-4 py-3 text-left font-semibold text-blue-700">
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">
                   Nama Pelanggan
                 </th>
-                <th className="border px-4 py-3 text-left font-semibold text-blue-700">
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">
                   Metode
                 </th>
-                <th className="border px-4 py-3 text-left font-semibold text-blue-700">
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">
                   Total
                 </th>
-                <th className="border px-4 py-3 text-center font-semibold text-blue-700">
+                <th className="px-4 py-3 text-center font-semibold text-gray-600">
                   Aksi
                 </th>
               </tr>
             </thead>
             <tbody>
-              {filteredData.length > 0 ? (
-                filteredData.map((t, i) => {
-                  const total = t.items.reduce(
-                    (sum, i) => sum + i.qty * i.harga,
-                    0
-                  );
-                  return (
-                    <tr
-                      key={t.id}
-                      className={`${
-                        i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-blue-50 transition`}
-                    >
-                      <td className="border px-4 py-2 text-gray-600">
-                        {t.kode}
-                      </td>
-                      <td className="border px-4 py-2 text-gray-600">
-                        {t.tanggal}
-                      </td>
-                      <td className="border px-4 py-2 text-gray-700 font-medium">
-                        {t.pelanggan}
-                      </td>
-                      <td className="border px-4 py-2 text-blue-600 font-semibold">
-                        {t.metode}
-                      </td>
-                      <td className="border px-4 py-2 font-bold text-green-600">
-                        Rp {total.toLocaleString()}
-                      </td>
-                      <td className="border px-4 py-2 text-center">
+              {currentData.length > 0 ? (
+                currentData.map((t, i) => (
+                  <tr
+                    key={t.id_transaksi}
+                    className={`${
+                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-green-50 transition`}
+                  >
+                    <td className="px-4 py-2 text-gray-700">
+                      {t.kode_transaksi}
+                    </td>
+                    <td className="px-4 py-2 text-gray-600">
+                      {t.tanggal_waktu}
+                    </td>
+                    <td className="px-4 py-2 text-gray-700 font-medium">
+                      {t.nama_pelanggan || "-"}
+                    </td>
+                    <td className="px-4 py-2 text-green-600 font-semibold">
+                      {t.metode_pembayaran}
+                    </td>
+                    <td className="px-4 py-2 font-bold text-red-600">
+                      Rp {(t.total_harga || 0).toLocaleString()}
+                    </td>
+                    {/* HANYA TOMBOL DETAIL */}
+                    <td className="px-4 py-2 text-center">
                         <button
                           onClick={() => setDetailTransaksi(t)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition shadow-md"
                         >
                           Detail
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
                     colSpan="6"
-                    className="text-center py-6 text-gray-500 border"
+                    className="text-center py-6 text-gray-500"
                   >
-                    ❌ Tidak ada transaksi pada tanggal ini
+                    ❌ Tidak ada transaksi
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Ringkasan total */}
-        {filteredData.length > 0 && (
-          <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-            <p className="text-gray-700">
-              <span className="font-semibold text-blue-600">
-                Jumlah Transaksi:
-              </span>{" "}
-              {summary.jumlahTransaksi}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold text-green-600">
-                Total Pemasukan:
-              </span>{" "}
-              Rp {summary.totalPemasukan.toLocaleString()}
-            </p>
-          </div>
         )}
       </div>
 
       {/* Modal detail transaksi */}
       {detailTransaksi && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-[600px] overflow-hidden border border-gray-200 print-area">
-            {/* Header */}
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-bold text-gray-800">
+          <div className="bg-white rounded-2xl shadow-2xl w-[600px] overflow-hidden border border-gray-200">
+            <div className="p-6 border-b border-green-500/30">
+              <h2 className="text-lg font-bold text-green-700">
                 🐔 GoChicken Administrator
               </h2>
               <p className="text-sm text-gray-500">
-                Detail Transaksi {detailTransaksi.kode}
+                Detail Transaksi {detailTransaksi.kode_transaksi}
               </p>
             </div>
-
-            {/* Body */}
-        <div className="p-6 space-y-4">
-          {/* Info transaksi */}
-            <div className="grid grid-cols-2 gap-y-2 text-sm">
-              <p className="font-semibold text-gray-700">👤 Pelanggan:</p>
-              <p className="text-gray-900">{detailTransaksi.pelanggan}</p>
-
-              <p className="font-semibold text-gray-700">📅 Tanggal & Waktu:</p>
-              <p className="text-gray-900">{detailTransaksi.tanggal}</p>
-
-              <p className="font-semibold text-gray-700">💳 Metode Pembayaran:</p>
-              <p className="text-gray-900">{detailTransaksi.metode}</p>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-y-2 text-sm">
+                <p className="font-semibold text-gray-700">👤 Pelanggan:</p>
+                <p className="text-gray-900">
+                  {detailTransaksi.nama_pelanggan || "-"}
+                </p>
+                <p className="font-semibold text-gray-700">
+                  📅 Tanggal & Waktu:
+                </p>
+                <p className="text-gray-900">{detailTransaksi.tanggal_waktu}</p>
+                <p className="font-semibold text-gray-700">
+                  💳 Metode Pembayaran:
+                </p>
+                <p className="text-gray-900">
+                  {detailTransaksi.metode_pembayaran}
+                </p>
+              </div>
+              <table className="w-full text-sm border mt-4">
+                <thead>
+                  <tr className="bg-green-50">
+                    <th className="border px-3 py-2 text-left text-gray-900">
+                      Produk
+                    </th>
+                    <th className="border px-3 py-2 text-center text-gray-900">
+                      Qty
+                    </th>
+                    <th className="border px-3 py-2 text-right text-gray-900">
+                      Harga
+                    </th>
+                    <th className="border px-3 py-2 text-right text-gray-900">
+                      Subtotal
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailTransaksi.detail.map((d, idx) => (
+                    <tr key={idx}>
+                      <td className="border px-3 py-2 text-gray-900">
+                        {d.produk?.nama_produk || "Produk"}
+                      </td>
+                      <td className="border px-3 py-2 text-center text-gray-900">
+                        {d.jumlah_produk}
+                      </td>
+                      <td className="border px-3 py-2 text-right text-gray-900">
+                        Rp {parseInt(d.harga_item).toLocaleString()}
+                      </td>
+                      <td className="border px-3 py-2 text-right text-gray-900">
+                        Rp {parseInt(d.subtotal).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-4 space-y-1 text-sm">
+                <div className="flex justify-between font-bold text-gray-800">
+                  <span>TOTAL</span>
+                  <span className="text-red-600">
+                    Rp {parseInt(detailTransaksi.total_harga).toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
-
-          {/* Tabel Item */}
-          <table className="w-full text-sm border mt-4">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-3 py-2 text-left text-gray-900">Produk</th>
-                <th className="border px-3 py-2 text-center text-gray-900">Qty</th>
-                <th className="border px-3 py-2 text-right text-gray-900">Harga</th>
-                <th className="border px-3 py-2 text-right text-gray-900">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detailTransaksi.items.map((i, idx) => (
-                <tr key={idx}>
-                  <td className="border px-3 py-2 text-gray-900">{i.nama}</td>
-                  <td className="border px-3 py-2 text-center text-gray-900">{i.qty}</td>
-                  <td className="border px-3 py-2 text-right text-gray-900">
-                    Rp {i.harga.toLocaleString()}
-                  </td>
-                  <td className="border px-3 py-2 text-right text-gray-900">
-                    Rp {(i.qty * i.harga).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Ringkasan */}
-          <div className="mt-4 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-800">
-              <span>Subtotal</span>
-              <span>
-                Rp{" "}
-                {detailTransaksi.items
-                  .reduce((a, b) => a + b.qty * b.harga, 0)
-                  .toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between font-bold text-green-700 text-base">
-              <span>Total</span>
-              <span>
-                Rp{" "}
-                {detailTransaksi.items
-                  .reduce((a, b) => a + b.qty * b.harga, 0)
-                  .toLocaleString()}
-              </span>
-            </div>
-            <div className="flex justify-between text-red-600">
-              <span>Sisa / Kembalian</span>
-              <span>Rp 0</span>
-            </div>
-          </div>
-        </div>
-            {/* Footer */}
-            <div className="flex justify-end gap-3 bg-gray-50 px-6 py-4 border-t no-print">
-              <button
-                onClick={() => window.print()}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow"
-              >
-                🖨️ Print Struk
-              </button>
+            <div className="flex justify-end gap-3 bg-gray-50 px-6 py-4 border-t">
               <button
                 onClick={() => setDetailTransaksi(null)}
-                className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg shadow"
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow transition"
               >
                 Tutup
               </button>
