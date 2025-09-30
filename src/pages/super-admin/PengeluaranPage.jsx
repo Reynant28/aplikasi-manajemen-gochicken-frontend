@@ -153,68 +153,84 @@ const PengeluaranPage = () => {
       </div>
 
       {/* Tabel pengeluaran */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="overflow-x-auto bg-white shadow-lg rounded-lg"
-      >
-        {pengeluaran.length === 0 ? (
-          <p className="p-4 text-center text-gray-600">
-            Belum ada data pengeluaran
-          </p>
-        ) : (
-          <table className="min-w-full rounded-lg overflow-hidden">
-            <thead className="bg-green-600 text-white">
-              <tr>
-                <th className="px-4 py-3 text-left">No</th>
-                <th className="px-4 py-3 text-left">Tanggal</th>
-                <th className="px-4 py-3 text-left">Jumlah</th>
-                <th className="px-4 py-3 text-left">Keterangan</th>
-                <th className="px-4 py-3 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pengeluaran.map((item, index) => (
-                <tr
-                  key={item.id_pengeluaran}
-                  className={`transition duration-200 ${
-                    index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                  } hover:bg-green-50`}
-                >
-                  <td className="px-4 py-3 font-semibold text-gray-700">
-                    {index + 1}
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-600">
-                    {item.tanggal}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-gray-600">
-                    Rp {parseInt(item.jumlah).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700 italic">
-                    {item.keterangan}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow"
-                        onClick={() => setEditPengeluaran(item)}
-                      >
-                        <Edit size={16} /> Edit
-                      </button>
-                      <button
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 shadow"
-                        onClick={() => confirmDelete(item.id_pengeluaran)}
-                      >
-                        <Trash size={16} /> Hapus
-                      </button>
-                    </div>
-                  </td>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="overflow-hidden bg-white shadow-md rounded-xl"
+        >
+          {pengeluaran.length === 0 ? (
+            <p className="p-4 text-center text-gray-600">Belum ada data pengeluaran</p>
+          ) : (
+            <table className="min-w-full text-sm text-gray-700 border-separate border-spacing-0">
+              <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
+                    No
+                  </th>
+                  <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
+                    Keterangan
+                  </th>
+                  <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
+                    Jumlah
+                  </th>
+                  <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
+                    Tanggal
+                  </th>
+                  <th className="px-6 py-4 text-center font-semibold border-b border-gray-200">
+                    Aksi
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </motion.div>
+              </thead>
+              <tbody>
+                {pengeluaran.map((item, index) => (
+                  <tr
+                    key={item.id_pengeluaran}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    <td className="px-6 py-4 font-bold text-gray-800 border-b border-gray-200">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 italic border-b border-gray-200">
+                      {item.keterangan}
+                    </td>
+                    <td className="px-6 py-4 border-b border-gray-200">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          parseInt(item.jumlah) > 500000
+                            ? "bg-red-100 text-red-600"
+                            : "bg-green-100 text-green-600"
+                        }`}
+                      >
+                        Rp {parseInt(item.jumlah).toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 border-b border-gray-200">
+                      {item.tanggal}
+                    </td>
+                    <td className="px-6 py-4 text-center border-b border-gray-200">
+                      <div className="flex justify-center gap-3">
+                        <button
+                          className="text-green-600 hover:text-green-800"
+                          onClick={() => setEditPengeluaran(item)}
+                          title="Edit"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => confirmDelete(item.id_pengeluaran)}
+                          title="Hapus"
+                        >
+                          <Trash size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </motion.div>
 
       {/* Modal tambah pengeluaran */}
       <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
@@ -222,14 +238,15 @@ const PengeluaranPage = () => {
           <Plus size={18} /> Tambah Pengeluaran
         </h2>
         <form onSubmit={handleAdd}>
-          <label className="text-sm font-medium text-gray-700">Tanggal</label>
-          <input
-            type="date"
-            value={formData.tanggal}
+          <label className="text-sm font-medium text-gray-700">Keterangan</label>
+          <textarea
+            value={formData.keterangan}
             onChange={(e) =>
-              setFormData({ ...formData, tanggal: e.target.value })
+              setFormData({ ...formData, keterangan: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+            rows="3"
+            placeholder="Deskripsi penggunaan"
             required
           />
 
@@ -245,15 +262,14 @@ const PengeluaranPage = () => {
             required
           />
 
-          <label className="text-sm font-medium text-gray-700">Keterangan</label>
-          <textarea
-            value={formData.keterangan}
+          <label className="text-sm font-medium text-gray-700">Tanggal</label>
+          <input
+            type="date"
+            value={formData.tanggal}
             onChange={(e) =>
-              setFormData({ ...formData, keterangan: e.target.value })
+              setFormData({ ...formData, tanggal: e.target.value })
             }
             className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            rows="3"
-            placeholder="Deskripsi penggunaan"
             required
           />
 
