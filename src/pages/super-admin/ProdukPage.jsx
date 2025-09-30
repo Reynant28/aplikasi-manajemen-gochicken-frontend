@@ -235,41 +235,57 @@ const ProdukPage = () => {
                         {produk.map((prod) => (
                             <motion.div
                                 key={prod.id_produk}
-                                whileHover={{ scale: 1.01, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                                className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transition duration-300"
-                            >
+                                whileHover={{ scale: 1.02 }}
+                                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
+                                >
+                                {/* Gambar Produk */}
                                 {prod.gambar_produk_url && (
+                                    <div className="relative w-full h-48 overflow-hidden">
                                     <img
                                         src={prod.gambar_produk_url}
                                         alt={prod.nama_produk}
-                                        className="w-full h-48 object-cover object-center"
+                                        className="w-full h-full object-cover object-center transform hover:scale-105 transition duration-500"
                                     />
+                                    </div>
                                 )}
-                                <div className="p-5 space-y-3">
-                                    <h2 className="text-xl font-bold text-gray-900 line-clamp-2">{prod.nama_produk}</h2>
-                                    {/* Mengubah warna harga menjadi hijau/green */}
-                                    <p className="text-lg font-semibold text-green-600">Rp{prod.harga}</p>
-                                    <p className="text-gray-600 text-sm">Kategori: <span className="font-medium text-gray-800">{prod.kategori}</span></p>
-                                    <p className="text-gray-600 text-sm line-clamp-1">Deskripsi: {prod.deskripsi}</p>
-                                    <div className="flex gap-3 pt-2">
-                                        <button
-                                            onClick={() => handleDetail(prod)}
-                                            className="flex items-center gap-1 px-3 py-1 text-xs bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition ease-in-out"
-                                        >
-                                            Lihat
-                                        </button>
-                                        <button
-                                            onClick={() => handleEdit(prod)}
-                                            className="flex items-center gap-1 px-3 py-1 text-xs bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition ease-in-out"
-                                        >
-                                            <Edit size={14} /> Edit
-                                        </button>
-                                        <button
-                                            onClick={() => confirmDelete(prod.id_produk)}
-                                            className="flex items-center gap-1 px-3 py-1 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition ease-in-out"
-                                        >
-                                            <Trash2 size={14} /> Hapus
-                                        </button>
+                                {/* Info Produk */}
+                                <div className="p-5 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-2">
+                                    <h2 className="text-lg font-bold text-gray-900 line-clamp-2">
+                                        {prod.nama_produk}
+                                    </h2>
+                                    <p className="text-green-600 font-semibold text-base">
+                                        Rp {parseInt(prod.harga).toLocaleString()}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        Kategori:{" "}
+                                        <span className="font-medium text-gray-700">{prod.kategori}</span>
+                                    </p>
+                                    <p className="text-sm text-gray-500 line-clamp-1">
+                                        {prod.deskripsi}
+                                    </p>
+                                    </div>
+
+                                    {/* Tombol Aksi */}
+                                    <div className="flex gap-2 mt-4">
+                                    <button
+                                        onClick={() => handleDetail(prod)}
+                                        className="flex-1 text-xs px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
+                                    >
+                                        Lihat
+                                    </button>
+                                    <button
+                                        onClick={() => handleEdit(prod)}
+                                        className="flex-1 text-xs px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                                    >
+                                        <Edit size={14} className="inline-block mr-1" /> Edit
+                                    </button>
+                                    <button
+                                        onClick={() => confirmDelete(prod.id_produk)}
+                                        className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                                    >
+                                        <Trash2 size={14} className="inline-block mr-1" /> Hapus
+                                    </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -449,7 +465,6 @@ const ProdukPage = () => {
                 onClose={() => setShowConfirm(false)}
                 onConfirm={handleDelete}
             />
-
             {/* Modal Sukses */}
             <SuccessPopup
                 isOpen={showSuccess}
