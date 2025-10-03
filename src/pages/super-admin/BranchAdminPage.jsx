@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, Edit, Trash2, X, AlertTriangle, Plus } from "lucide-react";
-
 import { ConfirmDeletePopup, SuccessPopup, Card, Button, Modal } from "../../components/ui";
+
 import { Link } from "react-router-dom";
 
 const API_URL = "http://localhost:8000/api";
@@ -164,7 +164,7 @@ const BranchAdminPage = () => {
     } catch (err) {
       console.error("Delete admin error:", err);
     }
-    setShowConfirm(false);
+    setShowConfirm(true);
     setDeleteId(null);
   };
 
