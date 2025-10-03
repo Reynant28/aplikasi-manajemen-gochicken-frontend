@@ -19,7 +19,6 @@ const BahanPage = () => {
     nama_bahan: "",
     jumlah_stok: "",
     harga_satuan: "",
-    satuan: "",
   });
 
   const [editBahan, setEditBahan] = useState(null);
@@ -69,7 +68,7 @@ const BahanPage = () => {
       if (res.status === 201) {
         setSuccessMessage(data.message || "Bahan baku berhasil ditambahkan!");
         setShowSuccess(true);
-        setFormData({ nama_bahan: "", jumlah_stok: "", harga_satuan: "", satuan: "" });
+        setFormData({ nama_bahan: "", jumlah_stok: "", harga_satuan: "" });
         setShowForm(false);
         fetchBahan();
       } else {
@@ -84,14 +83,21 @@ const BahanPage = () => {
   // --- Update bahan ---
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`${API_URL}/bahan-baku/${editBahan.id_bahan_baku}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editBahan),
-      });
+      const res = await fetch(
+        `${API_URL}/bahan-baku/${editBahan.id_bahan_baku}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nama_bahan: editBahan.nama_bahan,
+            jumlah_stok: Number(editBahan.jumlah_stok),
+            harga_satuan: Number(editBahan.harga_satuan),
+          }),
+        }
+      );
 
       const data = await res.json();
       if (res.ok) {
@@ -161,24 +167,33 @@ const BahanPage = () => {
         className="overflow-hidden bg-white shadow-md rounded-xl"
       >
         {bahanList.length === 0 ? (
-          <p className="p-4 text-center text-gray-600">Belum ada data bahan baku</p>
+          <p className="p-4 text-center text-gray-600">
+            Belum ada data bahan baku
+          </p>
         ) : (
-          <table className="min-w-full text-sm text-gray-700 border-separate border-spacing-0">
+          <table className="min-w-full text-sm text-gray-700">
             <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
               <tr>
-                <th className="px-6 py-4 text-left font-semibold border-b">ID</th>
-                <th className="px-6 py-4 text-left font-semibold border-b">Nama Bahan</th>
-                <th className="px-6 py-4 text-left font-semibold border-b">Stok</th>
-                <th className="px-6 py-4 text-left font-semibold border-b">Harga Satuan</th>
-                <th className="px-6 py-4 text-center font-semibold border-b">Aksi</th>
+                <th className="px-6 py-4 text-left font-semibold">ID</th>
+                <th className="px-6 py-4 text-left font-semibold">Nama Bahan</th>
+                <th className="px-6 py-4 text-left font-semibold">Stok</th>
+                <th className="px-6 py-4 text-left font-semibold">
+                  Harga Satuan
+                </th>
+                <th className="px-6 py-4 text-center font-semibold">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {bahanList.map((item) => (
-                <tr key={item.id_bahan_baku} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 border-b font-bold">{item.id_bahan_baku}</td>
-                  <td className="px-6 py-4 border-b">{item.nama_bahan}</td>
-                  <td className="px-6 py-4 border-b">
+                <tr
+                  key={item.id_bahan_baku}
+                  className="hover:bg-gray-50 transition"
+                >
+                  <td className="px-6 py-4 font-bold">
+                    {item.id_bahan_baku}
+                  </td>
+                  <td className="px-6 py-4">{item.nama_bahan}</td>
+                  <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         item.jumlah_stok < 50
@@ -186,13 +201,13 @@ const BahanPage = () => {
                           : "bg-green-100 text-green-600"
                       }`}
                     >
-                      {item.jumlah_stok} {item.satuan}
+                      {item.jumlah_stok}
                     </span>
                   </td>
-                  <td className="px-6 py-4 border-b">
+                  <td className="px-6 py-4">
                     Rp {parseInt(item.harga_satuan).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 border-b text-center">
+                  <td className="px-6 py-4 text-center">
                     <div className="flex justify-center gap-3">
                       <button
                         className="text-green-600 hover:text-green-800"
@@ -223,38 +238,41 @@ const BahanPage = () => {
           <PlusCircle size={18} /> Tambah Bahan Baku
         </h2>
         <form onSubmit={handleAdd}>
-          <label className="text-sm font-medium text-gray-700">Nama Bahan</label>
+          <label className="text-sm font-medium text-gray-700">
+            Nama Bahan
+          </label>
           <input
             type="text"
             value={formData.nama_bahan}
-            onChange={(e) => setFormData({ ...formData, nama_bahan: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, nama_bahan: e.target.value })
+            }
             className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
             required
           />
 
-          <label className="text-sm font-medium text-gray-700">Jumlah Stok</label>
+          <label className="text-sm font-medium text-gray-700">
+            Jumlah Stok
+          </label>
           <input
             type="number"
             value={formData.jumlah_stok}
-            onChange={(e) => setFormData({ ...formData, jumlah_stok: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, jumlah_stok: e.target.value })
+            }
             className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
             required
           />
 
-          <label className="text-sm font-medium text-gray-700">Satuan</label>
-          <input
-            type="text"
-            value={formData.satuan}
-            onChange={(e) => setFormData({ ...formData, satuan: e.target.value })}
-            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            required
-          />
-
-          <label className="text-sm font-medium text-gray-700">Harga Satuan</label>
+          <label className="text-sm font-medium text-gray-700">
+            Harga Satuan
+          </label>
           <input
             type="number"
             value={formData.harga_satuan}
-            onChange={(e) => setFormData({ ...formData, harga_satuan: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, harga_satuan: e.target.value })
+            }
             className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
             required
           />
@@ -280,13 +298,17 @@ const BahanPage = () => {
 
       {/* Modal edit bahan */}
       <Modal isOpen={!!editBahan} onClose={() => setEditBahan(null)}>
-        <h2 className="text-xl font-semibold mb-4 text-green-700">✏️ Edit Bahan Baku</h2>
+        <h2 className="text-xl font-semibold mb-4 text-green-700">
+          ✏️ Edit Bahan Baku
+        </h2>
 
         <label className="text-sm font-medium text-gray-700">Nama Bahan</label>
         <input
           type="text"
           value={editBahan?.nama_bahan || ""}
-          onChange={(e) => setEditBahan({ ...editBahan, nama_bahan: e.target.value })}
+          onChange={(e) =>
+            setEditBahan({ ...editBahan, nama_bahan: e.target.value })
+          }
           className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
         />
 
@@ -294,23 +316,21 @@ const BahanPage = () => {
         <input
           type="number"
           value={editBahan?.jumlah_stok || ""}
-          onChange={(e) => setEditBahan({ ...editBahan, jumlah_stok: e.target.value })}
+          onChange={(e) =>
+            setEditBahan({ ...editBahan, jumlah_stok: e.target.value })
+          }
           className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
         />
 
-        <label className="text-sm font-medium text-gray-700">Satuan</label>
-        <input
-          type="text"
-          value={editBahan?.satuan || ""}
-          onChange={(e) => setEditBahan({ ...editBahan, satuan: e.target.value })}
-          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-        />
-
-        <label className="text-sm font-medium text-gray-700">Harga Satuan</label>
+        <label className="text-sm font-medium text-gray-700">
+          Harga Satuan
+        </label>
         <input
           type="number"
           value={editBahan?.harga_satuan || ""}
-          onChange={(e) => setEditBahan({ ...editBahan, harga_satuan: e.target.value })}
+          onChange={(e) =>
+            setEditBahan({ ...editBahan, harga_satuan: e.target.value })
+          }
           className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
         />
 
