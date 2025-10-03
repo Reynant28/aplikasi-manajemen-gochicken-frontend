@@ -1,7 +1,7 @@
 // src/pages/BahanPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { PlusCircle, Edit, Trash2, X } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, number } from "framer-motion";
 import {
   ConfirmDeletePopup,
   SuccessPopup,
@@ -18,6 +18,7 @@ const BahanPage = () => {
   const [formData, setFormData] = useState({
     nama_bahan: "",
     jumlah_stok: "",
+    satuan: "",
     harga_satuan: "",
   });
 
@@ -68,7 +69,7 @@ const BahanPage = () => {
       if (res.status === 201) {
         setSuccessMessage(data.message || "Bahan baku berhasil ditambahkan!");
         setShowSuccess(true);
-        setFormData({ nama_bahan: "", jumlah_stok: "", harga_satuan: "" });
+        setFormData({ nama_bahan: "", jumlah_stok: "", satuan: "", harga_satuan: "" });
         setShowForm(false);
         fetchBahan();
       } else {
@@ -94,6 +95,7 @@ const BahanPage = () => {
           body: JSON.stringify({
             nama_bahan: editBahan.nama_bahan,
             jumlah_stok: Number(editBahan.jumlah_stok),
+            satuan: Number(editBahan.satuan),
             harga_satuan: Number(editBahan.harga_satuan),
           }),
         }
@@ -177,6 +179,7 @@ const BahanPage = () => {
                 <th className="px-6 py-4 text-left font-semibold">ID</th>
                 <th className="px-6 py-4 text-left font-semibold">Nama Bahan</th>
                 <th className="px-6 py-4 text-left font-semibold">Stok</th>
+                <th className="px-6 py-4 text-left font-semibold">Satuan</th>
                 <th className="px-6 py-4 text-left font-semibold">
                   Harga Satuan
                 </th>
@@ -196,13 +199,18 @@ const BahanPage = () => {
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        item.jumlah_stok < 50
+                        item.jumlah_stok < 5
                           ? "bg-red-100 text-red-600"
                           : "bg-green-100 text-green-600"
                       }`}
                     >
                       {item.jumlah_stok}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {Number(item.satuan) % 1 === 0
+                    ? Number(item.satuan) 
+                    : Number(item.satuan).toFixed(1)} kg
                   </td>
                   <td className="px-6 py-4">
                     Rp {parseInt(item.harga_satuan).toLocaleString()}
@@ -265,6 +273,19 @@ const BahanPage = () => {
           />
 
           <label className="text-sm font-medium text-gray-700">
+            Satuan
+          </label>
+          <input
+            type="number"
+            value={formData.satuan}
+            onChange={(e) =>
+              setFormData({ ...formData, satuan: e.target.value })
+            }
+            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+            required
+          />
+
+          <label className="text-sm font-medium text-gray-700">
             Harga Satuan
           </label>
           <input
@@ -318,6 +339,16 @@ const BahanPage = () => {
           value={editBahan?.jumlah_stok || ""}
           onChange={(e) =>
             setEditBahan({ ...editBahan, jumlah_stok: e.target.value })
+          }
+          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+        />
+
+        <label className="text-sm font-medium text-gray-700">Satuan</label>
+        <input
+          type="number"
+          value={editBahan?.satuan || ""}
+          onChange={(e) =>
+            setEditBahan({ ...editBahan, satuan: e.target.value })
           }
           className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
         />
