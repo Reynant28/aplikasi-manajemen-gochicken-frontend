@@ -12,9 +12,9 @@ import TopProductsChart from '../../components/TopProductsChart.jsx';
 import { Loader2 } from 'lucide-react';
 
 // Import our NEW detailed report components
-import ProductReport from '../../components/reports/ProductReport.jsx';
-import SalesReport from '../../components/reports/SalesReport.jsx';
-import EmployeeReport from '../../components/reports/EmployeeReport.jsx';
+import ProductReport from '../../components/reports/super-admin-report/ProductReport.jsx';
+import SalesReport from '../../components/reports/super-admin-report/SalesReport.jsx';
+import EmployeeReport from '../../components/reports/super-admin-report/EmployeeReport.jsx';
 
 const API_URL = "http://localhost:8000/api";
 
