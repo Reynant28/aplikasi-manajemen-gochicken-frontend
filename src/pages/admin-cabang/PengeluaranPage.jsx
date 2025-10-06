@@ -1,9 +1,3 @@
-<<<<<<< Updated upstream
-// src/pages/PengeluaranPage.jsx
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Plus, Edit, Trash } from "lucide-react";
-=======
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +10,6 @@ import { id } from 'date-fns/locale';
 const API_URL = "http://localhost:8000/api";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
->>>>>>> Stashed changes
 
 const PengeluaranPage = () => {
   const [pengeluaranList, setPengeluaranList] = useState([]);
@@ -34,125 +27,6 @@ const PengeluaranPage = () => {
   const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
   const cabangId = cabang?.id_cabang;
 
-<<<<<<< Updated upstream
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (editingIndex !== null) {
-      const updated = [...pengeluaran];
-      updated[editingIndex] = formData;
-      setPengeluaran(updated);
-      setEditingIndex(null);
-    } else {
-      setPengeluaran([...pengeluaran, formData]);
-    }
-
-    setFormData({ jenis: "", deskripsi: "" });
-  };
-
-  const handleEdit = (index) => {
-    setFormData(pengeluaran[index]);
-    setEditingIndex(index);
-  };
-
-  const handleDelete = (index) => {
-    if (window.confirm("Yakin hapus pengeluaran ini?")) {
-      setPengeluaran(pengeluaran.filter((_, i) => i !== index));
-    }
-  };
-
-  return (
-    <div className="p-6 space-y-8">
-      {/* Form Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-2xl mx-auto border-l-4 border-green-600"
-      >
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-green-700">
-          <Plus className="text-green-600" />{" "}
-          {editingIndex !== null ? "Edit Pengeluaran" : "Tambah Pengeluaran"}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="jenis"
-            placeholder="Jenis Pengeluaran"
-            value={formData.jenis}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
-            required
-          />
-          <textarea
-            name="deskripsi"
-            placeholder="Deskripsi penggunaan"
-            value={formData.deskripsi}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 text-gray-900 placeholder-gray-500"
-            rows="3"
-            required
-          />
-
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
-          >
-            {editingIndex !== null ? "Update" : "Simpan"}
-          </motion.button>
-        </form>
-      </motion.div>
-
-      {/* List Pengeluaran */}
-      <div>
-        <h3 className="text-xl font-semibold mb-4 text-green-700">
-          Daftar Pengeluaran
-        </h3>
-        {pengeluaran.length === 0 ? (
-          <p className="text-gray-500">Belum ada data pengeluaran.</p>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-5">
-            {pengeluaran.map((item, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white p-5 rounded-xl shadow-md border-l-4 border-green-600"
-              >
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {item.jenis}
-                </h2>
-                <p className="text-gray-600 text-sm">{item.deskripsi}</p>
-
-                <div className="flex gap-3 mt-3">
-                  <button
-                    onClick={() => handleEdit(index)}
-                    className="flex items-center gap-1 bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"
-                  >
-                    <Edit size={16} /> Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(index)}
-                    className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700"
-                  >
-                    <Trash size={16} /> Hapus
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default PengeluaranPage;
-=======
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: "", text: "" }), 4000);
@@ -170,7 +44,7 @@ export default PengeluaranPage;
       setPengeluaranList(resPengeluaran.data.data || []);
       setJenisList(resJenis.data.data || []);
       setBahanBakuList(resBahan.data.data || []);
-      //eslint-disable-next-line
+      //eslint-disable-next-line no-unused-vars
     } catch (err) { setError("Gagal mengambil data esensial."); } 
     finally { setLoading(false); }
   }, [token, cabangId]);
@@ -230,7 +104,7 @@ export default PengeluaranPage;
       showMessage('success', 'Pengeluaran berhasil dihapus.');
       fetchData();
       closeModal();
-      //eslint-disable-next-line
+      //eslint-disable-next-line no-unused-vars
     } catch(err) { showMessage('error', 'Gagal menghapus data.');
     } finally { setIsSubmitting(false); }
   };
@@ -381,59 +255,57 @@ const FormModal = ({ isOpen, onClose, onSubmit, isSubmitting, formData, setFormD
     )
 };
 
+
 const DetailModal = ({ isOpen, onClose, data }) => (
-    <AnimatePresence>{isOpen && <motion.div onMouseDown={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <motion.div onMouseDown={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
-            <div className="p-6 border-b"><h2 className="text-xl font-bold text-gray-800">Detail Pengeluaran</h2></div>
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-500"><Tag size={14}/> Jenis: <strong className="text-gray-800">{data?.jenis_pengeluaran?.jenis_pengeluaran}</strong></div>
-                    <div className="flex items-center gap-2 text-gray-500"><Calendar size={14}/> Tanggal: <strong className="text-gray-800">{data?.tanggal ? format(new Date(data.tanggal), 'd MMMM yyyy', { locale: id }) : 'N/A'}</strong></div>
-                </div>
-                <div>
-                    <p className="flex items-center gap-2 text-sm text-gray-500"><FileText size={14}/> Keterangan:</p>
-                    <p className="p-3 bg-gray-50 rounded-md mt-1 text-gray-800">{data?.keterangan}</p>
-                </div>
-                
-                {/* ✨ PERBAIKAN: Section ini sekarang memiliki latar belakang abu-abu dan padding */}
-                {data?.details && data.details.length > 0 && (
-                <div className="bg-slate-50 p-4 rounded-lg">
-                    <h3 className="text-md font-semibold mb-3 text-gray-800">Rincian Pembelian Bahan Baku</h3>
-                    <div className="border rounded-lg overflow-hidden bg-white">
-                        <table className="w-full text-sm">
-                            <thead className="bg-slate-100">
-                                <tr>
-                                    <th className="px-4 py-2 text-left font-semibold text-slate-600">Bahan</th>
-                                    <th className="px-4 py-2 text-center font-semibold text-slate-600">Jumlah</th>
-                                    <th className="px-4 py-2 text-right font-semibold text-slate-600">Harga Satuan</th>
-                                    <th className="px-4 py-2 text-right font-semibold text-slate-600">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.details.map(d => (
-                                <tr key={d.id_detail_pengeluaran} className="border-t border-slate-200 text-gray-800">
-                                    <td className="px-4 py-2">{d.bahan_baku?.nama_bahan || 'N/A'}</td>
-                                    <td className="px-4 py-2 text-center">{d.jumlah_item}</td>
-                                    <td className="px-4 py-2 text-right">{formatRupiah(d.harga_satuan)}</td>
-                                    <td className="px-4 py-2 text-right font-semibold">{formatRupiah(d.total_harga)}</td>
-                                </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                )}
-                
-                <div className="pt-4 text-right">
-                    <p className="text-gray-600">Total Pengeluaran</p>
-                    <p className="text-3xl font-bold text-green-600">{formatRupiah(data?.jumlah)}</p>
+    <AnimatePresence>{isOpen && <motion.div onMouseDown={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"><motion.div onMouseDown={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
+        <div className="p-6 border-b"><h2 className="text-xl font-bold text-gray-800">Detail Pengeluaran</h2></div>
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2 text-gray-500"><Tag size={14}/> Jenis: <strong className="text-gray-800">{data?.jenis_pengeluaran?.jenis_pengeluaran}</strong></div>
+                <div className="flex items-center gap-2 text-gray-500"><Calendar size={14}/> Tanggal: <strong className="text-gray-800">{data?.tanggal ? format(new Date(data.tanggal), 'd MMMM yyyy', { locale: id }) : 'N/A'}</strong></div>
+            </div>
+            <div>
+                <p className="flex items-center gap-2 text-sm text-gray-500"><FileText size={14}/> Keterangan:</p>
+                <p className="p-3 bg-gray-50 rounded-md mt-1 text-gray-800">{data?.keterangan}</p>
+            </div>
+            
+            {data?.details && data.details.length > 0 && (
+            <div className="bg-slate-50 p-4 rounded-lg">
+                <h3 className="text-md font-semibold mb-3 text-gray-800">Rincian Pembelian Bahan Baku</h3>
+                <div className="border rounded-lg overflow-hidden bg-white">
+                    <table className="w-full text-sm">
+                        <thead className="bg-slate-100">
+                            <tr>
+                                <th className="px-4 py-2 text-left font-semibold text-slate-600">Bahan</th>
+                                <th className="px-4 py-2 text-center font-semibold text-slate-600">Jumlah</th>
+                                <th className="px-4 py-2 text-right font-semibold text-slate-600">Harga Satuan</th>
+                                <th className="px-4 py-2 text-right font-semibold text-slate-600">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.details.map(d => (
+                            <tr key={d.id_detail_pengeluaran} className="border-t border-slate-200">
+                                <td className="px-4 py-2">{d.bahan_baku?.nama_bahan || 'N/A'}</td>
+                                <td className="px-4 py-2 text-center">{d.jumlah_item}</td>
+                                <td className="px-4 py-2 text-right">{formatRupiah(d.harga_satuan)}</td>
+                                <td className="px-4 py-2 text-right font-semibold text-gray-800">{formatRupiah(d.total_harga)}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end">
-                <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100">Tutup</button>
+            )}
+            
+            <div className="pt-4 text-right">
+                <p className="text-gray-600">Total Pengeluaran</p>
+                <p className="text-3xl font-bold text-green-600">{formatRupiah(data?.jumlah)}</p>
             </div>
-        </motion.div>
-    </motion.div>}</AnimatePresence>
+        </div>
+        <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end">
+            <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100">Tutup</button>
+        </div>
+    </motion.div></motion.div>}</AnimatePresence>
 );
 
 const DeleteModal = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => (
@@ -442,4 +314,3 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => (
 
 export default PengeluaranPage;
 
->>>>>>> Stashed changes
