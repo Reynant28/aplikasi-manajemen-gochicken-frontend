@@ -1,223 +1,237 @@
 // src/pages/KaryawanPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Edit, Trash2, X, CircleDollarSign, User, AlertTriangle } from "lucide-react";
+import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw } from "lucide-react";
+import axios from 'axios';
+import KaryawanTable from '../../components/karyawan/KaryawanTable';
+
+const API_URL = "http://localhost:8000/api";
 
 const KaryawanPage = () => {
-  const [formData, setFormData] = useState({ nama: "", gaji: "" });
-  const [karyawan, setKaryawan] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [karyawanList, setKaryawanList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState({ type: "", text: "" });
 
-  // state untuk custom confirm
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedKaryawan, setSelectedKaryawan] = useState(null);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const [formData, setFormData] = useState({
+    nama_karyawan: "",
+    alamat: "",
+    telepon: "",
+    gaji: ""
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editingIndex !== null) {
-      const updated = [...karyawan];
-      updated[editingIndex] = formData;
-      setKaryawan(updated);
-      setEditingIndex(null);
-    } else {
-      setKaryawan([...karyawan, formData]);
+  const token = localStorage.getItem("token");
+  const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
+  const cabangId = cabang?.id_cabang;
+
+  // --- Data Fetching ---
+  const fetchKaryawan = useCallback(async () => {
+    if (!cabangId) { setError("Data cabang tidak ditemukan."); setLoading(false); return; }
+    setLoading(true); setError(null);
+    try {
+      const res = await axios.get(`${API_URL}/cabang/${cabangId}/karyawan`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.status === 'success') {
+        setKaryawanList(res.data.data || []);
+      }
+      //eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      setError("Gagal mengambil data karyawan.");
+    } finally {
+      setLoading(false);
     }
-    setFormData({ nama: "", gaji: "" });
-    setShowForm(false);
+  }, [token, cabangId]);
+
+  useEffect(() => {
+    fetchKaryawan();
+  }, [fetchKaryawan]);
+  
+  // --- Modal & Form Handlers ---
+  const openModal = (karyawan = null) => {
+    setSelectedKaryawan(karyawan);
+    setFormData(karyawan ? {
+      nama_karyawan: karyawan.nama_karyawan,
+      alamat: karyawan.alamat,
+      telepon: karyawan.telepon,
+      gaji: karyawan.gaji,
+    } : { nama_karyawan: "", alamat: "", telepon: "", gaji: "" });
+    setIsModalOpen(true);
   };
 
-  const handleEdit = (index) => {
-    setFormData(karyawan[index]);
-    setEditingIndex(index);
-    setShowForm(true);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedKaryawan(null);
   };
 
-  const confirmDelete = (index) => {
-    setDeleteIndex(index);
-    setShowConfirm(true);
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage({ type: "", text: "" });
+    setIsSubmitting(true); 
+    const apiData = { ...formData, id_cabang: cabangId };
+
+    try {
+      let res;
+      if (selectedKaryawan) {
+        res = await axios.put(`${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`, apiData, { headers: { Authorization: `Bearer ${token}` } });
+      } else {
+        res = await axios.post(`${API_URL}/karyawan`, apiData, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      if (res.data.status === 'success') {
+        setMessage({ type: 'success', text: res.data.message });
+        fetchKaryawan();
+        closeModal();
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || `Gagal ${selectedKaryawan ? 'memperbarui' : 'menambah'} karyawan.`;
+      setMessage({ type: 'error', text: errorMsg });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = () => {
-    setKaryawan(karyawan.filter((_, i) => i !== deleteIndex));
-    setShowConfirm(false);
-    setDeleteIndex(null);
+  // --- Delete Handlers ---
+  const openConfirmDelete = (karyawan) => {
+    setSelectedKaryawan(karyawan);
+    setIsConfirmOpen(true);
+  };
+
+  const closeConfirmDelete = () => {
+    setIsConfirmOpen(false);
+    setSelectedKaryawan(null);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedKaryawan) return;
+    setIsSubmitting(true);
+    try {
+      const res = await axios.delete(`${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.status === 'success') {
+        setMessage({ type: 'success', text: res.data.message });
+        fetchKaryawan();
+        closeConfirmDelete();
+      }
+      //eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Gagal menghapus karyawan.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderContent = () => {
+    if (loading) return <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>;
+    if (error) return <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg"><AlertTriangle className="h-8 w-8 mb-2" />{error}</div>;
+    return <KaryawanTable karyawanList={karyawanList} onEdit={openModal} onDelete={openConfirmDelete} />;
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-      <motion.h1
-        className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        Kelola Karyawan
-      </motion.h1>
-
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-green-700">Daftar Karyawan</h3>
-        <button
-          onClick={() => {
-            setFormData({ nama: "", gaji: "" });
-            setEditingIndex(null);
-            setShowForm(true);
-          }}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-        >
-          <PlusCircle size={18} /> Tambah Karyawan
-        </button>
-      </div>
-
-      {/* Grid daftar karyawan */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {karyawan.length === 0 ? (
-          <p className="text-gray-500 italic col-span-full">
-            Belum ada data karyawan.
-          </p>
-        ) : (
-          karyawan.map((item, index) => (
-            <motion.div
-              key={index}
-              className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <h2 className="text-lg font-bold text-green-800 flex items-center gap-2">
-                <User size={18} /> {item.nama}
-              </h2>
-              <p className="text-green-700 font-semibold flex items-center gap-1 mt-2">
-                <CircleDollarSign size={16} /> Rp{" "}
-                {parseInt(item.gaji || 0).toLocaleString()}
-              </p>
-              <div className="flex gap-3 mt-5">
-                <button
-                  onClick={() => handleEdit(index)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                >
-                  <Edit size={16} /> Edit
-                </button>
-                <button
-                  onClick={() => confirmDelete(index)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                >
-                  <Trash2 size={16} /> Hapus
-                </button>
-              </div>
-            </motion.div>
-          ))
-        )}
-      </div>
-
-      {/* Modal Tambah/Edit */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      `}</style>
+      <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Manajemen Karyawan</h1>
+            <p className="text-gray-500">Kelola daftar karyawan untuk cabang <strong>{cabang?.nama_cabang || 'N/A'}</strong></p>
+          </div>
+          <motion.button 
+            onClick={() => openModal()} 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
           >
-            <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600 relative"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-            >
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingIndex(null);
-                  setFormData({ nama: "", gaji: "" });
-                }}
-                className="absolute top-3 right-3 text-red-500 hover:text-red-700"
-              >
-                <X size={20} />
-              </button>
+            <PlusCircle size={20} /> Tambah Karyawan
+          </motion.button>
+        </div>
 
-              <h2 className="text-xl font-semibold mb-4 text-green-700">
-                {editingIndex !== null ? "✏️ Edit Karyawan" : "➕ Tambah Karyawan"}
-              </h2>
+        {message.text && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`p-3 rounded-lg flex items-center gap-3 text-sm font-semibold ${ message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" }`}>
+            {message.type === "success" ? "✓" : "✗"} {message.text}
+          </motion.div>
+        )}
 
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <input
-                  type="text"
-                  name="nama"
-                  placeholder="Nama Karyawan"
-                  value={formData.nama}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
-                  required
-                />
-                <input
-                  type="number"
-                  name="gaji"
-                  placeholder="Masukkan Gaji"
-                  value={formData.gaji}
-                  onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full text-gray-800"
-                  required
-                />
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">{renderContent()}</div>
+      </motion.div>
 
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold"
-                >
-                  {editingIndex !== null ? "Simpan Perubahan" : "Tambah Karyawan"}
-                </motion.button>
+      {/* Add/Edit Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div onClick={closeModal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div onClick={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative">
+              <div className="p-6 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-800">{selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan Baru"}</h2>
+                <button onClick={closeModal} className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nama Karyawan</label>
+                        <input type="text" name="nama_karyawan" value={formData.nama_karyawan} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Telepon</label>
+                        <input type="text" name="telepon" value={formData.telepon} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting} />
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
+                    <textarea name="alamat" value={formData.alamat} onChange={handleChange} rows="2" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting}></textarea>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Gaji (Rp)</label>
+                    <input type="number" name="gaji" value={formData.gaji} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting} />
+                </div>
+                <div className="pt-2 flex justify-end gap-3">
+                  <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button>
+                  <button type="submit" className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:bg-green-400 disabled:cursor-wait" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                        <><Loader2 className="animate-spin mr-2" size={16}/> {selectedKaryawan ? 'Menyimpan...' : 'Menambah...'}</>
+                    ) : (
+                        selectedKaryawan ? "Simpan" : "Tambah"
+                    )}
+                  </button>
+                </div>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Custom Confirm Modal */}
+      {/* Confirm Delete Modal */}
       <AnimatePresence>
-        {showConfirm && (
-          <motion.div
-            className="fixed inset-0 bg-white bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="text-red-500" size={28} />
-                <h2 className="text-lg font-bold text-gray-800">
-                  Konfirmasi Hapus
-                </h2>
-              </div>
-              <p className="text-gray-600 mb-6">
-                Apakah Anda yakin ingin menghapus karyawan ini? Tindakan ini tidak dapat dibatalkan.
+        {isConfirmOpen && (
+          <motion.div onClick={closeConfirmDelete} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div onClick={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center">
+              <AlertTriangle className="mx-auto text-red-500 h-12 w-12 mb-4" />
+              <h2 className="text-lg font-bold text-gray-800">Konfirmasi Hapus</h2>
+              <p className="text-sm text-gray-500 mt-2 mb-6">
+                Apakah Anda yakin ingin menghapus karyawan <br/><strong>{selectedKaryawan?.nama_karyawan}</strong>? Tindakan ini tidak dapat dibatalkan.
               </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                >
-                  Hapus
+              <div className="flex justify-center gap-3">
+                <button onClick={closeConfirmDelete} className="px-6 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button>
+                <button onClick={handleDelete} className="flex items-center justify-center w-28 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : "Hapus"}
                 </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 
 export default KaryawanPage;
+
