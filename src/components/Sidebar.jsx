@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, Settings,
   HelpCircle, Building2, UserCog, Wallet, ChevronDown,
-  Receipt, Package
+  Receipt, Package, Boxes
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

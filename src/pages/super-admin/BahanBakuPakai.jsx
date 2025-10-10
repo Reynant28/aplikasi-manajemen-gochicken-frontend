@@ -85,7 +85,7 @@ export default function BahanBakuHarianPage() {
   const handleDelete = async (id) => {
     if (!window.confirm("Hapus data ini?")) return;
     try {
-      await axios.delete(`/api/bahan-baku-pakai/${id}`, {
+      await axios.delete(`${API_URL}/bahan-baku-pakai/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchPemakaian();
