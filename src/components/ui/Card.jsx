@@ -12,7 +12,7 @@ export function Card({ className, children }) {
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-gray-200 bg-white shadow-md overflow-hidden",
+        "rounded-2xl border p-4 border-gray-200 bg-white shadow-md overflow-hidden",
         className
       )}
     >
