@@ -31,6 +31,7 @@ const Sidebar = () => {
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin"] },
     { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
+    { to: "/bahan-baku-pakai", label: "Bahan Baku Pakai", icon: <Boxes size={18} />, roles: ["super admin"] },
   ];
 
   return (
