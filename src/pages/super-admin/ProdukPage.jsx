@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle } from "lucide-react";
+import { useNotification } from "../../components/context/NotificationContext"; 
 import { SuccessPopup, Modal, ConfirmDeletePopup, Card, Button } from "../../components/ui";
 
 const API_URL = "http://localhost:8000/api";
@@ -23,6 +24,9 @@ const ProdukPage = () => {
     const [message, setMessage] = useState("");
     const [produk, setProduk] = useState([]);
     const [selectedProduk, setSelectedProduk] = useState(null);
+
+    // Gunakan context notifikasi
+    const { addNotification } = useNotification(); 
 
     // State untuk Custom Popups
     const [showSuccess, setShowSuccess] = useState(false);
@@ -75,7 +79,7 @@ const ProdukPage = () => {
             deskripsi: "",
             gambar_produk: null,
         });
-        setMessage(''); // Clear previous message
+        setMessage(''); 
         setIsModalOpen(true);
     };
 
@@ -89,7 +93,7 @@ const ProdukPage = () => {
             gambar_produk: null,
         });
         setCurrentImageUrl(prod.gambar_produk_url);
-        setMessage(''); // Clear previous message
+        setMessage(''); 
         setIsModalOpen(true);
     };
 
@@ -100,7 +104,7 @@ const ProdukPage = () => {
         setCurrentImageUrl("");
     };
 
-    // ProdukPage.jsx - Di dalam handleSubmit
+    // Fungsi Submit Produk (Tambah/Edit)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -114,57 +118,75 @@ const ProdukPage = () => {
         });
 
         let url = `${API_URL}/produk`;
-        let method = "POST"; // Default untuk tambah
-
+        // --- 🎯 AMBIL NAMA PRODUK DARI FORM ---
+        const currentProdukName = formData.nama_produk; 
+        const action = editingProduk ? "mengubah" : "menambah";
+        
         if (editingProduk) {
             url = `${API_URL}/produk/${editingProduk.id_produk}`;
-            // !!! JANGAN GUNAKAN _method OVERRIDE JIKA INGIN MENGIRIM PUT/PATCH DENGAN FETCH !!!
-            method = "POST"; // Kembali ke POST, namun tambahkan _method override di form data
-            form.append("_method", "PUT"); // <--- Tambahkan method override untuk Laravel
+            form.append("_method", "PUT"); 
         }
 
         try {
             const res = await fetch(url, {
-                // Kita tetap menggunakan method POST di sini
-                // agar Laravel dapat memproses FormData dengan _method=PUT
-                method: "POST",
+                method: "POST", // Tetap POST untuk FormData dengan _method=PUT
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    // Hapus header 'Content-Type': 'multipart/form-data'
-                    // Browser akan menambahkannya secara otomatis dengan boundary saat FormData digunakan
                 },
                 body: form,
             });
 
-            // --- TAMBAH Cek Response Status di sini ---
+            // --- Cek Response Status (Error Handling) ---
             if (!res.ok) {
-                // Jika respons BUKAN 2xx (misal 401, 500, 419)
                 const text = await res.text();
+                let errorMsg = `Gagal ${action} produk. Coba lagi.`;
 
-                // Cek apakah response-nya adalah HTML (yang menyebabkan SyntaxError)
                 if (text.startsWith('<!DOCTYPE')) {
+                    errorMsg = "Server Error: Sesi kedaluwarsa atau Kesalahan Internal Server (500).";
                     console.error("Server returned HTML error page (Not JSON):", text);
-                    setMessage("❌ Server Error: Sesi kedaluwarsa atau Kesalahan Internal Server (500).");
-                    setLoading(false);
-                    return;
+                } else {
+                    try {
+                        const data = JSON.parse(text);
+                        errorMsg = data.message || errorMsg;
+                    } catch (e) {
+                        // Jika bukan JSON atau HTML, gunakan pesan default
+                    }
                 }
+                
+                // 🛑 Notifikasi Gagal (Pesan DULU, Tipe KEMUDIAN)
+                const notificationMsg = `[Produk] Gagal ${action} produk '${currentProdukName}': ${errorMsg}`;
+                addNotification(notificationMsg, 'error'); 
+                
+                setMessage("❌ " + errorMsg);
+                setLoading(false);
+                return;
             }
             // --- Akhir Cek Response Status ---
 
-            const data = await res.json(); // Baris 243: Akan aman jika responsnya JSON
+            const data = await res.json(); 
 
             if (res.ok) {
-                const action = editingProduk ? "diubah" : "ditambahkan";
-                setSuccessMessage(data.message || `Produk berhasil ${action}!`);
+                const successAction = editingProduk ? "diubah" : "ditambahkan";
+                
+                // ✅ Notifikasi Sukses dengan nama produk (Pesan DULU, Tipe KEMUDIAN)
+                const notificationMsg = `[Produk] Berhasil ${successAction} data produk: ${currentProdukName}`;
+                addNotification(notificationMsg, 'success');
+
+                setSuccessMessage(data.message || notificationMsg);
                 setShowSuccess(true);
                 fetchProduk();
                 handleCloseModal();
             } else {
-                setMessage("❌ " + (data.message || "Error"));
+                setMessage("❌ " + (data.message || "Error tidak teridentifikasi"));
+                const errorMsg = `[Produk] Gagal ${action} Produk: ${data.message || "Error tidak teridentifikasi"}`;
+                addNotification(errorMsg, 'error');
             }
         } catch (err) {
             console.error("Fetch error:", err);
-            setMessage("❌ Error koneksi server atau respons tidak valid");
+            const errorMsg = "Error koneksi server atau respons tidak valid";
+            setMessage("❌ " + errorMsg);
+            // 🛑 Notifikasi Error Koneksi (Pesan DULU, Tipe KEMUDIAN)
+            addNotification(`[Produk] Gagal ${action} Produk: ${errorMsg}`, 'error');
         } finally {
             setLoading(false);
         }
@@ -181,24 +203,45 @@ const ProdukPage = () => {
         setShowConfirm(false);
         if (!deleteId) return;
 
+        // --- 🎯 CARI NAMA PRODUK UNTUK NOTIFIKASI ---
+        const produkToDelete = produk.find(p => p.id_produk === deleteId);
+        const produkName = produkToDelete ? produkToDelete.nama_produk : `ID ${deleteId}`; 
+
         try {
             const res = await fetch(`${API_URL}/produk/${deleteId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
+            
             const data = await res.json();
 
             if (res.ok) {
-                setSuccessMessage(data.message || "Produk berhasil dihapus!");
+                
+                // ✅ Notifikasi Sukses Hapus (Pesan DULU, Tipe KEMUDIAN)
+                const notificationMsg = `[Produk] Berhasil menghapus produk: ${produkName}`;
+                addNotification(notificationMsg, 'info'); 
+                
+                setSuccessMessage(data.message || notificationMsg);
                 setShowSuccess(true);
                 fetchProduk();
             } else {
-                // Tampilkan error jika gagal
-                setMessage("❌ " + (data.message || "Gagal hapus"));
+                const errorMsg = data.message || "Gagal menghapus produk.";
+                
+                // 🛑 Notifikasi Gagal Hapus (Pesan DULU, Tipe KEMUDIAN)
+                const failMsg = `[Produk] Gagal menghapus produk '${produkName}': ${errorMsg}`;
+                addNotification(failMsg, 'error');
+                
+                setMessage("❌ " + errorMsg);
             }
         } catch (err) {
             console.error("Delete error:", err);
-            setMessage("❌ Error koneksi server saat menghapus.");
+            const errorMsg = "Error koneksi server saat menghapus.";
+            
+            // 🛑 Notifikasi Error Koneksi Hapus (Pesan DULU, Tipe KEMUDIAN)
+            const connErrorMsg = `[Produk] Error koneksi saat menghapus produk '${produkName}': ${errorMsg}`;
+            addNotification(connErrorMsg, 'error');
+            
+            setMessage("❌ " + errorMsg);
         } finally {
             setDeleteId(null);
         }
@@ -294,7 +337,7 @@ const ProdukPage = () => {
                 )}
             </div>
 
-            {/* --- MODAL ADD/EDIT PRODUK (Tetap menggunakan backdrop putih transparan) --- */}
+            {/* --- MODAL ADD/EDIT PRODUK --- */}
             <AnimatePresence>
                 {isModalOpen && (
                     <motion.div
@@ -309,7 +352,6 @@ const ProdukPage = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 50 }}
                             transition={{ duration: 0.3 }}
-                            // Aksen modal tetap hijau/green
                             className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-xl mx-auto border-t-4 border-green-600 relative"
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -386,7 +428,7 @@ const ProdukPage = () => {
                             </form>
                             {/* Pesan error/sukses dari API tetap ditampilkan di modal jika ada */}
                             {message && (
-                                <p className={`mt-4 text-center text-sm font-medium ${message.includes("✅") ? "text-green-600" : "text-red-600"}`}>
+                                <p className={`mt-4 text-center text-sm font-medium ${message.includes("❌") ? "text-red-600" : "text-green-600"}`}>
                                     {message}
                                 </p>
                             )}
@@ -395,11 +437,10 @@ const ProdukPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* --- MODAL DETAIL PRODUK (Tetap menggunakan tema Hijau/Green) --- */}
+            {/* --- MODAL DETAIL PRODUK --- */}
             <AnimatePresence>
                 {selectedProduk && (
                     <motion.div
-                        // Backdrop detail menggunakan tema lama (bg-opacity-50)
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -457,7 +498,7 @@ const ProdukPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* --- CUSTOM POPUPS (Menggunakan backdrop putih transparan) --- */}
+            {/* --- CUSTOM POPUPS --- */}
 
             {/* Modal Konfirmasi Hapus */}
             <ConfirmDeletePopup

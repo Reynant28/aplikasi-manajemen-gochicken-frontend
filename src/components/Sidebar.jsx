@@ -3,24 +3,21 @@ import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, Settings,
   HelpCircle, Building2, UserCog, Wallet, ChevronDown,
-  Receipt, Package, Boxes
+  Receipt, Package
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Sidebar = () => {
-  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(true);
 
-  // Ambil user & cabang dari localStorage
   const user = JSON.parse(localStorage.getItem("user"));
   const cabang = JSON.parse(localStorage.getItem("cabang"));
 
-  // Tentukan basePath berdasarkan role
   let basePath = "/super-admin/dashboard";
   if (user?.role === "admin cabang" && cabang?.id_cabang) {
     basePath = `/admin-cabang/${cabang.id_cabang}/dashboard`;
   }
 
-  // Daftar menu berdasarkan role
   const menuItems = [
     { to: "/general", label: "General", icon: <Home size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
@@ -35,21 +32,23 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col h-screen shadow-lg">
+    <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col h-screen shadow-lg relative">
       {/* Header */}
-      <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-green-600 to-green-700 text-white">
-        <h1 className="text-xl font-bold tracking-wide">Management</h1>
-        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-lg">
-          {user?.role || "Guest"}
-        </span>
+      <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-green-600 to-green-700 text-white">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold tracking-wide drop-shadow-sm">GoChicken</h1>
+          <span className="px-2 py-1 text-xs font-semibold bg-white/25 text-white rounded-md backdrop-blur-sm">
+            {user?.role || "Guest"}
+          </span>
+        </div>
+        <p className="text-xs mt-1 text-white/80">{cabang?.nama_cabang || "Pusat"}</p>
       </div>
 
-      {/* Isi Sidebar Scrollable */}
+      {/* Menu Utama */}
       <div className="flex-grow px-4 py-5 space-y-3 overflow-y-auto scrollbar-hide">
-        {/* Dropdown All Sites */}
         <div
           onClick={() => setOpenDropdown(!openDropdown)}
-          className="px-3 py-2 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-green-50 transition-all"
+          className="px-3 py-2 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer bg-white hover:bg-green-50 transition-all"
         >
           <span className="font-semibold text-gray-800">All Sites</span>
           <ChevronDown
@@ -58,15 +57,14 @@ const Sidebar = () => {
           />
         </div>
 
-        {/* Isi Dropdown dengan Animasi */}
         <AnimatePresence>
           {openDropdown && (
             <motion.div
-              className="ml-4 mt-2 space-y-2"
+              className="ml-2 mt-3 space-y-2"
               initial={{ opacity: 0, y: -10, height: 0 }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -10, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.35 }}
             >
               {menuItems
                 .filter(item => item.roles.includes(user?.role))
@@ -74,21 +72,18 @@ const Sidebar = () => {
                   <NavLink
                     key={idx}
                     to={`${basePath}${item.to}`}
-                    className="relative flex items-center px-3 py-2 rounded-xl font-medium transition-all"
+                    className="relative flex items-center px-3 py-2 rounded-lg font-medium transition-all duration-300"
                   >
                     {({ isActive }) => (
                       <>
-                        {/* Animated active background */}
                         {isActive && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="absolute inset-0 rounded-xl"
-                            style={{ backgroundColor: "rgba(22,163,74,0.15)" }} // hijau transparan
-                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            className="absolute inset-0 bg-green-100 rounded-lg"
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
                           />
                         )}
 
-                        {/* Icon + label */}
                         <span
                           className={`relative flex items-center gap-3 ${
                             isActive
@@ -109,19 +104,19 @@ const Sidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
-        <a
-          href="#"
-          className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-green-50 to-white">
+        <NavLink
+          to={`${basePath}/help`}
+          className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
         >
           <HelpCircle size={20} /> Help Center
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+        </NavLink>
+        <NavLink
+          to={`${basePath}/settings`}
+          className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
         >
           <Settings size={20} /> Settings
-        </a>
+        </NavLink>
       </div>
     </div>
   );
