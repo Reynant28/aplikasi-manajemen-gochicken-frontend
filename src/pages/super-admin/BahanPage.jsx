@@ -170,7 +170,7 @@ const BahanPage = () => {
       >
         {bahanList.length === 0 ? (
           <p className="p-4 text-center text-gray-600">
-            Belum ada data bahan baku
+            ⏳ Memuat data...
           </p>
         ) : (
           <table className="min-w-full text-sm text-gray-700">

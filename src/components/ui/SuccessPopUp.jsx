@@ -24,7 +24,7 @@ const SuccessPopUp = ({ isOpen, onClose, title, message, duration = 3000 }) => {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 300, opacity: 0 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="fixed top-6 right-6 z-50 w-96"
+          className="fixed bottom-6 right-6 z-50 w-96"
         >
           <div className="relative bg-green-500 rounded-lg shadow-lg text-white flex items-center justify-between px-4 py-3 overflow-hidden">
             {/* Konten */}
