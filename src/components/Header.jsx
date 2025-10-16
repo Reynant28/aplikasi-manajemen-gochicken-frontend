@@ -177,7 +177,7 @@ const Header = () => {
           >
             <Bell size={20} className="text-gray-600" />
             {notifications.length > 0 && (
-              <span className="absolute top-1 right-1 block h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border-2 border-white">
+              <span className="absolute top-1 right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border-2 border-white">
                 {notifications.length > 9 ? '9+' : notifications.length}
               </span>
             )}
