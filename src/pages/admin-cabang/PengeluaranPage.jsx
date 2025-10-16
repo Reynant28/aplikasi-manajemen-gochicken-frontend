@@ -313,7 +313,7 @@ const DetailModal = ({ isOpen, onClose, data }) => (
             <div className="bg-slate-50 p-4 rounded-lg">
                 <h3 className="text-md font-semibold mb-3 text-gray-800">Rincian Pembelian Bahan Baku</h3>
                 <div className="border rounded-lg overflow-hidden bg-white">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm text-gray-800">
                         <thead className="bg-slate-100">
                             <tr>
                                 <th className="px-4 py-2 text-left font-semibold text-slate-600">Bahan</th>

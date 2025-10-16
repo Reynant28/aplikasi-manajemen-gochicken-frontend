@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, Settings,
   HelpCircle, Building2, UserCog, Wallet,
-  Receipt, Package, ChevronDown, ChevronLeft, Menu
+  Receipt, Package, ChevronDown, ChevronLeft, Menu, WalletCards
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -73,11 +73,13 @@ const Sidebar = () => {
   const menuItems = [
     { to: "/general", label: "General", icon: <Home size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/reports/daily", label: "Daily Report", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
     { to: "/produk", label: "Produk", icon: <Layers size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} />, roles: ["super admin"] },
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin"] },
     { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
   ];

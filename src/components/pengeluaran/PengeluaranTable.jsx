@@ -7,123 +7,177 @@ import { id } from "date-fns/locale";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
 
-const PengeluaranTable = ({ 
-    pengeluaranList, 
-    onEdit, 
-    onDelete, 
-    onView, 
-    // Props Pagination
-    currentPage, 
-    totalPages, 
-    totalItems, 
-    itemsPerPage, 
-    onPageChange 
-}) => {
+const PengeluaranTable = ({ pengeluaranList, onEdit, onDelete, onView }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-    // Menghitung indeks data yang ditampilkan
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + pengeluaranList.length;
+  // Ambil role user dari localStorage
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "";
 
-    return (
-        <div className="flex flex-col">
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Pengeluaran</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {pengeluaranList.length > 0 ? (
-                            pengeluaranList.map((data, index) => (
-                                <tr key={data.id_pengeluaran} className="hover:bg-gray-50 transition duration-150">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {data.tanggal ? format(new Date(data.tanggal), 'dd MMM yyyy', { locale: id }) : 'N/A'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {data.jenis_pengeluaran?.jenis_pengeluaran || 'N/A'}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                        {data.keterangan}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-right text-red-600">
-                                        {formatRupiah(data.jumlah)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex justify-center space-x-2">
-                                            <button onClick={() => onView(data)} className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50 transition duration-150" title="Lihat Detail"><Eye size={18} /></button>
-                                            <button onClick={() => onEdit(data)} className="text-amber-600 hover:text-amber-900 p-1 rounded-full hover:bg-amber-50 transition duration-150" title="Edit"><Edit size={18} /></button>
-                                            <button onClick={() => onDelete(data)} className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50 transition duration-150" title="Hapus"><Trash2 size={18} /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-gray-500 text-lg">
-                                    Tidak ada data pengeluaran.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* --- PAGINATION BARU YANG LEBIH BAGUS (RESPONSIF) --- */}
-            {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 p-4 border-t bg-gray-50 rounded-b-lg">
-                    
-                    {/* Status Halaman (Diperbarui) */}
-                    <div className="text-sm font-medium text-gray-700 mb-3 sm:mb-0 flex items-center gap-1">
-                        Menampilkan
-                        <span className="font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                            {startIndex + 1} - {endIndex}
-                        </span>
-                        dari
-                        <span className="font-bold text-gray-800">
-                            {totalItems}
-                        </span>
-                        pengeluaran
-                    </div>
-
-                    {/* Tombol Navigasi */}
-                    <div className="flex gap-2">
-                        
-                        {/* Tombol Sebelumnya */}
-                        <button
-                            onClick={() => onPageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                        >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-                            Sebelumnya
-                        </button>
-
-                        {/* Teks Status di Tengah (Hanya terlihat di mobile jika tombol disamping) */}
-                        {/* Ini adalah fallback jika status panjang di atas tidak muat */}
-                        <div className="sm:hidden flex items-center px-3 text-sm text-gray-600">
-                             <span className="font-semibold text-gray-800">{currentPage}</span> / <span className="font-semibold text-gray-800">{totalPages}</span>
-                        </div>
-                        
-                        {/* Tombol Berikutnya */}
-                        <button
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-sm"
-                        >
-                            Berikutnya
-                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            )}
-            {/* --- AKHIR PAGINATION BARU --- */}
-        </div>
+  const filteredData = useMemo(() => {
+    if (!pengeluaranList) return [];
+    return pengeluaranList.filter(p =>
+      p.keterangan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.jenis_pengeluaran && p.jenis_pengeluaran.jenis_pengeluaran.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+  }, [pengeluaranList, searchTerm]);
+
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredData, currentPage]);
+
+  return (
+    <div className="space-y-4">
+      {/* Pencarian */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Cari berdasarkan keterangan atau jenis..."
+          value={searchTerm}
+          onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-gray-900 placeholder:text-gray-400"
+        />
+      </div>
+
+      {/* Tabel */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Detail Pengeluaran
+              </th>
+
+              {/* Kolom Cabang hanya muncul untuk super admin */}
+              {role === "super admin" && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Cabang
+                </th>
+              )}
+
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                Tanggal
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Jumlah
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Aksi
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="bg-white divide-y divide-gray-200">
+            <AnimatePresence>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((p) => (
+                  <motion.tr
+                    key={p.id_pengeluaran}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {p.jenis_pengeluaran?.jenis_pengeluaran}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate max-w-xs">
+                        {p.keterangan}
+                      </p>
+                      <p className="text-xs text-gray-500 md:hidden mt-1">
+                        {format(new Date(p.tanggal), 'd MMM yyyy', { locale: id })}
+                      </p>
+                    </td>
+
+                    {/* Kolom cabang hanya untuk super admin */}
+                    {role === "super admin" && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {p.cabang?.nama_cabang || "-"}
+                      </td>
+                    )}
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
+                      {format(new Date(p.tanggal), 'EEEE, d MMMM yyyy', { locale: id })}
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">
+                      {formatRupiah(p.jumlah)}
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => onView(p)}
+                          className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-full hover:bg-blue-100"
+                          title="Lihat Detail"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => onEdit(p)}
+                          className="p-2 text-yellow-600 hover:text-yellow-800 transition-colors rounded-full hover:bg-yellow-100"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(p)}
+                          className="p-2 text-red-600 hover:text-red-800 transition-colors rounded-full hover:bg-red-100"
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={role === "super admin" ? 5 : 4} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-3 text-gray-500">
+                      <AlertTriangle size={32} />
+                      <p className="font-semibold">Tidak ada data pengeluaran.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <button
+            onClick={() => setCurrentPage(c => Math.max(1, c - 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          >
+            <ChevronLeft size={16} /> Sebelumnya
+          </button>
+
+          <span className="text-sm text-gray-700">
+            Halaman <b>{currentPage}</b> dari <b>{totalPages}</b>
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(c => Math.min(totalPages, c + 1))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          >
+            Berikutnya <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default PengeluaranTable;

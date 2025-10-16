@@ -92,7 +92,7 @@ const ProductReport = ({ cabangId, token }) => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>  
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Harga</th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Stok Saat Ini</th>
             </tr>
