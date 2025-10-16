@@ -88,21 +88,21 @@ const ReportsPage = () => {
 
   return (
     <motion.div 
-      className="p-6"
+      className="p-4 sm:p-6" // Menyesuaikan padding agar lebih kecil di layar hp (sm:p-6 adalah default di layar lebih besar)
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* --- TOP SECTION: VISUAL DASHBOARD (No Changes Here) --- */}
+      {/* --- TOP SECTION: VISUAL DASHBOARD --- */}
       <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
-          <p className="text-gray-500">Analisis performa penjualan untuk cabang Anda.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Laporan Penjualan</h1> {/* Ukuran font responsif */}
+          <p className="text-sm sm:text-base text-gray-500">Analisis performa penjualan untuk cabang Anda.</p>
         </div>
-        <div className="flex bg-gray-100 p-1 rounded-lg">
-          <button onClick={() => setFilter('minggu')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'minggu' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Minggu Ini</button>
-          <button onClick={() => setFilter('bulan')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'bulan' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Bulan Ini</button>
-          <button onClick={() => setFilter('tahun')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'tahun' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Tahun Ini</button>
+        <div className="flex bg-gray-100 p-1 rounded-lg flex-shrink-0">
+          <button onClick={() => setFilter('minggu')} className={`px-2 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors ${filter === 'minggu' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Minggu Ini</button>
+          <button onClick={() => setFilter('bulan')} className={`px-2 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors ${filter === 'bulan' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Bulan Ini</button>
+          <button onClick={() => setFilter('tahun')} className={`px-2 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors ${filter === 'tahun' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Tahun Ini</button>
         </div>
       </div>
       
@@ -118,23 +118,26 @@ const ReportsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2"> <SalesTrendChart data={reportData.salesTrend} /> </div>
             <div> <TopProductsChart data={reportData.topProducts} /> </div>
-            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {/* PENYESUAIAN DI SINI: Dashboard Cards */}
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
                 <DashboardCard title="Total Pendapatan" value={formatRupiah(reportData.summary.totalPendapatan)} />
                 <DashboardCard title="Total Transaksi" value={reportData.summary.totalTransaksi.toLocaleString('id-ID')} />
+                {/* Menambahkan breakpoint di md:grid-cols-3 untuk layar tablet */}
                 <DashboardCard title="Rata-rata Transaksi" value={formatRupiah(reportData.summary.avgTransaksi)} />
+                {/* Memberi responsivitas yang lebih baik untuk 5 card */}
                 <DashboardCard title="Produk Terlaris" value={reportData.summary.produkTerlaris} />
                 <DashboardCard title="Hari Paling Ramai" value={reportData.summary.hariTersibuk} />
             </div>
           </div>
 
           {/* --- NEW SECTION: DETAILED REPORTS --- */}
-          <div className="pt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Laporan Rinci</h2>
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-6">
-                <button onClick={() => setActiveTab('products')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'products' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Produk</button>
-                <button onClick={() => setActiveTab('sales')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'sales' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Penjualan</button>
-                <button onClick={() => setActiveTab('employees')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'employees' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Karyawan</button>
+          <div className="pt-4 sm:pt-8"> {/* Menyesuaikan padding atas */}
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Laporan Rinci</h2>
+            <div className="border-b border-gray-200 overflow-x-auto"> {/* Menambahkan overflow-x-auto agar tab bisa di-scroll di layar kecil */}
+              <nav className="-mb-px flex space-x-4 sm:space-x-6 min-w-max"> {/* min-w-max untuk mencegah tab berbaris ke bawah */}
+                <button onClick={() => setActiveTab('products')} className={`py-3 px-1 text-sm font-semibold whitespace-nowrap ${activeTab === 'products' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Produk</button>
+                <button onClick={() => setActiveTab('sales')} className={`py-3 px-1 text-sm font-semibold whitespace-nowrap ${activeTab === 'sales' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Penjualan</button>
+                <button onClick={() => setActiveTab('employees')} className={`py-3 px-1 text-sm font-semibold whitespace-nowrap ${activeTab === 'employees' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Karyawan</button>
               </nav>
             </div>
             <div className="mt-6">
@@ -155,4 +158,3 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
-

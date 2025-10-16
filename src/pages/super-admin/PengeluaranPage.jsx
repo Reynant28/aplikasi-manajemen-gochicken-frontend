@@ -63,81 +63,97 @@ const PengeluaranPage = () => {
   }, [token, fetchPengeluaran]);
 
   // Tambah pengeluaran
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // GANTI SELURUH FUNGSI INI
+        const handleAdd = async (e) => {
+        e.preventDefault();
+        setLoading(true);
 
-    try {
-      const res = await fetch(`${API_URL}/pengeluaran`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          id_cabang: cabang?.id_cabang || 1, // ambil dari localStorage
-        }),
-      });
+        try {
+                const res = await fetch(`${API_URL}/pengeluaran`, {
+                method: "POST",
+                headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                        ...formData,
+                        id_cabang: cabang?.id_cabang || 1,
+                }),
+                });
 
-      const data = await res.json();
-      if (res.status === 201 || data.status === "success") {
-        setSuccessMessage(data.message || "Pengeluaran berhasil ditambahkan!");
-        setShowSuccess(true);
-        // ✅ TAMBAH NOTIFIKASI
-        addNotification(`[Pengeluaran] Berhasil menambah data pengeluaran ${formData.keterangan}`, 'success');
+                const data = await res.json();
+                if (res.status === 201 || data.status === "success") {
+                // ✅ HANYA SATU PANGGILAN NOTIFIKASI DI SINI
+                addNotification(
+                        `[Pengeluaran] Berhasil menambah data: ${formData.keterangan}`,
+                        "success"
+                );
 
-        setFormData({ id_jenis: "", tanggal: "", jumlah: "", keterangan: "" });
-        setShowForm(false);
-        fetchPengeluaran();
-      } else {
-        // ✅ TAMBAH NOTIFIKASI JIKA GAGAL
-        addNotification(`[Pengeluaran] Gagal menambah data: ${data.message || 'Error'}`, 'error');
-        alert("❌ " + (data.message || "Error"));
-      }
-    } catch (err) {
-      console.error("Add pengeluaran error:", err);
-    }
-
-    setLoading(false);
-  };
+                // Reset form dan refresh data
+                setFormData({ id_jenis: "", tanggal: "", jumlah: "", keterangan: "" });
+                setShowForm(false);
+                fetchPengeluaran();
+                } else {
+                addNotification(
+                        `[Pengeluaran] Gagal menambah data: ${data.message || "Error"}`,
+                        "error"
+                );
+                alert("❌ " + (data.message || "Error"));
+                }
+        } catch (err) {
+                console.error("Add pengeluaran error:", err);
+                addNotification(`[Pengeluaran] Terjadi kesalahan pada server.`, "error");
+        } finally {
+                setLoading(false);
+        }
+        };
 
   // Update pengeluaran
-  const handleUpdate = async () => {
-    try {
-      const res = await fetch(
-        `${API_URL}/pengeluaran/${editPengeluaran.id_pengeluaran}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...editPengeluaran,
-            id_cabang: cabang?.id_cabang || 1,
-            id_jenis: editPengeluaran.id_jenis || 1,
-          }),
-        }
-      );
+  // GANTI SELURUH FUNGSI INI
+        const handleUpdate = async () => {
+        setLoading(true); // Tambahkan loading state untuk feedback
+        try {
+                const res = await fetch(
+                `${API_URL}/pengeluaran/${editPengeluaran.id_pengeluaran}`,
+                {
+                        method: "PUT",
+                        headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                        ...editPengeluaran,
+                        id_cabang: cabang?.id_cabang || 1,
+                        id_jenis: editPengeluaran.id_jenis || 1,
+                        }),
+                }
+                );
 
-      const data = await res.json();
-      if (res.ok) {
-        setSuccessMessage(data.message || "Pengeluaran berhasil diupdate!");
-        setShowSuccess(true);
-        // ✅ TAMBAH NOTIFIKASI
-        addNotification(`[Pengeluaran] Berhasil mengubah data pengeluaran ID ${editPengeluaran.id_pengeluaran}`, 'success');
-        fetchPengeluaran();
-        setEditPengeluaran(null);
-      } else {
-        // ✅ TAMBAH NOTIFIKASI JIKA GAGAL
-        addNotification(`[Pengeluaran] Gagal mengubah data: ${data.message || 'Error'}`, 'error');
-        alert("❌ " + (data.message || "Error"));
-      }
-    } catch (err) {
-      console.error("Update pengeluaran error:", err);
-    }
-  };
+                const data = await res.json();
+                if (res.ok) {
+                // ✅ HANYA SATU PANGGILAN NOTIFIKASI DI SINI
+                addNotification(
+                        `[Pengeluaran] Berhasil mengubah data ID ${editPengeluaran.id_pengeluaran}`,
+                        "success"
+                );
+
+                // Refresh data dan tutup modal
+                fetchPengeluaran();
+                setEditPengeluaran(null);
+                } else {
+                addNotification(
+                        `[Pengeluaran] Gagal mengubah data: ${data.message || "Error"}`,
+                        "error"
+                );
+                alert("❌ " + (data.message || "Error"));
+                }
+        } catch (err) {
+                console.error("Update pengeluaran error:", err);
+                addNotification(`[Pengeluaran] Terjadi kesalahan pada server.`, "error");
+        } finally {
+                setLoading(false);
+        }
+        };
 
   // Hapus pengeluaran
   const confirmDelete = (id) => {
@@ -266,80 +282,145 @@ const PengeluaranPage = () => {
    * Ini adalah bagian di mana Anda bisa mendesain tampilan tabel
    */
   const generateReportHTML = (data, dateFilter) => {
-    const tableRows = data.map((item, index) => `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 10px; text-align: left;">${index + 1}</td>
-        <td style="padding: 10px; text-align: left;">${item.id_jenis || '-'}</td>
-        <td style="padding: 10px; text-align: left;">${item.keterangan}</td>
-        <td style="padding: 10px; text-align: right; color: #dc2626; font-weight: bold;">Rp ${parseInt(item.jumlah).toLocaleString('id-ID')}</td>
-        <td style="padding: 10px; text-align: left;">${item.tanggal}</td>
-      </tr>
-    `).join('');
+  const tableRows = data.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${item.id_jenis || '-'}</td>
+      <td>${item.keterangan}</td>
+      <td class="amount">Rp ${parseInt(item.jumlah).toLocaleString('id-ID')}</td>
+      <td>${item.tanggal}</td>
+    </tr>
+  `).join('');
 
-    const totalPengeluaran = data.reduce((sum, item) => sum + parseInt(item.jumlah), 0);
-    const dateDisplay = dateFilter ? `Tanggal ${dateFilter}` : 'Semua Tanggal';
+  const totalPengeluaran = data.reduce((sum, item) => sum + parseInt(item.jumlah), 0);
+  const dateDisplay = dateFilter ? `Tanggal ${dateFilter}` : 'Semua Tanggal';
 
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Laporan Data Pengeluaran</title>
-        <style>
-          body { font-family: 'Arial', sans-serif; margin: 20px; color: #333; }
-          h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; }
-          p { margin-bottom: 20px; font-weight: 500; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-          th { background-color: #f0fdf4; color: #16a34a; padding: 12px; text-align: left; border-bottom: 2px solid #a7f3d0; }
-          td { padding: 12px; border-bottom: 1px solid #eee; }
-          tr:nth-child(even) { background-color: #fafafa; }
-          .total-row td { background-color: #dcfce7; font-weight: bold; border-top: 3px solid #16a34a; }
-          .export-button {
-            background-color: #10b981;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-size: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s;
-          }
-          .export-button:hover { background-color: #059669; }
-          @media print {
-            .export-button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Laporan Data Pengeluaran GoChicken</h1>
-        <p>Periode: ${dateDisplay}</p>
-        
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 5%;">No</th>
-              <th style="width: 15%;">Jenis</th>
-              <th style="width: 45%;">Keterangan</th>
-              <th style="width: 15%; text-align: right;">Jumlah</th>
-              <th style="width: 20%;">Tanggal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-            <tr class="total-row">
-              <td colspan="3" style="text-align: right;">TOTAL PENGELUARAN</td>
-              <td style="text-align: right; color: #dc2626;">Rp ${totalPengeluaran.toLocaleString('id-ID')}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <button class="export-button" onclick="window.print()">Cetak Laporan</button>
-      </body>
-      </html>
-    `;
-  };
+  return `<!DOCTYPE html>
+    <html>
+      <head>
+        <title>Laporan Data Pengeluaran GoChicken</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+          /* === 1. THE FIX: CSS RESET === */
+          /* Forcefully remove default browser margins/paddings */
+          body, h1, p {
+            margin: 0;
+            padding: 0;
+          }
+
+          /* === 2. REBUILD THE LAYOUT === */
+          /* Now we add back the spacing we actually want */
+          body { 
+            font-family: 'Inter', sans-serif; 
+            padding: 24px; /* A clean 24px border on all sides */
+            color: #1f2937; 
+            background-color: #f9fafb;
+          }
+          h1 { 
+            color: #047857; 
+            font-size: 26px;
+            text-align: center;
+            margin-bottom: 4px; /* Small space between title and subtitle */
+          }
+          p { 
+            font-size: 14px; 
+            color: #374151;
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 24px; /* Main space above the table */
+          }
+
+          /* === 3. ALL OTHER STYLES (Unchanged) === */
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 14px;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+          }
+          th, td { 
+            padding: 10px 14px; 
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+          }
+          th { 
+            background-color: #d1fae5; 
+            color: #065f46;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 2px solid #34d399;
+          }
+          tbody tr:nth-child(even) { 
+            background-color: #f9f9f9; 
+          }
+          tbody tr:hover {
+            background-color: #ecfdf5;
+          }
+          td.amount { 
+            text-align: right; 
+            color: #b91c1c; 
+            font-weight: 600;
+          }
+          .total-row { 
+            background-color: #047857;
+            color: white; 
+            font-weight: 700; 
+            font-size: 15px;
+          }
+          .total-row td {
+            padding: 12px 14px;
+            border-top: 3px solid #10b981;
+          }
+          .export-button {
+            display: block;
+            margin: 25px auto 0 auto;
+            background-color: #10b981;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+          }
+          @media print {
+            body { padding: 0; }
+            table { box-shadow: none; border-radius: 0; }
+            .export-button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Laporan Data Pengeluaran GoChicken</h1>
+        <p>Periode: ${dateDisplay}</p>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 5%;">No</th>
+              <th style="width: 15%;">Jenis</th>
+              <th style="width: 45%;">Keterangan</th>
+              <th style="width: 15%; text-align: right;">Jumlah</th>
+              <th style="width: 20%;">Tanggal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+            <tr class="total-row">
+              <td colspan="3" style="text-align: right;">TOTAL PENGELUARAN</td>
+              <td style="text-align: right; color: #ffedad;">Rp ${totalPengeluaran.toLocaleString('id-ID')}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="export-button" onclick="window.print()">Cetak Laporan</button>
+      </body>
+    </html>
+  `;
+};
+
   
   // ----------------------------------------
 

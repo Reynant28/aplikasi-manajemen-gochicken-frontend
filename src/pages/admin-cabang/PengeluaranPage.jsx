@@ -1,9 +1,11 @@
+// src/pages/admin-cabang/PengeluaranPage.jsx (KODE LENGKAP)
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Tag, Calendar, FileText, Plus } from "lucide-react";
 import axios from 'axios';
-import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable';
+import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable'; // Pastikan path ini benar
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
@@ -11,143 +13,181 @@ const API_URL = "http://localhost:8000/api";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
 
+const ITEMS_PER_PAGE = 8; // Tentukan berapa item per halaman
+
 const PengeluaranPage = () => {
-  const [pengeluaranList, setPengeluaranList] = useState([]);
-  const [jenisList, setJenisList] = useState([]);
-  const [bahanBakuList, setBahanBakuList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState({ type: "", text: "" });
+    const [pengeluaranList, setPengeluaranList] = useState([]);
+    const [jenisList, setJenisList] = useState([]);
+    const [bahanBakuList, setBahanBakuList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState({ type: "", text: "" });
 
-  const [modalState, setModalState] = useState({ type: null, data: null });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ details: [] });
-  
-  const token = localStorage.getItem("token");
-  const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
-  const cabangId = cabang?.id_cabang;
+    // --- STATE UNTUK PAGINATION ---
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    const [modalState, setModalState] = useState({ type: null, data: null });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState({ details: [] });
+    
+    const token = localStorage.getItem("token");
+    const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
+    const cabangId = cabang?.id_cabang;
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 4000);
-  };
+    const showMessage = (type, text) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage({ type: "", text: "" }), 4000);
+    };
 
-  const fetchData = useCallback(async () => {
-    if (!cabangId) { setError("Data cabang tidak ditemukan."); setLoading(false); return; }
-    setLoading(true); setError(null);
-    try {
-      const [resPengeluaran, resJenis, resBahan] = await Promise.all([
-        axios.get(`${API_URL}/cabang/${cabangId}/pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/jenis-pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/bahan-baku`, { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      setPengeluaranList(resPengeluaran.data.data || []);
-      setJenisList(resJenis.data.data || []);
-      setBahanBakuList(resBahan.data.data || []);
-      //eslint-disable-next-line no-unused-vars
-    } catch (err) { setError("Gagal mengambil data esensial."); } 
-    finally { setLoading(false); }
-  }, [token, cabangId]);
+    const fetchData = useCallback(async () => {
+        if (!cabangId) { setError("Data cabang tidak ditemukan."); setLoading(false); return; }
+        setLoading(true); setError(null);
+        try {
+            const [resPengeluaran, resJenis, resBahan] = await Promise.all([
+                axios.get(`${API_URL}/cabang/${cabangId}/pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`${API_URL}/jenis-pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`${API_URL}/bahan-baku`, { headers: { Authorization: `Bearer ${token}` } }),
+            ]);
+            
+            // Urutkan data berdasarkan tanggal terbaru (asumsi ada field 'tanggal')
+            const sortedData = (resPengeluaran.data.data || []).sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+            setPengeluaranList(sortedData);
+            setJenisList(resJenis.data.data || []);
+            setBahanBakuList(resBahan.data.data || []);
+            //eslint-disable-next-line no-unused-vars
+        } catch (err) { setError("Gagal mengambil data esensial."); } 
+        finally { setLoading(false); }
+    }, [token, cabangId]);
 
-  const openModal = (type, data = null) => {
-    setModalState({ type, data });
-    if (type === 'add' || type === 'edit') {
-      const initialDetails = data?.details?.map(d => ({
-        id_bahan_baku: d.id_bahan_baku,
-        jumlah_item: d.jumlah_item,
-        harga_satuan: d.harga_satuan,
-      })) || [];
+    useEffect(() => { fetchData(); }, [fetchData]);
 
-      setFormData({
-        id_jenis: data?.id_jenis || "",
-        tanggal: data ? format(new Date(data.tanggal), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        keterangan: data?.keterangan || "",
-        details: initialDetails,
-        jumlah: data?.jumlah || 0,
-      });
-    }
-  };
-  const closeModal = () => setModalState({ type: null, data: null });
+    const openModal = (type, data = null) => {
+        setModalState({ type, data });
+        if (type === 'add' || type === 'edit') {
+            const initialDetails = data?.details?.map(d => ({
+                id_bahan_baku: d.id_bahan_baku,
+                jumlah_item: d.jumlah_item,
+                harga_satuan: d.harga_satuan,
+            })) || [];
 
-  const handleAddJenis = async (jenisPengeluaran) => {
-    try {
-      const res = await axios.post(`${API_URL}/jenis-pengeluaran`, { jenis_pengeluaran: jenisPengeluaran }, { headers: { Authorization: `Bearer ${token}` } });
-      setJenisList(prev => [...prev, res.data.data]);
-      setFormData(prev => ({...prev, id_jenis: res.data.data.id_jenis}));
-      showMessage('success', 'Jenis pengeluaran baru berhasil ditambahkan!');
-      return true;
-    } catch (err) {
-      showMessage('error', err.response?.data?.errors?.jenis_pengeluaran[0] || 'Gagal menambah jenis baru.');
-      return false;
-    }
-  };
+            setFormData({
+                id_jenis: data?.id_jenis || "",
+                tanggal: data ? format(new Date(data.tanggal), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                keterangan: data?.keterangan || "",
+                details: initialDetails,
+                jumlah: data?.jumlah || 0,
+            });
+        }
+    };
+    const closeModal = () => setModalState({ type: null, data: null });
 
-  const handleSubmit = async (payload) => {
-    setIsSubmitting(true);
-    try {
-      const res = modalState.type === 'edit'
-        ? await axios.put(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, payload, { headers: { Authorization: `Bearer ${token}` } })
-        : await axios.post(`${API_URL}/pengeluaran`, payload, { headers: { Authorization: `Bearer ${token}` } });
-      showMessage('success', res.data.message);
-      fetchData();
-      closeModal();
-    } catch (err) { showMessage('error', err.response?.data?.message || "Terjadi kesalahan.");
-    } finally { setIsSubmitting(false); }
-  };
-  
-  const handleDelete = async () => {
-    setIsSubmitting(true);
-    try {
-      await axios.delete(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, { headers: { Authorization: `Bearer ${token}` } });
-      showMessage('success', 'Pengeluaran berhasil dihapus.');
-      fetchData();
-      closeModal();
-      //eslint-disable-next-line no-unused-vars
-    } catch(err) { showMessage('error', 'Gagal menghapus data.');
-    } finally { setIsSubmitting(false); }
-  };
+    const handleAddJenis = async (jenisPengeluaran) => {
+        try {
+            const res = await axios.post(`${API_URL}/jenis-pengeluaran`, { jenis_pengeluaran: jenisPengeluaran }, { headers: { Authorization: `Bearer ${token}` } });
+            setJenisList(prev => [...prev, res.data.data]);
+            setFormData(prev => ({...prev, id_jenis: res.data.data.id_jenis}));
+            showMessage('success', 'Jenis pengeluaran baru berhasil ditambahkan!');
+            return true;
+        } catch (err) {
+            showMessage('error', err.response?.data?.errors?.jenis_pengeluaran[0] || 'Gagal menambah jenis baru.');
+            return false;
+        }
+    };
 
-  const renderContent = () => {
-    if (loading) return <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>;
-    if (error) return <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg"><AlertTriangle className="h-8 w-8 mb-2" />{error}</div>;
-    return <PengeluaranTable pengeluaranList={pengeluaranList} onEdit={(d) => openModal('edit', d)} onDelete={(d) => openModal('delete', d)} onView={(d) => openModal('view', d)} />;
-  };
+    const handleSubmit = async (payload) => {
+        setIsSubmitting(true);
+        try {
+            const res = modalState.type === 'edit'
+                ? await axios.put(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, payload, { headers: { Authorization: `Bearer ${token}` } })
+                : await axios.post(`${API_URL}/pengeluaran`, payload, { headers: { Authorization: `Bearer ${token}` } });
+            showMessage('success', res.data.message);
+            fetchData();
+            closeModal();
+            setCurrentPage(1); // Reset ke halaman 1 setelah submit
+        } catch (err) { showMessage('error', err.response?.data?.message || "Terjadi kesalahan.");
+        } finally { setIsSubmitting(false); }
+    };
+    
+    const handleDelete = async () => {
+        setIsSubmitting(true);
+        try {
+            await axios.delete(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, { headers: { Authorization: `Bearer ${token}` } });
+            showMessage('success', 'Pengeluaran berhasil dihapus.');
+            fetchData();
+            closeModal();
+            setCurrentPage(1); // Reset ke halaman 1 setelah hapus
+            //eslint-disable-next-line no-unused-vars
+        } catch(err) { showMessage('error', 'Gagal menghapus data.');
+        } finally { setIsSubmitting(false); }
+    };
 
-  return (
-    <>
-      <style>{`.custom-scrollbar::-webkit-scrollbar{width:6px}.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8} .date-input-container input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }`}</style>
-      <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div><h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1><p className="text-gray-500">Catat dan kelola semua pengeluaran untuk cabang <strong>{cabang?.nama_cabang || 'N/A'}</strong></p></div>
-          <motion.button onClick={() => openModal('add')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"><PlusCircle size={20} /> Tambah Pengeluaran</motion.button>
-        </div>
-        <AnimatePresence>
-            {message.text && (<motion.div initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.9 }} className={`fixed top-6 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${ message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" }`}>{message.type === "success" ? "✓" : "✗"} {message.text}</motion.div>)}
-        </AnimatePresence>
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">{renderContent()}</div>
-      </motion.div>
-      <FormModal 
-        isOpen={modalState.type === 'add' || modalState.type === 'edit'} 
-        onClose={closeModal} 
-        onSubmit={handleSubmit} 
-        isSubmitting={isSubmitting} 
-        formData={formData}
-        setFormData={setFormData}
-        jenisList={jenisList} 
-        bahanBakuList={bahanBakuList} 
-        selectedData={modalState.data} 
-        onAddJenis={handleAddJenis} 
-        cabangId={cabangId} 
-      />
-      <DetailModal isOpen={modalState.type === 'view'} onClose={closeModal} data={modalState.data} />
-      <DeleteModal isOpen={modalState.type === 'delete'} onClose={closeModal} onConfirm={handleDelete} data={modalState.data} isSubmitting={isSubmitting} />
-    </>
-  );
+    // --- LOGIC PAGINATION ---
+    const totalPages = Math.ceil(pengeluaranList.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const currentItems = pengeluaranList.slice(startIndex, endIndex);
+
+    const handlePageChange = (page) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+    
+    const renderContent = () => {
+        if (loading) return <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>;
+        if (error) return <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg"><AlertTriangle className="h-8 w-8 mb-2" />{error}</div>;
+        
+        return (
+            <PengeluaranTable 
+                pengeluaranList={currentItems} 
+                onEdit={(d) => openModal('edit', d)} 
+                onDelete={(d) => openModal('delete', d)} 
+                onView={(d) => openModal('view', d)} 
+                
+                // --- PASSING PROPS UNTUK PAGINATION ---
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={pengeluaranList.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={handlePageChange}
+            />
+        );
+    };
+
+    return (
+        <>
+            <style>{`.custom-scrollbar::-webkit-scrollbar{width:6px}.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8} .date-input-container input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }`}</style>
+            <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div><h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1><p className="text-gray-500">Catat dan kelola semua pengeluaran untuk cabang <strong>{cabang?.nama_cabang || 'N/A'}</strong></p></div>
+                    <motion.button onClick={() => openModal('add')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"><PlusCircle size={20} /> Tambah Pengeluaran</motion.button>
+                </div>
+                <AnimatePresence>
+                    {message.text && (<motion.div initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.9 }} className={`fixed top-6 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${ message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" }`}>{message.type === "success" ? "✓" : "✗"} {message.text}</motion.div>)}
+                </AnimatePresence>
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">{renderContent()}</div>
+            </motion.div>
+            <FormModal 
+                isOpen={modalState.type === 'add' || modalState.type === 'edit'} 
+                onClose={closeModal} 
+                onSubmit={handleSubmit} 
+                isSubmitting={isSubmitting} 
+                formData={formData}
+                setFormData={setFormData}
+                jenisList={jenisList} 
+                bahanBakuList={bahanBakuList} 
+                selectedData={modalState.data} 
+                onAddJenis={handleAddJenis} 
+                cabangId={cabangId} 
+            />
+            <DetailModal isOpen={modalState.type === 'view'} onClose={closeModal} data={modalState.data} />
+            <DeleteModal isOpen={modalState.type === 'delete'} onClose={closeModal} onConfirm={handleDelete} data={modalState.data} isSubmitting={isSubmitting} />
+        </>
+    );
 };
 
-// --- MODAL COMPONENTS ---
+// --- MODAL COMPONENTS (TIDAK BERUBAH) ---
 
 const FormModal = ({ isOpen, onClose, onSubmit, isSubmitting, formData, setFormData, jenisList, bahanBakuList, selectedData, onAddJenis, cabangId }) => {
     const [displayJumlah, setDisplayJumlah] = useState('Rp 0');
@@ -313,4 +353,3 @@ const DeleteModal = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => (
 );
 
 export default PengeluaranPage;
-

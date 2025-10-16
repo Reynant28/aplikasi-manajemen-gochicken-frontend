@@ -1,139 +1,25 @@
 // src/pages/KelolaCabangPage.jsx
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash, AlertTriangle, CheckCircle } from "lucide-react"; 
+// Import Loader2 untuk animasi loading
+import { Plus, Edit, Trash, AlertTriangle, CheckCircle, Loader2 } from "lucide-react"; 
 import { motion, AnimatePresence } from "framer-motion";
+
+// 🟢 Import useNotification
+import { useNotification } from "../../components/context/NotificationContext";
+
+// 🟢 Import komponen Pop-up dari UI
+import { ConfirmDeletePopup, Modal, SuccessPopup } from "../../components/ui"; 
 
 const API_URL = "http://localhost:8000/api";
 
-// --- Custom SuccessPopup Component DENGAN COUNTDOWN ---
-const SuccessPopup = ({ isOpen, onClose, title, message }) => {
-    const [countdown, setCountdown] = useState(4); // State untuk hitungan mundur
-
-    // Efek untuk mengelola countdown
-    useEffect(() => {
-        if (isOpen) {
-            setCountdown(4); // Reset hitungan saat modal dibuka
-            
-            const timerInterval = setInterval(() => {
-                setCountdown((prevCount) => {
-                    if (prevCount <= 1) {
-                        clearInterval(timerInterval);
-                        onClose(); // Tutup modal saat hitungan mencapai 0
-                        return 0;
-                    }
-                    return prevCount - 1;
-                });
-            }, 1000); // Hitungan setiap 1 detik
-
-            // Cleanup function untuk membersihkan interval
-            return () => clearInterval(timerInterval);
-        }
-    }, [isOpen, onClose]); // Dependensi: isOpen dan onClose
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    // Background putih transparan
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm" 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                >
-                    <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border-t-4 border-green-500"
-                        initial={{ y: -50, opacity: 0, scale: 0.8 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 50, opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <CheckCircle className="w-12 h-12 text-green-500 stroke-2" /> 
-                            <h3 className="text-xl font-semibold text-gray-800 text-center">{title}</h3>
-                        </div>
-
-                        <div className="mt-4 mb-6">
-                            <p className="text-sm text-gray-600 text-center">{message}</p>
-                            
-                            {/* Tampilan Countdown */}
-                            <p className="text-xs text-gray-500 font-bold text-center mt-2">
-                                (Otomatis tertutup dalam {countdown} detik)
-                            </p>
-                        </div>
-
-                        <div className="flex justify-center">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                // Tombol dinonaktifkan sementara selama hitungan mundur (opsional)
-                                // disabled={countdown > 0} 
-                                className="w-full py-3 px-4 text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors disabled:bg-green-300"
-                            >
-                                Tutup
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-// --- Custom ConfirmDeletePopup Component ---
-const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm }) => {
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                >
-                    <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative border-t-4 border-red-500"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertTriangle className="text-red-500" size={28} />
-                            <h2 className="text-lg font-bold text-gray-800">
-                                Konfirmasi Hapus
-                            </h2>
-                        </div>
-                        <p className="text-gray-600 mb-6">
-                            Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={onClose}
-                                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={onConfirm}
-                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-                            >
-                                Hapus
-                            </button>
-                        </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-
 // --- KelolaCabangPage Component ---
 const KelolaCabangPage = () => {
+    // 🟢 AMBIL addNotification DARI CONTEXT
+    const { addNotification } = useNotification();
+
     const [loading, setLoading] = useState(false);
+    // 🎯 State initialLoad tidak lagi dibutuhkan karena kita akan menggunakan state loading
+    // const [initialLoad, setInitialLoad] = useState(true); 
     const [message, setMessage] = useState("");
     const [cabang, setCabang] = useState([]);
     const [newCabang, setNewCabang] = useState({
@@ -148,14 +34,16 @@ const KelolaCabangPage = () => {
     // state untuk custom hapus
     const [showConfirm, setShowConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [deleteName, setDeleteName] = useState(""); 
 
-    // state untuk custom sukses
+    // STATE SUKSES DIKEMBALIKAN (Sesuai KaryawanPage)
     const [showSuccess, setShowSuccess] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
 
     const token = localStorage.getItem("token");
 
     const fetchCabang = useCallback(async () => {
+        setLoading(true); // 🎯 Mulai loading
         try {
             const res = await fetch(`${API_URL}/cabang`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -165,17 +53,23 @@ const KelolaCabangPage = () => {
         } catch (err) {
             console.error("Failed to fetch cabang:", err);
             setCabang([]);
+            // 🛑 Notifikasi Error Fetch
+            addNotification(`[Cabang] Gagal memuat data cabang. Cek koneksi server.`, 'error');
+        } finally {
+            setLoading(false); // 🎯 Selesai loading
         }
-    }, [token]);
+    }, [token, addNotification]);
 
     useEffect(() => {
         if (token) fetchCabang();
     }, [token, fetchCabang]);
 
+    // HANDLER TAMBAH CABANG
     const handleAdd = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMessage("");
+        const cabangName = newCabang.nama_cabang;
 
         try {
             const res = await fetch(`${API_URL}/cabang`, {
@@ -189,8 +83,13 @@ const KelolaCabangPage = () => {
 
             const data = await res.json();
             if (res.status === 201) {
-                // Panggil Success Popup
-                setSuccessMessage(data.message || "Cabang berhasil ditambahkan!");
+                const msg = data.message || `Cabang ${cabangName} berhasil ditambahkan!`;
+                
+                // ✅ Toast Notifikasi (untuk history)
+                addNotification(`[Cabang] Berhasil menambah cabang: ${cabangName}`, 'success');
+
+                // 🟢 Tampilkan Modal Sukses
+                setSuccessMessage(msg);
                 setShowSuccess(true);
                 
                 setNewCabang({
@@ -202,43 +101,74 @@ const KelolaCabangPage = () => {
                 setShowAddForm(false);
                 fetchCabang();
             } else {
-                setMessage("❌ " + (data.message || "Error"));
+                const errorMsg = data.message || "Gagal menambah cabang.";
+                setMessage("❌ " + errorMsg);
+                // 🛑 Toast Notifikasi Gagal
+                addNotification(`[Cabang] Gagal menambah cabang '${cabangName}': ${errorMsg}`, 'error');
             }
         } catch (err) {
             console.error("Fetch error:", err);
-            setMessage("❌ Error koneksi server");
+            const errorMsg = "Error koneksi server";
+            setMessage("❌ " + errorMsg);
+            // 🛑 Toast Notifikasi Error Koneksi
+            addNotification(`[Cabang] Error koneksi saat menambah cabang.`, 'error');
         }
 
         setLoading(false);
     };
 
-    // buka modal konfirmasi hapus
+    // HANDLER KONFIRMASI DELETE
     const confirmDelete = (id) => {
+        const itemToDelete = cabang.find(c => c.id_cabang === id);
         setDeleteId(id);
+        setDeleteName(itemToDelete?.nama_cabang || `ID ${id}`);
         setShowConfirm(true);
     };
 
-    // eksekusi hapus setelah konfirmasi
+    // HANDLER DELETE CABANG
     const handleDelete = async () => {
+        setShowConfirm(false);
+        const nameToDelete = deleteName;
+
         try {
             const res = await fetch(`${API_URL}/cabang/${deleteId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
+            const data = await res.json();
+
             if (res.ok) {
-                // Tampilkan pesan sukses setelah hapus
-                setSuccessMessage("Cabang berhasil dihapus!");
+                const msg = data.message || `Cabang ${nameToDelete} berhasil dihapus!`;
+                
+                // ✅ Toast Notifikasi Sukses
+                addNotification(`[Cabang] Berhasil menghapus cabang: ${nameToDelete}`, 'info');
+
+                // 🟢 Tampilkan Modal Sukses
+                setSuccessMessage(msg);
                 setShowSuccess(true); 
+                
                 fetchCabang();
+            } else {
+                const errorMsg = data.message || "Gagal menghapus cabang.";
+                // 🛑 Toast Notifikasi Gagal Hapus
+                addNotification(`[Cabang] Gagal menghapus cabang '${nameToDelete}': ${errorMsg}`, 'error');
             }
         } catch (err) {
             console.error("Delete cabang error:", err);
+            // 🛑 Toast Notifikasi Error Koneksi Hapus
+            addNotification(`[Cabang] Error koneksi saat menghapus cabang.`, 'error');
         }
-        setShowConfirm(false);
         setDeleteId(null);
+        setDeleteName("");
     };
 
-    const handleUpdate = async () => {
+    // HANDLER UPDATE CABANG
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        if (!editCabang) return;
+        setLoading(true);
+        const updatedName = editCabang.nama_cabang;
+
         try {
             const res = await fetch(`${API_URL}/cabang/${editCabang.id_cabang}`, {
                 method: "PUT",
@@ -248,16 +178,32 @@ const KelolaCabangPage = () => {
                 },
                 body: JSON.stringify(editCabang),
             });
+
+            const data = await res.json();
+
             if (res.ok) {
-                // Tampilkan pesan sukses setelah update
-                setSuccessMessage(`Cabang ${editCabang.nama_cabang} berhasil diupdate!`);
+                const msg = data.message || `Cabang ${updatedName} berhasil diupdate!`;
+                
+                // ✅ Toast Notifikasi Sukses Update
+                addNotification(`[Cabang] Berhasil mengubah data cabang: ${updatedName}`, 'success');
+
+                // 🟢 Tampilkan Modal Sukses
+                setSuccessMessage(msg);
                 setShowSuccess(true);
+                
                 await fetchCabang();
                 setEditCabang(null);
+            } else {
+                const errorMsg = data.message || "Gagal update cabang.";
+                // 🛑 Toast Notifikasi Gagal Update
+                addNotification(`[Cabang] Gagal mengubah cabang '${updatedName}': ${errorMsg}`, 'error');
             }
         } catch (err) {
             console.error("Update cabang error:", err);
+            // 🛑 Toast Notifikasi Error Koneksi Update
+            addNotification(`[Cabang] Error koneksi saat mengubah data cabang.`, 'error');
         }
+        setLoading(false);
     };
 
     return (
@@ -275,58 +221,77 @@ const KelolaCabangPage = () => {
                 <button
                     onClick={() => setShowAddForm(true)}
                     className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md"
+                    // Nonaktifkan saat sedang loading
+                    disabled={loading}
                 >
                     <Plus size={18} /> Tambah Cabang
                 </button>
             </div>
 
-            {/* Grid daftar cabang */}
-            <motion.div
-                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-            >
-                {cabang.map((branch, index) => (
-                    <motion.div
-                        key={branch.id_cabang}
-                        className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <h3 className="text-xl font-bold text-green-800 mb-1">
-                            {branch.nama_cabang}
-                        </h3>
-                        <p className="text-gray-700 font-medium">🏠 {branch.alamat}</p>
-                        <p className="text-gray-600 text-sm mt-1">📞 {branch.telepon}</p>
-                        <div className="flex gap-3 mt-5">
-                            <button
-                                onClick={() => setEditCabang(branch)}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                            >
-                                <Edit size={16} /> <span>Edit</span>
-                            </button>
-                            <button
-                                onClick={() => confirmDelete(branch.id_cabang)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                            >
-                                <Trash size={16} /> <span>Hapus</span>
-                            </button>
+            {/* 🎯 Loading Indicator (Gaya ReportsPage) */}
+            {loading && (
+                <div className="flex justify-center items-center h-64">
+                    <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+                    <p className="ml-3 text-gray-600">Memuat data cabang...</p>
+                </div>
+            )}
+            
+            {/* Grid daftar cabang (Hanya tampil saat tidak loading) */}
+            {!loading && (
+                <motion.div
+                    className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                >
+                    {cabang.length === 0 ? (
+                        <div className="col-span-full p-6 bg-white rounded-xl shadow border-l-4 border-yellow-500">
+                            <p className="text-gray-600">Tidak ada data cabang yang ditemukan.</p>
                         </div>
-                    </motion.div>
-                ))}
-            </motion.div>
+                    ) : (
+                        cabang.map((branch, index) => (
+                            <motion.div
+                                key={branch.id_cabang}
+                                className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <h3 className="text-xl font-bold text-green-800 mb-1">
+                                    {branch.nama_cabang}
+                                </h3>
+                                <p className="text-gray-700 font-medium">🏠 {branch.alamat}</p>
+                                <p className="text-gray-600 text-sm mt-1">📞 {branch.telepon}</p>
+                                <div className="flex gap-3 mt-5">
+                                    <button
+                                        onClick={() => setEditCabang(branch)}
+                                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                                    >
+                                        <Edit size={16} /> <span>Edit</span>
+                                    </button>
+                                    <button
+                                        onClick={() => confirmDelete(branch.id_cabang)}
+                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
+                                    >
+                                        <Trash size={16} /> <span>Hapus</span>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </motion.div>
+            )}
 
-            {/* Modal tambah cabang */}
+            {/* Modal tambah cabang (Menggunakan Modal dari UI) */}
             <AnimatePresence>
                 {showAddForm && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setShowAddForm(false)}
                     >
+                        {/* Konten Modal Tambah */}
                         <motion.div 
                             className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
                             initial={{ scale: 0.8, opacity: 0 }}
@@ -338,9 +303,7 @@ const KelolaCabangPage = () => {
                                 <Plus size={18} /> Tambah Cabang
                             </h2>
                             <form onSubmit={handleAdd}>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Nama Cabang
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Nama Cabang</label>
                                 <input
                                     type="text"
                                     value={newCabang.nama_cabang}
@@ -351,9 +314,7 @@ const KelolaCabangPage = () => {
                                     placeholder="Nama Cabang"
                                     required
                                 />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Alamat
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Alamat</label>
                                 <input
                                     type="text"
                                     value={newCabang.alamat}
@@ -364,9 +325,7 @@ const KelolaCabangPage = () => {
                                     placeholder="Alamat"
                                     required
                                 />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Telepon
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Telepon</label>
                                 <input
                                     type="text"
                                     value={newCabang.telepon}
@@ -377,9 +336,7 @@ const KelolaCabangPage = () => {
                                     placeholder="Telepon"
                                     required
                                 />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Password Cabang
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Password Cabang</label>
                                 <input
                                     type="password"
                                     value={newCabang.password_cabang}
@@ -404,27 +361,34 @@ const KelolaCabangPage = () => {
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-400"
                                     >
                                         {loading ? "Menyimpan..." : "Simpan"}
                                     </button>
                                 </div>
                             </form>
+                            {/* Menampilkan pesan error jika ada */}
+                            {message && (
+                                <p className={`mt-4 text-center text-sm font-medium ${message.includes("❌") ? "text-red-600" : "text-green-600"}`}>
+                                    {message}
+                                </p>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Modal edit */}
+            {/* Modal edit (Menggunakan Modal dari UI) */}
             <AnimatePresence>
                 {editCabang && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setEditCabang(null)}
                     >
+                        {/* Konten Modal Edit */}
                         <motion.div 
                             className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
                             initial={{ scale: 0.8, opacity: 0 }}
@@ -435,66 +399,69 @@ const KelolaCabangPage = () => {
                             <h2 className="text-xl font-semibold mb-4 text-green-700">
                                 ✏️ Edit Cabang
                             </h2>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Nama Cabang
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.nama_cabang}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, nama_cabang: e.target.value })
-                                }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <label className="block text-sm font-medium text-gray-700">
-                                Alamat
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.alamat}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, alamat: e.target.value })
-                                }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <label className="block text-sm font-medium text-gray-700">
-                                Telepon
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.telepon}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, telepon: e.target.value })
-                                }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <div className="flex justify-end gap-3 mt-4">
-                                <button
-                                    onClick={() => setEditCabang(null)}
-                                    className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleUpdate}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-                                >
-                                    Simpan
-                                </button>
-                            </div>
+                            <form onSubmit={handleUpdate}>
+                                <label className="block text-sm font-medium text-gray-700">Nama Cabang</label>
+                                <input
+                                    type="text"
+                                    value={editCabang.nama_cabang}
+                                    onChange={(e) =>
+                                        setEditCabang({ ...editCabang, nama_cabang: e.target.value })
+                                    }
+                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                                    required
+                                />
+                                <label className="block text-sm font-medium text-gray-700">Alamat</label>
+                                <input
+                                    type="text"
+                                    value={editCabang.alamat}
+                                    onChange={(e) =>
+                                        setEditCabang({ ...editCabang, alamat: e.target.value })
+                                    }
+                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                                    required
+                                />
+                                <label className="block text-sm font-medium text-gray-700">Telepon</label>
+                                <input
+                                    type="text"
+                                    value={editCabang.telepon}
+                                    onChange={(e) =>
+                                        setEditCabang({ ...editCabang, telepon: e.target.value })
+                                    }
+                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
+                                    required
+                                />
+                                <div className="flex justify-end gap-3 mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditCabang(null)}
+                                        className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:bg-gray-400"
+                                    >
+                                        {loading ? "Menyimpan..." : "Simpan"}
+                                    </button>
+                                </div>
+                            </form>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Modal Konfirmasi Hapus */}
+            {/* Modal Konfirmasi Hapus (Menggunakan Komponen UI) */}
             <ConfirmDeletePopup
                 isOpen={showConfirm}
                 onClose={() => setShowConfirm(false)}
                 onConfirm={handleDelete}
+                // Mengirim pesan yang lebih spesifik
+                message={`Anda yakin ingin menghapus cabang: ${deleteName}? Tindakan ini tidak dapat dibatalkan.`}
             />
 
-            {/* Modal Sukses DENGAN COUNTDOWN */}
+            {/* 🟢 Modal Sukses (Menggunakan Komponen UI) */}
             <SuccessPopup
                 isOpen={showSuccess}
                 onClose={() => setShowSuccess(false)}

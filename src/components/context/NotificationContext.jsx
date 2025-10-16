@@ -15,7 +15,7 @@ export const NotificationProvider = ({ children }) => {
         try {
             const storedNotifs = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
             // Batasi jumlah notifikasi yang dimuat untuk performa (misalnya 15)
-            return storedNotifs ? JSON.parse(storedNotifs).slice(0, 15) : [];
+            return storedNotifs ? JSON.parse(storedNotifs).slice(0, 30) : [];
         } catch (error) {
             console.error("Error reading notifications from Local Storage:", error);
             return [];

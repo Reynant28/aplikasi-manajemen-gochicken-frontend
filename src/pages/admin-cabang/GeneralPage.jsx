@@ -445,7 +445,19 @@ const GeneralPage = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={(value) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(value)} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => formatRupiah(value)} />
+                <Tooltip
+                  formatter={(value) => formatRupiah(value)}
+                  labelFormatter={(label) => `${label}`}
+                  contentStyle={{
+                    backgroundColor: "white",
+                    borderRadius: "10px",
+                    border: "1px solid #e5e7eb",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    fontSize: "13px",
+                  }}
+                  itemStyle={{ color: "#111827", fontWeight: 500 }}
+                  labelStyle={{ color: "#6b7280", fontWeight: 600 }}
+                />
                 <Line
                   type="monotone"
                   dataKey="value"

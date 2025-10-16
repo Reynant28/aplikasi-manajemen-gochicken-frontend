@@ -21,6 +21,7 @@ const ProdukPage = () => {
     });
 
     const [loading, setLoading] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true); // State baru untuk pemuatan awal
     const [message, setMessage] = useState("");
     const [produk, setProduk] = useState([]);
     const [selectedProduk, setSelectedProduk] = useState(null);
@@ -37,6 +38,7 @@ const ProdukPage = () => {
     const token = localStorage.getItem("token");
 
     const fetchProduk = useCallback(async () => {
+        setInitialLoad(true); // Set loading sebelum fetch
         try {
             const res = await fetch(`${API_URL}/produk`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -46,8 +48,11 @@ const ProdukPage = () => {
         } catch (err) {
             console.error("Failed to fetch produk:", err);
             setProduk([]);
+            addNotification("[Produk] Gagal memuat data produk dari server.", 'error');
+        } finally {
+            setInitialLoad(false); // Selesai loading
         }
-    }, [token]);
+    }, [token, addNotification]);
 
     useEffect(() => {
         if (token) fetchProduk();
@@ -247,6 +252,30 @@ const ProdukPage = () => {
         }
     };
 
+    // Component Loading Indicator
+    const LoadingIndicator = () => (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center ml-65 mt-25 justify-center p-10 bg-green-50/50 backdrop-blur-sm rounded-xl shadow-lg border border-green-200"
+        >
+            <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="text-green-600 mb-4"
+            >
+                <Package size={48} />
+            </motion.div>
+            <p className="text-xl font-semibold text-green-700 animate-pulse">
+                Data produk sedang dimuat...
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+                Harap tunggu sebentar.
+            </p>
+        </motion.div>
+    );
+
     return (
         <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
             <motion.h1
@@ -256,6 +285,15 @@ const ProdukPage = () => {
             >
                 Kelola Produk
             </motion.h1>
+            
+            {/* Loading Overlay untuk Pemuatan Awal */}
+            <AnimatePresence>
+                {initialLoad && (
+                    <div className="absolute inset-0 z-40 flex items-center justify-center">
+                        <LoadingIndicator />
+                    </div>
+                )}
+            </AnimatePresence>
 
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-semibold text-green-700">
@@ -264,78 +302,87 @@ const ProdukPage = () => {
                 <button
                     onClick={handleAddProduk}
                     className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md"
+                    disabled={initialLoad}
                 >
                     <Plus size={18} /> Tambah Produk
                 </button>
             </div>
 
-            {/* List Produk */}
-            <div>
-                {produk.length === 0 ? (
-                    <p className="text-gray-500">Belum ada produk ditambahkan.</p>
-                ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {produk.map((prod) => (
-                            <motion.div
-                                key={prod.id_produk}
-                                whileHover={{ scale: 1.02 }}
-                                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
-                                >
-                                {/* Gambar Produk */}
-                                {prod.gambar_produk_url && (
-                                    <div className="relative w-full h-48 overflow-hidden">
-                                    <img
-                                        src={prod.gambar_produk_url}
-                                        alt={prod.nama_produk}
-                                        className="w-full h-full object-cover object-center transform hover:scale-105 transition duration-500"
-                                    />
-                                    </div>
-                                )}
-                                {/* Info Produk */}
-                                <div className="p-5 flex-1 flex flex-col justify-between">
-                                    <div className="space-y-2">
-                                    <h2 className="text-lg font-bold text-gray-900 line-clamp-2">
-                                        {prod.nama_produk}
-                                    </h2>
-                                    <p className="text-green-600 font-semibold text-base">
-                                        Rp {parseInt(prod.harga).toLocaleString()}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Kategori:{" "}
-                                        <span className="font-medium text-gray-700">{prod.kategori}</span>
-                                    </p>
-                                    <p className="text-sm text-gray-500 line-clamp-1">
-                                        {prod.deskripsi}
-                                    </p>
-                                    </div>
+            {/* List Produk (Hanya tampil setelah initial load selesai) */}
+            <AnimatePresence>
+                {!initialLoad && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        {produk.length === 0 ? (
+                            <p className="text-gray-500 p-8 border border-gray-200 rounded-lg bg-white/50 shadow-inner">Belum ada produk ditambahkan.</p>
+                        ) : (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {produk.map((prod) => (
+                                    <motion.div
+                                        key={prod.id_produk}
+                                        whileHover={{ scale: 1.02 }}
+                                        className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
+                                        >
+                                        {/* Gambar Produk */}
+                                        {prod.gambar_produk_url && (
+                                            <div className="relative w-full h-48 overflow-hidden">
+                                            <img
+                                                src={prod.gambar_produk_url}
+                                                alt={prod.nama_produk}
+                                                className="w-full h-full object-cover object-center transform hover:scale-105 transition duration-500"
+                                            />
+                                            </div>
+                                        )}
+                                        {/* Info Produk */}
+                                        <div className="p-5 flex-1 flex flex-col justify-between">
+                                            <div className="space-y-2">
+                                            <h2 className="text-lg font-bold text-gray-900 line-clamp-2">
+                                                {prod.nama_produk}
+                                            </h2>
+                                            <p className="text-green-600 font-semibold text-base">
+                                                Rp {parseInt(prod.harga).toLocaleString()}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                Kategori:{" "}
+                                                <span className="font-medium text-gray-700">{prod.kategori}</span>
+                                            </p>
+                                            <p className="text-sm text-gray-500 line-clamp-1">
+                                                {prod.deskripsi}
+                                            </p>
+                                            </div>
 
-                                    {/* Tombol Aksi */}
-                                    <div className="flex gap-2 mt-4">
-                                    <button
-                                        onClick={() => handleDetail(prod)}
-                                        className="flex-1 text-xs px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
-                                    >
-                                        Lihat
-                                    </button>
-                                    <button
-                                        onClick={() => handleEdit(prod)}
-                                        className="flex-1 text-xs px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                                    >
-                                        <Edit size={14} className="inline-block mr-1" /> Edit
-                                    </button>
-                                    <button
-                                        onClick={() => confirmDelete(prod.id_produk)}
-                                        className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                                    >
-                                        <Trash2 size={14} className="inline-block mr-1" /> Hapus
-                                    </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                                            {/* Tombol Aksi */}
+                                            <div className="flex gap-2 mt-4">
+                                            <button
+                                                onClick={() => handleDetail(prod)}
+                                                className="flex-1 text-xs px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
+                                            >
+                                                Lihat
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(prod)}
+                                                className="flex-1 text-xs px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+                                            >
+                                                <Edit size={14} className="inline-block mr-1" /> Edit
+                                            </button>
+                                            <button
+                                                onClick={() => confirmDelete(prod.id_produk)}
+                                                className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                                            >
+                                                <Trash2 size={14} className="inline-block mr-1" /> Hapus
+                                            </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
 
             {/* --- MODAL ADD/EDIT PRODUK --- */}
             <AnimatePresence>
