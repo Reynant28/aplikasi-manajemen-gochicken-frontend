@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, Settings,
   HelpCircle, Building2, UserCog, Wallet,
-  Receipt, Package, Boxes, X, Feather
+  Receipt, Package, Boxes, X, Feather, WalletCards
 } from "lucide-react";
 //eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";

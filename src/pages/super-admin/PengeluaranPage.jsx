@@ -5,6 +5,7 @@ import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Tag, Calendar, F
 import axios from 'axios';
 import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable';
 import { format } from 'date-fns';
+//eslint-disable-next-line no-unused-vars
 import { id, is } from 'date-fns/locale';
 
 const API_URL = "http://localhost:8000/api";
@@ -172,7 +173,7 @@ const PengeluaranPage = () => {
   };
 
   // --- MODAL COMPONENTS ---
-
+//eslint-disable-next-line no-unused-vars
   const FormModal = ({ isOpen, onClose, onSubmit, isSubmitting, formData, setFormData, jenisList, bahanBakuList, cabangList, selectedData, isCicilanHarian, setIsCicilanHarian, onAddJenis, getDaysInMonth,   cabangId }) => {
       const [displayJumlah, setDisplayJumlah] = useState('Rp 0');
 
