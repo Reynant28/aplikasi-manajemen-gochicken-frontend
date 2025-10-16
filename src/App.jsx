@@ -3,8 +3,7 @@ import Login from "./pages/Login";
 import DashboardLayout from './components/DashboardLayout.jsx';
 //import protected route
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-// ✅ IMPORT PROVIDER
-import { NotificationProvider } from "./components/context/NotificationContext.jsx"; 
+
 
 
 // Super Admin pages
@@ -38,7 +37,6 @@ function App() {
   return (
     // ✅ BUNGKUS DENGAN NotificationProvider
     <BrowserRouter>
-      <NotificationProvider> 
         <div className="min-h-screen min-w-screen bg-gray-100">
           <Routes>
             {/* Halaman Login */}
@@ -82,7 +80,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </div>
-      </NotificationProvider>
     </BrowserRouter>
   );
 }
