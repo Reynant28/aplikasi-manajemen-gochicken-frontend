@@ -29,6 +29,7 @@ import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
 import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
 import Settingspage from "./pages/admin-cabang/SettingsPage.jsx";
+import PemesananPage from "./pages/admin-cabang/PemesananPage.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
@@ -73,6 +74,7 @@ function App() {
                 <Route path="produk" element={<ProdukPage />} />
                 <Route path="settings" element={<Settingspage />} />
                 <Route path="help" element={<HelpPageCabang />} />
+                <Route path="pemesanan" element={<PemesananPage />} />
               </Route>
             </Route>
 
