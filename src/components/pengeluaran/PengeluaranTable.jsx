@@ -20,6 +20,9 @@ const PengeluaranTable = ({ pengeluaranList, onEdit, onDelete, onView }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Ambil role user dari localStorage
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "";
+
   const filteredData = useMemo(() => {
     if (!pengeluaranList) return [];
     return pengeluaranList.filter(p =>
@@ -45,6 +48,7 @@ const PengeluaranTable = ({ pengeluaranList, onEdit, onDelete, onView }) => {
 
   return (
     <div className="space-y-4">
+      {/* Pencarian */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         <input
@@ -56,16 +60,34 @@ const PengeluaranTable = ({ pengeluaranList, onEdit, onDelete, onView }) => {
         />
       </div>
 
+      {/* Tabel */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Detail Pengeluaran</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Tanggal</th>
-              <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Jumlah</th>
-              <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Detail Pengeluaran
+              </th>
+
+              {/* Kolom Cabang hanya muncul untuk super admin */}
+              {role === "super admin" && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Cabang
+                </th>
+              )}
+
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                Tanggal
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Jumlah
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Aksi
+              </th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-200">
             <AnimatePresence>
               {paginatedData.length > 0 ? (
@@ -82,27 +104,65 @@ const PengeluaranTable = ({ pengeluaranList, onEdit, onDelete, onView }) => {
                             </div>
                         </div>
                     </td>
+
+                    {/* Kolom cabang hanya untuk super admin */}
+                    {role === "super admin" && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {p.cabang?.nama_cabang || "-"}
+                      </td>
+                    )}
+
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                       {format(new Date(p.tanggal), 'EEEE, d MMMM yyyy', { locale: id })}
                     </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700 text-right">{formatRupiah(p.jumlah)}</td>
+
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700 text-right">
+                      {formatRupiah(p.jumlah)}
+                    </td>
+
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center gap-1 sm:gap-2">
-                        <button onClick={() => onView(p)} className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-full hover:bg-blue-100" title="Lihat Detail"><Eye size={16} /></button>
-                        <button onClick={() => onEdit(p)} className="p-2 text-yellow-600 hover:text-yellow-800 transition-colors rounded-full hover:bg-yellow-100" title="Edit"><Edit size={16} /></button>
-                        <button onClick={() => onDelete(p)} className="p-2 text-red-600 hover:text-red-800 transition-colors rounded-full hover:bg-red-100" title="Hapus"><Trash2 size={16} /></button>
+                        <button
+                          onClick={() => onView(p)}
+                          className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-full hover:bg-blue-100"
+                          title="Lihat Detail"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => onEdit(p)}
+                          className="p-2 text-yellow-600 hover:text-yellow-800 transition-colors rounded-full hover:bg-yellow-100"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(p)}
+                          className="p-2 text-red-600 hover:text-red-800 transition-colors rounded-full hover:bg-red-100"
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </motion.tr>
                 ))
               ) : (
-                <tr><td colSpan="4" className="text-center py-12"><div className="flex flex-col items-center gap-3 text-gray-500"><AlertTriangle size={32} /><p className="font-semibold">Tidak ada data pengeluaran.</p></div></td></tr>
+                <tr>
+                  <td colSpan={role === "super admin" ? 5 : 4} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-3 text-gray-500">
+                      <AlertTriangle size={32} />
+                      <p className="font-semibold">Tidak ada data pengeluaran.</p>
+                    </div>
+                  </td>
+                </tr>
               )}
             </AnimatePresence>
           </tbody>
         </table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4">
             <button onClick={() => setCurrentPage(c => Math.max(1, c-1))} disabled={currentPage === 1} className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50">

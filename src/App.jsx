@@ -14,11 +14,13 @@ import ProdukPageSuper from "./pages/super-admin/ProdukPage.jsx";
 import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
 import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
 import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
+import JenisPengeluaranPageSuper from "./pages/super-admin/JenisPengeluaranPage.jsx";
 import TransaksiPage from "./pages/super-admin/TransaksiPage.jsx";
 import BahanPage from "./pages/super-admin/BahanPage.jsx";
 import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import SettingsPage from "./pages/super-admin/SettingsPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
+import DailyReportPage from "./pages/super-admin/DailyReportPage.jsx";
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -48,6 +50,7 @@ function App() {
                 <Route index element={<Navigate to="general" replace />} />
                 <Route path="general" element={<GeneralPageSuper />} />
                 <Route path="reports" element={<ReportsPageSuper />} />
+                <Route path="reports/daily" element={<DailyReportPage />} />
                 <Route path="kelola-cabang" element={<KelolaCabangPageSuper />} />
                 <Route path="produk" element={<ProdukPageSuper />} />
                 <Route path="branch" element={<BranchAdminPageSuper />} />
@@ -55,6 +58,7 @@ function App() {
               <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
                 <Route path="karyawan" element={<KaryawanPageSuper />} />
                 <Route path="transaksi" element={<TransaksiPage />} />
+                <Route path="jenis-pengeluaran" element={<JenisPengeluaranPageSuper />} />
                 <Route path="bahan" element={<BahanPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="help" element={<HelpPage />} />
