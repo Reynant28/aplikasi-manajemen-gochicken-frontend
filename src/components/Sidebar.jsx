@@ -20,14 +20,14 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const menuItems = [
     { to: "/general", label: "General", icon: <Home size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
-    { to: "/reports/daily", label: "Daily Report", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/reports/daily", label: "Daily Report", icon: <BarChart2 size={18} />, roles: ["super admin"] },
     { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
     { to: "/produk", label: "Produk", icon: <Layers size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} />, roles: ["super admin"] },
     { to: "/pemesanan", label: "Pemesanan", icon: <Receipt size={18} />, roles: ["admin cabang"] },
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
-    { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin"] },
     { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin"] },
     { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
     { to: "/bahan-baku-pakai", label: "Bahan Baku Pakai", icon: <Boxes size={18} />, roles: ["super admin"] },
@@ -96,11 +96,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       </div>
 
       <div className="p-4 border-t border-gray-200">
-        <NavLink to={`${basePath}/help`} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all">
-          <HelpCircle size={18} /> Help Center
-        </NavLink>
-        <NavLink to={`${basePath}/settings`} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all">
-          <Settings size={18} /> Settings
+        <NavLink to={`${basePath}/about`} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all">
+          <HelpCircle size={18} /> About
         </NavLink>
       </div>
     </div>

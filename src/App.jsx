@@ -21,6 +21,7 @@ import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import SettingsPage from "./pages/super-admin/SettingsPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
 import DailyReportPage from "./pages/super-admin/DailyReportPage.jsx";
+import AboutPage from "./pages/super-admin/AboutPage.jsx";
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -31,6 +32,7 @@ import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
 import Settingspage from "./pages/admin-cabang/SettingsPage.jsx";
 import PemesananPage from "./pages/admin-cabang/PemesananPage.jsx";
+import AboutPageCabang from "./pages/admin-cabang/AboutPageCabang.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
@@ -60,8 +62,7 @@ function App() {
                 <Route path="transaksi" element={<TransaksiPage />} />
                 <Route path="jenis-pengeluaran" element={<JenisPengeluaranPageSuper />} />
                 <Route path="bahan" element={<BahanPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="help" element={<HelpPage />} />
+                <Route path="about" element={<AboutPage />} />
               </Route>
             </Route>
 
@@ -77,6 +78,7 @@ function App() {
                 <Route path="settings" element={<Settingspage />} />
                 <Route path="help" element={<HelpPageCabang />} />
                 <Route path="pemesanan" element={<PemesananPage />} />
+                <Route path="about" element={<AboutPageCabang />} />
               </Route>
             </Route>
 
