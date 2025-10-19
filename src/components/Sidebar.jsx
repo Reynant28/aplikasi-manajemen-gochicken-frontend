@@ -34,21 +34,28 @@ const Sidebar = () => {
   return (
     <div className="w-72 bg-gradient-to-b from-white to-gray-50 border-r border-gray-200 flex flex-col h-screen shadow-lg relative">
       {/* Header */}
-      <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-green-600 to-green-700 text-white">
-        <div className="flex items-center justify-between">
+      <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-red-800 to-red-600 text-white">
+        <div className="flex items-center gap-3 mb-2">
+          <img
+            src="/images/LogoGoChickenReal.png"
+            alt="GoChicken Logo"
+            className="w-10 h-10 object-contain"
+          />
           <h1 className="text-xl font-bold tracking-wide drop-shadow-sm">GoChicken</h1>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-xs mt-1 text-white/80">{cabang?.nama_cabang || "Pusat"}</p>
           <span className="px-2 py-1 text-xs font-semibold bg-white/25 text-white rounded-md backdrop-blur-sm">
-            {user?.role || "Guest"}
+              {user?.role || "Guest"}
           </span>
         </div>
-        <p className="text-xs mt-1 text-white/80">{cabang?.nama_cabang || "Pusat"}</p>
       </div>
 
       {/* Menu Utama */}
       <div className="flex-grow px-4 py-5 space-y-3 overflow-y-auto scrollbar-hide">
         <div
           onClick={() => setOpenDropdown(!openDropdown)}
-          className="px-3 py-2 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer bg-white hover:bg-green-50 transition-all"
+          className="px-3 py-2 rounded-xl border border-gray-200 flex justify-between items-center cursor-pointer bg-white hover:bg-red-50 transition-all"
         >
           <span className="font-semibold text-gray-800">All Sites</span>
           <ChevronDown
@@ -79,7 +86,7 @@ const Sidebar = () => {
                         {isActive && (
                           <motion.div
                             layoutId="activeIndicator"
-                            className="absolute inset-0 bg-green-100 rounded-lg"
+                            className="absolute inset-0 bg-red-100 rounded-lg"
                             transition={{ type: "spring", stiffness: 400, damping: 30 }}
                           />
                         )}
@@ -87,11 +94,11 @@ const Sidebar = () => {
                         <span
                           className={`relative flex items-center gap-3 ${
                             isActive
-                              ? "text-green-700 font-semibold"
-                              : "text-gray-600 hover:text-green-600"
+                              ? "text-red-700 font-semibold"
+                              : "text-gray-600 hover:text-red-600"
                           }`}
                         >
-                          <span className="text-green-600">{item.icon}</span>
+                          <span className="text-red-600">{item.icon}</span>
                           {item.label}
                         </span>
                       </>
@@ -104,18 +111,12 @@ const Sidebar = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-green-50 to-white">
+      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-red-50 to-white">
         <NavLink
           to={`${basePath}/help`}
-          className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
+          className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-xl transition-all"
         >
           <HelpCircle size={20} /> Help Center
-        </NavLink>
-        <NavLink
-          to={`${basePath}/settings`}
-          className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-all"
-        >
-          <Settings size={20} /> Settings
         </NavLink>
       </div>
     </div>

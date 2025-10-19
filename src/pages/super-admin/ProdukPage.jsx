@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle } from "lucide-react";
-import { useNotification } from "../../components/context/NotificationContext"; 
+
 import { SuccessPopup, Modal, ConfirmDeletePopup, Card, Button } from "../../components/ui";
 
 const API_URL = "http://localhost:8000/api";
@@ -24,9 +24,6 @@ const ProdukPage = () => {
     const [message, setMessage] = useState("");
     const [produk, setProduk] = useState([]);
     const [selectedProduk, setSelectedProduk] = useState(null);
-
-    // Gunakan context notifikasi
-    const { addNotification } = useNotification(); 
 
     // State untuk Custom Popups
     const [showSuccess, setShowSuccess] = useState(false);
@@ -135,58 +132,11 @@ const ProdukPage = () => {
                 },
                 body: form,
             });
-
-            // --- Cek Response Status (Error Handling) ---
-            if (!res.ok) {
-                const text = await res.text();
-                let errorMsg = `Gagal ${action} produk. Coba lagi.`;
-
-                if (text.startsWith('<!DOCTYPE')) {
-                    errorMsg = "Server Error: Sesi kedaluwarsa atau Kesalahan Internal Server (500).";
-                    console.error("Server returned HTML error page (Not JSON):", text);
-                } else {
-                    try {
-                        const data = JSON.parse(text);
-                        errorMsg = data.message || errorMsg;
-                    } catch (e) {
-                        // Jika bukan JSON atau HTML, gunakan pesan default
-                    }
-                }
-                
-                // 🛑 Notifikasi Gagal (Pesan DULU, Tipe KEMUDIAN)
-                const notificationMsg = `[Produk] Gagal ${action} produk '${currentProdukName}': ${errorMsg}`;
-                addNotification(notificationMsg, 'error'); 
-                
-                setMessage("❌ " + errorMsg);
-                setLoading(false);
-                return;
-            }
-            // --- Akhir Cek Response Status ---
-
-            const data = await res.json(); 
-
-            if (res.ok) {
-                const successAction = editingProduk ? "diubah" : "ditambahkan";
-                
-                // ✅ Notifikasi Sukses dengan nama produk (Pesan DULU, Tipe KEMUDIAN)
-                const notificationMsg = `[Produk] Berhasil ${successAction} data produk: ${currentProdukName}`;
-                addNotification(notificationMsg, 'success');
-
-                setSuccessMessage(data.message || notificationMsg);
-                setShowSuccess(true);
-                fetchProduk();
-                handleCloseModal();
-            } else {
-                setMessage("❌ " + (data.message || "Error tidak teridentifikasi"));
-                const errorMsg = `[Produk] Gagal ${action} Produk: ${data.message || "Error tidak teridentifikasi"}`;
-                addNotification(errorMsg, 'error');
-            }
         } catch (err) {
             console.error("Fetch error:", err);
             const errorMsg = "Error koneksi server atau respons tidak valid";
             setMessage("❌ " + errorMsg);
-            // 🛑 Notifikasi Error Koneksi (Pesan DULU, Tipe KEMUDIAN)
-            addNotification(`[Produk] Gagal ${action} Produk: ${errorMsg}`, 'error');
+
         } finally {
             setLoading(false);
         }
