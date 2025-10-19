@@ -92,6 +92,7 @@ const ProductReport = ({ cabangId, token }) => {
             <tr>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+              <th className='px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider'>Cabang</th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Harga</th>
               <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Stok Saat Ini</th>
             </tr>
@@ -101,6 +102,7 @@ const ProductReport = ({ cabangId, token }) => {
               <tr key={index} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{item.nama_produk}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.kategori}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.cabang}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">{formatRupiah(item.harga)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.jumlah_stok}</td>
               </tr>

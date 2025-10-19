@@ -10,6 +10,8 @@ import {
 
 const API_URL = "http://localhost:8000/api";
 
+const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
+
 const PengeluaranPage = () => {
  const [pengeluaran, setPengeluaran] = useState([]);
  const [loading, setLoading] = useState(false);
@@ -675,3 +677,4 @@ const PengeluaranPage = () => {
 };
 
 export default PengeluaranPage;
+
