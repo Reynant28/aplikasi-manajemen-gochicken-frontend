@@ -4,7 +4,6 @@ import axios from 'axios';
 //eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
-
 // Import our main dashboard components
 import DashboardCard from '../../components/DashboardCard.jsx';
 import SalesTrendChart from '../../components/SalesTrendChart.jsx';
@@ -78,7 +77,7 @@ const ReportsPage = () => {
       case 'products':
         return <ProductReport token={token} />;
       case 'sales':
-        return <SalesReport token={token} />;
+        return <SalesReport token={token} filter={filter} />; // Pass filter here
       case 'employees':
         return <EmployeeReport token={token} />;
       default:
@@ -88,37 +87,41 @@ const ReportsPage = () => {
 
   return (
     <motion.div 
-      className="p-6"
+      className="space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* --- TOP SECTION: VISUAL DASHBOARD (No Changes Here) --- */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+      {/* --- TOP SECTION: VISUAL DASHBOARD (Updated to match admin cabang style) --- */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
-          <p className="text-gray-500">Analisis performa penjualan untuk cabang Anda.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
+          <p className="text-gray-500 text-sm sm:text-base">Analisis performa penjualan untuk seluruh cabang.</p>
         </div>
-        <div className="flex bg-gray-100 p-1 rounded-lg">
-          <button onClick={() => setFilter('minggu')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'minggu' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Minggu Ini</button>
-          <button onClick={() => setFilter('bulan')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'bulan' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Bulan Ini</button>
-          <button onClick={() => setFilter('tahun')} className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'tahun' ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}>Tahun Ini</button>
+        <div className="flex bg-gray-100 p-1 rounded-lg self-start md:self-center">
+          <button onClick={() => setFilter('minggu')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'minggu' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Minggu Ini</button>
+          <button onClick={() => setFilter('bulan')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'bulan' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Bulan Ini</button>
+          <button onClick={() => setFilter('tahun')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'tahun' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Tahun Ini</button>
         </div>
       </div>
       
       {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-center mb-6">{error}</div>}
       {loading && !error && (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
           <p className="ml-3 text-gray-600">Memuat data laporan...</p>
         </div>
       )}
       {!loading && !error && reportData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2"> <SalesTrendChart data={reportData.salesTrend} /> </div>
-            <div> <TopProductsChart data={reportData.topProducts} /> </div>
-            <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-2"> 
+              <SalesTrendChart data={reportData.salesTrend} /> 
+            </div>
+            <div className="h-[350px] sm:h-[420px]"> 
+              <TopProductsChart data={reportData.topProducts} /> 
+            </div>
+            <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <DashboardCard title="Total Pendapatan" value={formatRupiah(reportData.summary.totalPendapatan)} />
                 <DashboardCard title="Total Transaksi" value={reportData.summary.totalTransaksi.toLocaleString('id-ID')} />
                 <DashboardCard title="Rata-rata Transaksi" value={formatRupiah(reportData.summary.avgTransaksi)} />
@@ -127,14 +130,14 @@ const ReportsPage = () => {
             </div>
           </div>
 
-          {/* --- NEW SECTION: DETAILED REPORTS --- */}
+          {/* --- NEW SECTION: DETAILED REPORTS (Updated to match admin cabang style) --- */}
           <div className="pt-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Laporan Rinci</h2>
-            <div className="border-b border-gray-200">
+            <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
               <nav className="-mb-px flex space-x-6">
-                <button onClick={() => setActiveTab('products')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'products' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Produk</button>
-                <button onClick={() => setActiveTab('sales')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'sales' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Penjualan</button>
-                <button onClick={() => setActiveTab('employees')} className={`py-3 px-1 text-sm font-semibold ${activeTab === 'employees' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Karyawan</button>
+                <button onClick={() => setActiveTab('products')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'products' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Produk</button>
+                <button onClick={() => setActiveTab('sales')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'sales' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Penjualan</button>
+                <button onClick={() => setActiveTab('employees')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'employees' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Karyawan</button>
               </nav>
             </div>
             <div className="mt-6">
@@ -155,4 +158,3 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
-

@@ -73,17 +73,6 @@ const Shield = ({ className }) => (
   </svg>
 );
 
-const CheckCircle = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-    />
-  </svg>
-);
-
 const XCircle = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
@@ -95,110 +84,82 @@ const XCircle = ({ className }) => (
   </svg>
 );
 
-const ExclamationCircle = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
+// --- Sleek Notification Component ---
+const Notification = ({ isOpen, onClose, message, type = "error" }) => {
+  const [progress, setProgress] = useState(100);
 
-// --- AlertPopup Component ---
+  useEffect(() => {
+    if (isOpen) {
+      setProgress(100);
+      const duration = 4000; // 4 seconds total
+      const interval = 50; // update every 50ms
+      const decrement = (100 / duration) * interval;
+      
+      const timer = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = prev - decrement;
+          if (newProgress <= 0) {
+            clearInterval(timer);
+            onClose();
+            return 0;
+          }
+          return newProgress;
+        });
+      }, interval);
 
-const AlertPopup = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  type,
-  confirmText,
-  cancelText,
-  showCancel = true,
-}) => {
-  const getColors = () => {
-    switch (type) {
-      case "success":
-        return {
-          icon: CheckCircle,
-          iconColor: "text-green-500",
-          confirmClass: "bg-green-500 hover:bg-green-600",
-        };
-      case "error":
-        return {
-          icon: XCircle,
-          iconColor: "text-red-500",
-          confirmClass: "bg-red-500 hover:bg-red-600",
-        };
-      case "warning":
-      case "confirmation": 
-      default:
-        return {
-          icon: ExclamationCircle,
-          iconColor: "text-yellow-500",
-          confirmClass: "bg-red-500 hover:bg-red-600",
-        };
+      return () => clearInterval(timer);
     }
-  };
+  }, [isOpen, onClose]);
 
-  const { icon: Icon, iconColor, confirmClass } = getColors();
+  if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          // DIUBAH DI SINI: bg-white bg-opacity-70 untuk putih transparan
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={showCancel ? onClose : undefined} 
-        >
+    <motion.div
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm"
+      initial={{ opacity: 0, y: -50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+        {/* Progress Bar */}
+        <div className="h-1 bg-gray-200">
           <motion.div
-            className="bg-white rounded-xl shadow-2xl p-6 sm:p-8 w-full max-w-sm mx-auto"
-            initial={{ y: -50, opacity: 0, scale: 0.8 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 50, opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-            onClick={(e) => e.stopPropagation()} 
+            className={`h-full ${
+              type === "error" ? "bg-red-500" : "bg-gray-600"
+            }`}
+            initial={{ width: "100%" }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.05, ease: "linear" }}
+          />
+        </div>
+        
+        {/* Notification Content */}
+        <div className="p-4 flex items-start space-x-3">
+          <div className={`flex-shrink-0 ${
+            type === "error" ? "text-red-500" : "text-gray-600"
+          }`}>
+            <XCircle className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900">
+              {type === "error" ? "Login Failed" : "Notice"}
+            </p>
+            <p className="text-sm text-gray-600 mt-1">
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {/* Header / Icon */}
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <Icon className={`w-12 h-12 ${iconColor} stroke-2`} />
-              <h3 className="text-xl font-semibold text-gray-800 text-center">{title}</h3>
-            </div>
-
-            {/* Message */}
-            <div className="mt-4 mb-6">
-              <p className="text-sm text-gray-600 text-center">{message}</p>
-            </div>
-
-            {/* Buttons */}
-            <div className={`flex ${showCancel ? "justify-between space-x-3" : "justify-center"}`}>
-              {showCancel && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-full py-3 px-4 text-sm font-medium rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
-                >
-                  {cancelText || "Batal"}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onConfirm}
-                className={`w-full py-3 px-4 text-sm font-medium rounded-lg text-white transition-colors ${confirmClass}`}
-              >
-                {confirmText || (type === "confirmation" ? "Hapus" : "OK")}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
@@ -215,15 +176,9 @@ const Login = () => {
   const [cabangOptions, setCabangOptions] = useState([]);
   const [cabangMap, setCabangMap] = useState({});
 
-  // State for the custom popup
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [popupData, setPopupData] = useState({
-    title: "",
-    message: "",
-    type: "warning",
-    confirmText: "OK",
-    showCancel: false,
-  });
+  // State for the notification
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -247,31 +202,40 @@ const Login = () => {
       });
   }, []);
 
-  // Function to show the custom popup
-  const showPopup = useCallback((title, message, type = "warning", confirmText = "OK") => {
-    setPopupData({
-      title,
-      message,
-      type,
-      confirmText,
-      showCancel: false, // Default is a simple alert/message
-    });
-    setIsPopupOpen(true);
+  // Function to show notification
+  const showNotification = useCallback((message) => {
+    setNotificationMessage(message);
+    setIsNotificationOpen(true);
   }, []);
 
-  const closePopup = useCallback(() => {
-    setIsPopupOpen(false);
+  const closeNotification = useCallback(() => {
+    setIsNotificationOpen(false);
   }, []);
 
   const handleCabangLogin = async () => {
     const { cabang, passwordCabang, personalPassword } = formData;
+    
+    // Validation
+    if (!cabang) {
+      showNotification("Please select a branch");
+      return;
+    }
+    if (!passwordCabang) {
+      showNotification("Please enter branch password");
+      return;
+    }
+    if (!personalPassword) {
+      showNotification("Please enter personal password");
+      return;
+    }
+
     try {
       setIsLoading(true);
 
       const id_cabang = cabangMap[cabang];
 
       if (!id_cabang) {
-        showPopup("Gagal Login", "Mohon pilih cabang terlebih dahulu.", "error");
+        showNotification("Please select a valid branch");
         return;
       }
 
@@ -282,42 +246,19 @@ const Login = () => {
       });
 
       if (res.data.status === "success") {
-        // Success Popup
-        showPopup(
-          "Login Berhasil! 🎉",
-          "Selamat datang, Anda akan diarahkan ke dashboard.",
-          "success",
-          "Lanjut"
-        );
-
-        // Store data and navigate after a brief delay for the user to see the popup
-        setTimeout(() => {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-          if (res.data.cabang) {
-            localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
-          }
-          localStorage.setItem("token", res.data.token);
-          navigate(`/admin-cabang/${id_cabang}/dashboard`);
-        }, 1500); // 1.5 seconds delay
-
-      } else {
-        // General Login Error
-        showPopup("Gagal Login", res.data.message || "Login Admin Cabang gagal. Cek kembali kredensial Anda.", "error");
-      }
-    } catch (err) {
-      if (err.response && err.response.data) {
-        let message = "Terjadi kesalahan saat mencoba login.";
-        if (err.response.data.errors) {
-          // Handle validation errors
-          message = Object.values(err.response.data.errors).join("\n");
-        } else if (err.response.data.message) {
-          // Fallback for specific message errors (e.g., 'Password Cabang Salah')
-          message = err.response.data.message;
+        // Store data and navigate without showing success notification
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        if (res.data.cabang) {
+          localStorage.setItem("cabang", JSON.stringify(res.data.cabang));
         }
-        showPopup("Gagal Login 🚨", message, "error");
+        localStorage.setItem("token", res.data.token);
+        navigate(`/admin-cabang/${id_cabang}/dashboard`);
       } else {
-        showPopup("Error Koneksi 😟", "Terjadi error koneksi ke server. Mohon coba lagi.", "error");
+        showNotification("Invalid Branch / Password Data");
       }
+      //eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      showNotification("Invalid Branch / Password Data");
     } finally {
       setIsLoading(false);
     }
@@ -325,46 +266,35 @@ const Login = () => {
 
   const handleSuperAdminLogin = async () => {
     const { username, password } = superAdminData;
+    
+    // Validation
+    if (!username) {
+      showNotification("Please enter email");
+      return;
+    }
+    if (!password) {
+      showNotification("Please enter password");
+      return;
+    }
+
     try {
       setIsLoading(true);
-      // Logika login Super Admin
       const res = await axios.post("http://localhost:8000/api/super-admin/login", {
         email: username,
         password: password,
       });
 
       if (res.data.status === "success") {
-        // Success Popup
-        showPopup(
-          "Login Berhasil! 👑",
-          "Selamat datang, Anda akan diarahkan ke dashboard Super Admin.",
-          "success",
-          "Lanjut"
-        );
-
-        // Store data and navigate after a brief delay
-        setTimeout(() => {
-          localStorage.setItem("token", res.data.token);
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-          navigate("/super-admin/dashboard");
-        }, 1500); // 1.5 seconds delay
-
+        // Store data and navigate without showing success notification
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        navigate("/super-admin/dashboard");
       } else {
-        // General Login Error
-        showPopup("Gagal Login", res.data.message || "Login Super Admin gagal. Cek email dan password Anda.", "error");
+        showNotification("Invalid Branch / Password Data");
       }
+      //eslint-disable-next-line no-unused-vars
     } catch (err) {
-      if (err.response && err.response.data) {
-        let message = "Terjadi kesalahan saat mencoba login.";
-        if (err.response.data.errors) {
-          message = Object.values(err.response.data.errors).join("\n");
-        } else if (err.response.data.message) {
-          message = err.response.data.message;
-        }
-        showPopup("Gagal Login 🚨", message, "error");
-      } else {
-        showPopup("Error Koneksi 😟", "Terjadi error koneksi ke server. Mohon coba lagi.", "error");
-      }
+      showNotification("Invalid Branch / Password Data");
     } finally {
       setIsLoading(false);
     }
@@ -444,16 +374,12 @@ const Login = () => {
         `}
       </style>
 
-      {/* Custom Alert Popup */}
-      <AlertPopup
-        isOpen={isPopupOpen}
-        onClose={closePopup}
-        onConfirm={closePopup} // Simple alert: confirm is just close
-        title={popupData.title}
-        message={popupData.message}
-        type={popupData.type}
-        confirmText={popupData.confirmText}
-        showCancel={popupData.showCancel}
+      {/* Sleek Notification */}
+      <Notification
+        isOpen={isNotificationOpen}
+        onClose={closeNotification}
+        message={notificationMessage}
+        type="error"
       />
 
       <div className="h-screen w-screen flex items-center justify-center p-8 sm:p-12">

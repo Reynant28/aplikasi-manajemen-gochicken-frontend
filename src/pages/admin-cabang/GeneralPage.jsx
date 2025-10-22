@@ -58,6 +58,51 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
+// Payment method mapping utilities
+const mapPaymentMethodToUI = (dbMethod) => {
+    switch (dbMethod?.toLowerCase()) {
+        case 'cash': return 'Tunai';
+        case 'transfer': return 'Debit';
+        case 'e-wallet': return 'QRIS';
+        default: return dbMethod;
+    }
+};
+
+const getPaymentIcon = (uiMethod) => {
+    switch (uiMethod?.toLowerCase()) {
+        case 'tunai': return <Wallet size={16} className="text-gray-500"/>;
+        case 'debit': return <CreditCard size={16} className="text-gray-500"/>;
+        case 'qris': return <QrCode size={16} className="text-gray-500"/>;
+        default: return <Wallet size={16} className="text-gray-500"/>;
+    }
+};
+
+// Process revenue breakdown to combine and map payment methods
+const processRevenueBreakdown = (rawData) => {
+    const breakdownMap = new Map();
+    
+    // Initialize with all three payment methods set to 0
+    const allPaymentMethods = ['Tunai', 'Debit', 'QRIS'];
+    allPaymentMethods.forEach(method => {
+        breakdownMap.set(method, 0);
+    });
+
+    // Accumulate amounts from raw data
+    rawData.forEach(item => {
+        const uiMethod = mapPaymentMethodToUI(item.metode_pembayaran);
+        const currentTotal = breakdownMap.get(uiMethod) || 0;
+        breakdownMap.set(uiMethod, currentTotal + parseFloat(item.total));
+    });
+
+    // Convert map to array and filter out methods with 0 value if needed
+    return Array.from(breakdownMap.entries())
+        .map(([metode_pembayaran, total]) => ({
+            metode_pembayaran,
+            total
+        }))
+        .filter(item => item.total > 0); // Only show methods with actual revenue
+};
+
 // ✨ PERBAIKAN UTAMA: Komponen SummaryCard didefinisikan DI LUAR GeneralPage
 const SummaryCard = ({ icon, title, value, loading }) => {
     const textRef = useRef(null);
@@ -86,13 +131,13 @@ const SummaryCard = ({ icon, title, value, loading }) => {
         <motion.div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-4">
                 {icon}
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                     <h3 className="text-sm font-medium text-gray-500 truncate">{title}</h3>
                     {loading ? 
                         <div className="mt-1 h-7 w-24 bg-gray-200 rounded-md animate-pulse"></div> 
                         : 
                         <div className="flex items-center gap-2 mt-1">
-                            <p ref={textRef} className="text-2xl font-bold text-gray-800 truncate">
+                            <p ref={textRef} className="text-2xl font-bold text-gray-800 truncate min-w-0">
                                 {value}
                             </p>
                             {isTruncated && (
@@ -126,6 +171,7 @@ const GeneralPage = () => {
   const [chartError, setChartError] = useState(null);
   const [chartMode, setChartMode] = useState("pendapatan");
   const [chartFilter, setChartFilter] = useState("tahun");
+  const [processedRevenueBreakdown, setProcessedRevenueBreakdown] = useState([]);
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -144,6 +190,12 @@ const GeneralPage = () => {
       try {
         const res = await axios.get(`${API_URL}/dashboard/cabang/${cabangId}`, { headers: { Authorization: `Bearer ${token}` } });
         setDashboardData(res.data.data);
+        
+        // Process revenue breakdown data
+        if (res.data.data.revenue_breakdown) {
+          const processedData = processRevenueBreakdown(res.data.data.revenue_breakdown);
+          setProcessedRevenueBreakdown(processedData);
+        }
         //eslint-disable-next-line no-unused-vars
       } catch (err) {
         setError("Gagal mengambil data dashboard.");
@@ -175,15 +227,6 @@ const GeneralPage = () => {
     setChartMode(newMode);
     if (newMode === 'pengeluaran' && chartFilter === 'minggu') {
        setChartFilter('tahun');
-    }
-  };
-  
-  const getPaymentIcon = (method) => {
-    switch (method.toLowerCase()) {
-      case 'tunai': return <Wallet size={16} className="text-gray-500"/>;
-      case 'qris': return <QrCode size={16} className="text-gray-500"/>;
-      case 'debit': return <CreditCard size={16} className="text-gray-500"/>;
-      default: return <Wallet size={16} className="text-gray-500"/>;
     }
   };
 
@@ -262,16 +305,21 @@ const GeneralPage = () => {
                         </div>
                         <div className="mt-auto pt-4">
                             <h3 className="text-sm font-semibold text-gray-500 mb-2">Rincian Pendapatan:</h3>
-                            {(dashboardData.revenue_breakdown && dashboardData.revenue_breakdown.length > 0) ? (
+                            {processedRevenueBreakdown.length > 0 ? (
                                 <div className="space-y-2">
-                                    {dashboardData.revenue_breakdown.map((item) => (
+                                    {processedRevenueBreakdown.map((item) => (
                                         <div key={item.metode_pembayaran} className="flex justify-between items-center text-sm">
-                                            <p className="flex items-center gap-2 text-gray-600">{getPaymentIcon(item.metode_pembayaran)} {item.metode_pembayaran}</p>
+                                            <p className="flex items-center gap-2 text-gray-600">
+                                                {getPaymentIcon(item.metode_pembayaran)} 
+                                                {item.metode_pembayaran}
+                                            </p>
                                             <p className="font-medium text-gray-700">{formatRupiah(item.total)}</p>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (<p className="text-sm text-gray-400 text-center py-2">Belum ada pendapatan hari ini.</p>)}
+                            ) : (
+                                <p className="text-sm text-gray-400 text-center py-2">Belum ada pendapatan hari ini.</p>
+                            )}
                         </div>
                     </div>
                 )}

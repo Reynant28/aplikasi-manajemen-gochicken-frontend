@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle } from "lucide-react";
-import { useNotification } from "../../components/context/NotificationContext"; 
 import { SuccessPopup, Modal, ConfirmDeletePopup, Card, Button } from "../../components/ui";
 
 const API_URL = "http://localhost:8000/api";
@@ -26,8 +25,6 @@ const ProdukPage = () => {
     const [produk, setProduk] = useState([]);
     const [selectedProduk, setSelectedProduk] = useState(null);
 
-    // Gunakan context notifikasi
-    const { addNotification } = useNotification(); 
 
     // State untuk Custom Popups
     const [showSuccess, setShowSuccess] = useState(false);
@@ -120,7 +117,7 @@ const ProdukPage = () => {
 
         let url = `${API_URL}/produk`;
         // --- 🎯 AMBIL NAMA PRODUK DARI FORM ---
-        const currentProdukName = formData.nama_produk; 
+        
         const action = editingProduk ? "mengubah" : "menambah";
         
         if (editingProduk) {
@@ -156,8 +153,7 @@ const ProdukPage = () => {
                 }
                 
                 // 🛑 Notifikasi Gagal (Pesan DULU, Tipe KEMUDIAN)
-                const notificationMsg = `[Produk] Gagal ${action} produk '${currentProdukName}': ${errorMsg}`;
-                addNotification(notificationMsg, 'error'); 
+                
                 
                 setMessage("❌ " + errorMsg);
                 setLoading(false);
@@ -168,27 +164,24 @@ const ProdukPage = () => {
             const data = await res.json(); 
 
             if (res.ok) {
-                const successAction = editingProduk ? "diubah" : "ditambahkan";
                 
-                // ✅ Notifikasi Sukses dengan nama produk (Pesan DULU, Tipe KEMUDIAN)
-                const notificationMsg = `[Produk] Berhasil ${successAction} data produk: ${currentProdukName}`;
-                addNotification(notificationMsg, 'success');
+                
+                
 
-                setSuccessMessage(data.message || notificationMsg);
+                
                 setShowSuccess(true);
                 fetchProduk();
                 handleCloseModal();
             } else {
                 setMessage("❌ " + (data.message || "Error tidak teridentifikasi"));
-                const errorMsg = `[Produk] Gagal ${action} Produk: ${data.message || "Error tidak teridentifikasi"}`;
-                addNotification(errorMsg, 'error');
+                
+                
             }
         } catch (err) {
             console.error("Fetch error:", err);
             const errorMsg = "Error koneksi server atau respons tidak valid";
             setMessage("❌ " + errorMsg);
-            // 🛑 Notifikasi Error Koneksi (Pesan DULU, Tipe KEMUDIAN)
-            addNotification(`[Produk] Gagal ${action} Produk: ${errorMsg}`, 'error');
+            
         } finally {
             setLoading(false);
         }
@@ -221,7 +214,7 @@ const ProdukPage = () => {
                 
                 // ✅ Notifikasi Sukses Hapus (Pesan DULU, Tipe KEMUDIAN)
                 const notificationMsg = `[Produk] Berhasil menghapus produk: ${produkName}`;
-                addNotification(notificationMsg, 'info'); 
+                
                 
                 setSuccessMessage(data.message || notificationMsg);
                 setShowSuccess(true);
@@ -229,9 +222,7 @@ const ProdukPage = () => {
             } else {
                 const errorMsg = data.message || "Gagal menghapus produk.";
                 
-                // 🛑 Notifikasi Gagal Hapus (Pesan DULU, Tipe KEMUDIAN)
-                const failMsg = `[Produk] Gagal menghapus produk '${produkName}': ${errorMsg}`;
-                addNotification(failMsg, 'error');
+                
                 
                 setMessage("❌ " + errorMsg);
             }
@@ -239,9 +230,7 @@ const ProdukPage = () => {
             console.error("Delete error:", err);
             const errorMsg = "Error koneksi server saat menghapus.";
             
-            // 🛑 Notifikasi Error Koneksi Hapus (Pesan DULU, Tipe KEMUDIAN)
-            const connErrorMsg = `[Produk] Error koneksi saat menghapus produk '${produkName}': ${errorMsg}`;
-            addNotification(connErrorMsg, 'error');
+            
             
             setMessage("❌ " + errorMsg);
         } finally {
