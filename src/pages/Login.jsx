@@ -420,8 +420,8 @@ const Login = () => {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
         :root {
-          --themered: #ef4444;
-          --themeorange: #f97316;
+          --themered: #6b7280;
+          --themeorange: #9ca3af;
           --light-text-muted: #8b8b8b;
         }
 
@@ -458,8 +458,9 @@ const Login = () => {
 
       <div className="h-screen w-screen chicken-pattern flex items-center justify-center p-4 overflow-hidden relative">
         {/* Decorative Elements */}
-        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-2xl"></div>
-        <div className="absolute bottom-20 right-20 w-32 h-32 bg-orange-400 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-10 left-10 w-20 h-20 bg-gray-400 rounded-full opacity-20 blur-2xl"></div>
+        <div className="absolute bottom-20 right-20 w-32 h-32 bg-gray-500 rounded-full opacity-20 blur-3xl"></div>
+
         
         {/* Main Container */}
         <motion.div
@@ -478,13 +479,13 @@ const Login = () => {
               transition={{ delay: 0.2, duration: 0.6 }}
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full blur-3xl opacity-30"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-500 to-gray-800 rounded-full blur-3xl opacity-30"></div>
                 <div className="relative bg-white p-8 rounded-3xl shadow-2xl">
                   <img src="images/LogoGoChickenReal.png" alt="GoChicken Logo" className="w-64"/>
                 </div>
               </div>
               <div className="text-center space-y-2">
-                <h1 className="text-5xl font-black bg-gradient-to-r from-yellow-600 via-orange-500 to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-black bg-gradient-to-r from-gray-700 via-gray-500 to-gray-800 bg-clip-text text-transparent">
                   GoChicken
                 </h1>
                 <p className="text-sm font-semibold text-gray-600 max-w-xs">
@@ -498,14 +499,14 @@ const Login = () => {
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="glass-effect rounded-3xl shadow-2xl p-8 md:p-10"
+              className="glass-effect rounded-3xl shadow-2xl p-5 md:p-7"
             >
               {/* Mobile Logo */}
               <div className="md:hidden text-center mb-6">
                 <h1 className="text-3xl text-gray-600 font-semibold">
                   Portal Administrasi
                 </h1>
-                <h1 className="text-3xl font-black bg-gradient-to-r from-yellow-600 via-orange-500 to-red-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-black bg-gradient-to-r from-gray-700 via-gray-500 to-gray-800 bg-clip-text text-transparent">
                   GoChicken
                 </h1>
               </div>
@@ -524,7 +525,7 @@ const Login = () => {
                   className="absolute top-1.5 bottom-1.5 w-[calc(50%-0.375rem)] rounded-xl shadow-md"
                   animate={{
                     x: activePanel === "cabang" ? "0%" : "calc(100% + 0.75rem)",
-                    backgroundColor: activePanel === "cabang" ? "#EF4444" : "#F97316",
+                    backgroundColor: activePanel === "cabang" ? "#44444E" : "#44444E",
                   }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 />
@@ -572,7 +573,7 @@ const Login = () => {
                           <button
                             type="button"
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl text-left flex items-center justify-between hover:border-yellow-400 focus:border-yellow-500 input-glow transition-all duration-200 font-medium"
+                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl text-left flex items-center justify-between hover:border-gray-400 focus:border-gray-500 input-glow transition-all duration-200 font-medium"
                           >
                             <span className={formData.cabang ? "text-gray-800" : "text-gray-400"}>
                               {formData.cabang || "Pilih cabang..."}
@@ -599,7 +600,7 @@ const Login = () => {
                                       handleCabangChange("cabang", cabang);
                                       setIsDropdownOpen(false);
                                     }}
-                                    className="w-full px-4 py-3.5 text-left text-gray-700 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 hover:text-orange-700 transition-all duration-200 font-medium"
+                                    className="w-full px-4 py-3.5 text-left text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-50 hover:text-gray-700 transition-all duration-200 font-medium"
                                   >
                                     {cabang}
                                   </button>
@@ -620,7 +621,7 @@ const Login = () => {
                             type={showPassword ? "text" : "password"}
                             value={formData.passwordCabang}
                             onChange={(e) => handleCabangChange("passwordCabang", e.target.value)}
-                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-yellow-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
+                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-gray-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
                             placeholder="••••••••"
                           />
                           <button
@@ -643,7 +644,7 @@ const Login = () => {
                             type={showPersonalPassword ? "text" : "password"}
                             value={formData.personalPassword}
                             onChange={(e) => handleCabangChange("personalPassword", e.target.value)}
-                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-yellow-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
+                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-gray-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
                             placeholder="••••••••"
                           />
                           <button
@@ -663,7 +664,7 @@ const Login = () => {
                         disabled={isLoading}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full py-4 px-6 mt-2 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full py-4 px-6 mt-2 bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (
                           <div className="flex items-center justify-center">
@@ -699,7 +700,7 @@ const Login = () => {
                           type="email"
                           value={superAdminData.username}
                           onChange={(e) => handleSuperAdminChange("username", e.target.value)}
-                          className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 input-glow transition-all duration-200 text-gray-800 font-medium"
+                          className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-gray-500 input-glow transition-all duration-200 text-gray-800 font-medium"
                           placeholder="admin@gochicken.com"
                         />
                       </div>
@@ -714,7 +715,7 @@ const Login = () => {
                             type={showPassword ? "text" : "password"}
                             value={superAdminData.password}
                             onChange={(e) => handleSuperAdminChange("password", e.target.value)}
-                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
+                            className="w-full px-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:border-gray-500 input-glow transition-all duration-200 pr-12 text-gray-800 font-medium"
                             placeholder="••••••••"
                           />
                           <button
@@ -734,7 +735,7 @@ const Login = () => {
                         disabled={isLoading}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="w-full py-4 px-6 mt-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full py-4 px-6 mt-2 bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (
                           <div className="flex items-center justify-center">

@@ -1,680 +1,446 @@
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash, FileText } from "lucide-react"; 
-import { motion } from "framer-motion";
-import {
- ConfirmDeletePopup,
- SuccessPopup,
- Button,
- Modal,
-} from "../../components/ui";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Tag, Calendar, FileText, Plus, DollarSign } from "lucide-react";
+import axios from 'axios';
+import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable';
+import PengeluaranForm from '../../components/ui/Form/PengeluaranForm.jsx';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 const API_URL = "http://localhost:8000/api";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value);
 
 const PengeluaranPage = () => {
- const [pengeluaran, setPengeluaran] = useState([]);
- const [loading, setLoading] = useState(false);
- 
- // --- STATE LAINNYA (Tidak Berubah) ---
- const [selectedDate, setSelectedDate] = useState("");
- const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 8; 
+  const [pengeluaranList, setPengeluaranList] = useState([]);
+  const [jenisList, setJenisList] = useState([]);
+  const [bahanBakuList, setBahanBakuList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [cabangList, setCabangList] = useState([]);
+  const [isCicilanHarian, setIsCicilanHarian] = useState(false);
 
- const [formData, setFormData] = useState({
-  id_jenis: "",
-  tanggal: "",
-  jumlah: "",
-  keterangan: "",
- });
-
- const [editPengeluaran, setEditPengeluaran] = useState(null);
- const [showForm, setShowForm] = useState(false);
- const [showConfirm, setShowConfirm] = useState(false);
- const [deleteId, setDeleteId] = useState(null);
- const [showSuccess, setShowSuccess] = useState(false);
- const [successMessage, setSuccessMessage] = useState("");
-
- const token = localStorage.getItem("token");
- const user = JSON.parse(localStorage.getItem("user"));
- const cabang = JSON.parse(localStorage.getItem("cabang"));
-
- // Ambil data pengeluaran
- const fetchPengeluaran = useCallback(async () => {
-  try {
-   setLoading(true);
-   const res = await fetch(`${API_URL}/pengeluaran`, {
-    headers: { Authorization: `Bearer ${token}` },
-   });
-   const data = await res.json();
-   setPengeluaran(data.data || []);
-  } catch (err) {
-   console.error("Fetch pengeluaran error:", err);
-   setPengeluaran([]);
-  } finally {
-    setLoading(false);
-  }
- }, [token]);
-
- useEffect(() => {
-  if (token) fetchPengeluaran();
- }, [token, fetchPengeluaran]);
-
- // Tambah pengeluaran
- const handleAdd = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  try {
-   const res = await fetch(`${API_URL}/pengeluaran`, {
-    method: "POST",
-    headers: {
-     "Content-Type": "application/json",
-     Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-     ...formData,
-     id_cabang: cabang?.id_cabang || 1, // ambil dari localStorage
-    }),
-   });
-
-   const data = await res.json();
-   if (res.status === 201 || data.status === "success") {
-    setSuccessMessage(data.message || "Pengeluaran berhasil ditambahkan!");
-    setShowSuccess(true);
-    setFormData({ id_jenis: "", tanggal: "", jumlah: "", keterangan: "" });
-    setShowForm(false);
-    fetchPengeluaran();
-   } else {
-        
-    alert("❌ " + (data.message || "Error"));
-   }
-  } catch (err) {
-   console.error("Add pengeluaran error:", err);
-  }
-
-  setLoading(false);
- };
-
- // Update pengeluaran
- const handleUpdate = async () => {
-  try {
-   const res = await fetch(
-    `${API_URL}/pengeluaran/${editPengeluaran.id_pengeluaran}`,
-    {
-     method: "PUT",
-     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-     },
-     body: JSON.stringify({
-      ...editPengeluaran,
-      id_cabang: cabang?.id_cabang || 1,
-      id_jenis: editPengeluaran.id_jenis || 1,
-     }),
-    }
-   );
-
-   const data = await res.json();
-   if (res.ok) {
-    setSuccessMessage(data.message || "Pengeluaran berhasil diupdate!");
-    setShowSuccess(true);
-        
-    fetchPengeluaran();
-    setEditPengeluaran(null);
-   } else {
-       alert("❌ " + (data.message || "Error"));
-   }
-  } catch (err) {
-   console.error("Update pengeluaran error:", err);
-  }
- };
-
- // Hapus pengeluaran
- const confirmDelete = (id) => {
-  setDeleteId(id);
-  setShowConfirm(true);
- };
-
- const handleDelete = async () => {
-  try {
-   const res = await fetch(`${API_URL}/pengeluaran/${deleteId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-   });
-
-   if (res.ok) {
-    setSuccessMessage("Pengeluaran berhasil dihapus!");
-    setShowSuccess(true);
-        
-    fetchPengeluaran();
-   } else {
-        // Coba ambil pesan error jika ada
-        const data = await res.json();
-        alert("❌ " + (data.message || "Unknown Error"));
-      }
-  } catch (err) {
-   console.error("Delete pengeluaran error:", err);
-  }
-  setShowConfirm(false);
-  setDeleteId(null);
- };
-
- // ... (Sisa fungsi dan render komponen tidak berubah) ...
- const closeSuccessPopup = () => setShowSuccess(false);
-
- // --- LOGIKA FILTER DAN PAGINATION BARU ---
- 
- // Filter berdasarkan tanggal
- const filteredData = pengeluaran.filter(
-  (p) => !selectedDate || p.tanggal.startsWith(selectedDate)
- );
-
- // Pagination logic
- const totalPages = Math.ceil(filteredData.length / itemsPerPage);
- const indexOfLast = currentPage * itemsPerPage;
- const indexOfFirst = indexOfLast - itemsPerPage;
- const currentData = filteredData.slice(indexOfFirst, indexOfLast);
-
- const changePage = (page) => {
-  if (page >= 1 && page <= totalPages) {
-   setCurrentPage(page);
-  }
- };
-
- const getPageNumbers = () => {
-  const maxPagesToShow = 5;
-  const pages = [];
-
-  if (totalPages <= maxPagesToShow) {
-   for (let i = 1; i <= totalPages; i++) {
-    pages.push(i);
-   }
-  } else {
-   const startPage = Math.max(
-    2,
-    currentPage - Math.floor((maxPagesToShow - 3) / 2)
-   );
-   const endPage = Math.min(
-    totalPages - 1,
-    currentPage + Math.ceil((maxPagesToShow - 3) / 2)
-   );
-
-   pages.push(1);
-
-   if (startPage > 2) {
-    pages.push("...");
-   }
-
-   for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-   }
-
-   if (endPage < totalPages - 1) {
-    pages.push("...");
-   }
-
-   if (totalPages > 1) {
-    pages.push(totalPages);
-   }
-  }
-
-  if (pages[0] === "...") {
-   pages.shift();
-  }
-  if (pages[pages.length - 1] === "...") {
-   pages.pop();
-  }
-
-  return pages.filter((value, index, self) => self.indexOf(value) === index);
- };
- // ----------------------------------------
-
- /**
- * ✅ FUNGSI BARU: Export Laporan (Buka Tab Baru)
- */
- const handleExportReport = () => {
-
-  // Buat konten HTML untuk laporan
-  const reportHTML = generateReportHTML(filteredData, selectedDate);
+  const [modalState, setModalState] = useState({ type: null, data: null });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ details: [] });
   
-  // Buka tab baru dan tuliskan konten HTML
-  const newWindow = window.open("", "_blank");
-  newWindow.document.write(reportHTML);
-  newWindow.document.close();
+  const token = localStorage.getItem("token");
+  const cabang = JSON.parse(localStorage.getItem("cabang"));
+  const cabangId = cabang?.id_cabang;
+
+  const showMessage = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: "", text: "" }), 4000);
+  };
+
+  const getDaysInMonth = (dateString) => {
+    if (!dateString) return 1;
+    const date = new Date(dateString);
+    if (isNaN(date)) return 1;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const days = new Date(year, month, 0).getDate();
+    return days || 1;
+  };
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [resPengeluaran, resJenis, resBahan, resCabang] = await Promise.all([
+        axios.get(`${API_URL}/pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/jenis-pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/bahan-baku`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/cabang`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+
+      setPengeluaranList(resPengeluaran.data.data || []);
+      setJenisList(resJenis.data.data || []);
+      setBahanBakuList(resBahan.data.data || []);
+      setCabangList(resCabang.data.data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Gagal mengambil data esensial.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const openModal = (type, data = null) => {
+    setModalState({ type, data });
+    if (type === 'add' || type === 'edit') {
+      const initialDetails = data?.details?.map(d => ({
+        id_bahan_baku: d.id_bahan_baku,
+        jumlah_item: d.jumlah_item,
+        harga_satuan: d.harga_satuan,
+      })) || [];
+
+      setFormData({
+        id_jenis: data?.id_jenis || "",
+        id_cabang: data?.id_cabang || "",
+        tanggal: data ? format(new Date(data.tanggal), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+        keterangan: data?.keterangan || "",
+        details: initialDetails,
+        jumlah: data?.jumlah || 0,
+      });
+    }
+  };
+
+  const closeModal = () => setModalState({ type: null, data: null });
+
+  const handleAddJenis = async (jenisPengeluaran) => {
+    try {
+      const res = await axios.post(`${API_URL}/jenis-pengeluaran`, { jenis_pengeluaran: jenisPengeluaran }, { headers: { Authorization: `Bearer ${token}` } });
+      setJenisList(prev => [...prev, res.data.data]);
+      setFormData(prev => ({...prev, id_jenis: res.data.data.id_jenis}));
+      showMessage('success', 'Jenis pengeluaran baru berhasil ditambahkan!');
+      return true;
+    } catch (err) {
+      showMessage('error', err.response?.data?.errors?.jenis_pengeluaran[0] || 'Gagal menambah jenis baru.');
+      return false;
+    }
+  };
+
+  const handleSubmit = async (payload) => {
+    setIsSubmitting(true);
+    try {
+      const res = modalState.type === 'edit'
+        ? await axios.put(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, payload, { headers: { Authorization: `Bearer ${token}` } })
+        : await axios.post(`${API_URL}/pengeluaran`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      showMessage('success', res.data.message);
+      fetchData();
+      closeModal();
+    } catch (err) { 
+      showMessage('error', err.response?.data?.message || "Terjadi kesalahan.");
+    } finally { 
+      setIsSubmitting(false); 
+    }
+  };
+  
+  const handleDelete = async () => {
+    setIsSubmitting(true);
+    try {
+      await axios.delete(`${API_URL}/pengeluaran/${modalState.data.id_pengeluaran}`, { headers: { Authorization: `Bearer ${token}` } });
+      showMessage('success', 'Pengeluaran berhasil dihapus.');
+      fetchData();
+      closeModal();
+    } catch(err) { 
+      showMessage('error', 'Gagal menghapus data.');
+    } finally { 
+      setIsSubmitting(false); 
+    }
+  };
+
+  // Render content
+  const renderContent = () => {
+    if (loading) return <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>;
+    if (error) return <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg"><AlertTriangle className="h-8 w-8 mb-2" />{error}</div>;
     
-
- };
-
- /**
- * FUNGSI HELPER: Membuat HTML untuk Laporan
- * Ini adalah bagian di mana Anda bisa mendesain tampilan tabel
- */
- const generateReportHTML = (data, dateFilter) => {
-  const tableRows = data.map((item, index) => `
-   <tr style="border-bottom: 1px solid #eee;">
-    <td style="padding: 10px; text-align: left;">${index + 1}</td>
-    <td style="padding: 10px; text-align: left;">${item.id_jenis || '-'}</td>
-    <td style="padding: 10px; text-align: left;">${item.keterangan}</td>
-    <td style="padding: 10px; text-align: right; color: #dc2626; font-weight: bold;">Rp ${parseInt(item.jumlah).toLocaleString('id-ID')}</td>
-    <td style="padding: 10px; text-align: left;">${item.tanggal}</td>
-   </tr>
-  `).join('');
-
-  const totalPengeluaran = data.reduce((sum, item) => sum + parseInt(item.jumlah), 0);
-  const dateDisplay = dateFilter ? `Tanggal ${dateFilter}` : 'Semua Tanggal';
-
-  return `
-   <!DOCTYPE html>
-   <html>
-   <head>
-    <title>Laporan Data Pengeluaran</title>
-    <style>
-     body { font-family: 'Arial', sans-serif; margin: 20px; color: #333; }
-     h1 { color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 10px; }
-     p { margin-bottom: 20px; font-weight: 500; }
-     table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-     th { background-color: #f0fdf4; color: #16a34a; padding: 12px; text-align: left; border-bottom: 2px solid #a7f3d0; }
-     td { padding: 12px; border-bottom: 1px solid #eee; }
-     tr:nth-child(even) { background-color: #fafafa; }
-     .total-row td { background-color: #dcfce7; font-weight: bold; border-top: 3px solid #16a34a; }
-     .export-button {
-      background-color: #10b981;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.3s;
-     }
-     .export-button:hover { background-color: #059669; }
-     @media print {
-      .export-button { display: none; }
-     }
-    </style>
-   </head>
-   <body>
-    <h1>Laporan Data Pengeluaran GoChicken</h1>
-    <p>Periode: ${dateDisplay}</p>
-    
-    <table>
-     <thead>
-      <tr>
-       <th style="width: 5%;">No</th>
-       <th style="width: 15%;">Jenis</th>
-       <th style="width: 45%;">Keterangan</th>
-       <th style="width: 15%; text-align: right;">Jumlah</th>
-       <th style="width: 20%;">Tanggal</th>
-      </tr>
-     </thead>
-     <tbody>
-      ${tableRows}
-      <tr class="total-row">
-       <td colspan="3" style="text-align: right;">TOTAL PENGELUARAN</td>
-       <td style="text-align: right; color: #dc2626;">Rp ${totalPengeluaran.toLocaleString('id-ID')}</td>
-       <td></td>
-      </tr>
-     </tbody>
-    </table>
-    
-    <button class="export-button" onclick="window.print()">Cetak Laporan</button>
-   </body>
-   </html>
-  `;
- };
- 
- // ----------------------------------------
-
- return (
-  <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-   <motion.h1
-    className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-   >
-    Kelola Pengeluaran
-   </motion.h1>
-
-   <div className="mb-6 flex justify-between items-start">
-    <Button onClick={() => setShowForm(true)}>
-     <Plus size={18} /> Tambah Pengeluaran
-    </Button>
-    
-    {/* ✅ FILTER TANGGAL DAN PAGINATION */}
-    <div className="flex flex-col md:flex-row items-center gap-4">
-     <div className="flex flex-col items-end">
-      <label className="text-sm font-medium text-gray-700 mb-1">
-       Pilih Tanggal
-      </label>
-      <input
-       type="date"
-       placeholder="hh/bb/tttt"
-       value={selectedDate}
-       onChange={(e) => {
-        setSelectedDate(e.target.value);
-        setCurrentPage(1);
-       }}
-       className="border rounded-xl px-4 py-2 w-48 shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none text-gray-700"
+    return (
+      <PengeluaranTable 
+        pengeluaranList={pengeluaranList} 
+        onEdit={(d) => openModal('edit', d)} 
+        onDelete={(d) => openModal('delete', d)} 
+        onView={(d) => openModal('view', d)} 
       />
-     </div>
+    );
+  };
 
-     {/* Pagination Component */}
-     {totalPages > 1 && (
-      <div className="flex items-center border border-gray-200 rounded-xl shadow-md divide-x divide-gray-200">
-       <button
-        onClick={() => changePage(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`p-3 rounded-l-xl transition duration-150 ease-in-out ${
-         currentPage === 1
-          ? "bg-gray-100 cursor-not-allowed text-gray-400"
-          : "bg-white hover:bg-green-50 hover:text-green-600 text-gray-700"
-        }`}
-       >
-        <span className="text-gray-600">
-         &lt;
-        </span>
-       </button>
-       {getPageNumbers().map((page, i) => (
-        <button
-         key={i}
-         onClick={() => typeof page === "number" && changePage(page)}
-         disabled={page === "..."}
-         className={`px-4 py-2 text-sm font-medium transition duration-150 ease-in-out ${
-          currentPage === page
-           ? "bg-green-600 text-white shadow-inner shadow-green-800/20"
-           : page === "..."
-           ? "bg-white text-gray-400 cursor-default"
-           : "bg-white text-gray-700 hover:bg-green-50 hover:text-green-600"
-         }`}
-        >
-         {page}
-        </button>
-       ))}
-       <button
-        onClick={() => changePage(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`p-3 rounded-r-xl transition duration-150 ease-in-out ${
-         currentPage === totalPages
-          ? "bg-gray-100 cursor-not-allowed text-gray-400"
-          : "bg-white hover:bg-green-50 hover:text-green-600 text-gray-700"
-        }`}
-       >
-        <span className="text-gray-600">
-         &gt;
-        </span>
-       </button>
-      </div>
-     )}
-    </div>
-   </div>
-
-   {/* --- Tabel Pengeluaran --- */}
-   <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="overflow-hidden bg-white shadow-md rounded-xl"
-   >
-    {loading ? (
-     <p className="p-4 text-center text-gray-500">⏳ Memuat data...</p>
-    ) : currentData.length === 0 ? (
-     <p className="p-4 text-center text-gray-600">❌ Tidak ada data pengeluaran yang sesuai dengan filter.</p>
-    ) : (
-     <table className="min-w-full text-sm text-gray-700 border-separate border-spacing-0">
-      <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-       <tr>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         No
-        </th>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         Jenis
-        </th>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         Keterangan
-        </th>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         Jumlah
-        </th>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         Tanggal
-        </th>
-        <th className="px-6 py-4 text-center font-semibold border-b border-gray-200">
-         Aksi
-        </th>
-       </tr>
-      </thead>
-      <tbody>
-       {currentData.map((item, index) => (
-        <tr key={item.id_pengeluaran} className="hover:bg-gray-50 transition">
-         <td className="px-6 py-4 font-bold text-gray-800 border-b border-gray-200">
-          {indexOfFirst + index + 1} {/* Nomor urut berdasarkan halaman */}
-         </td>
-         <td className="px-6 py-4 text-gray-700 border-b border-gray-200">
-          {/* Mengganti ID Jenis menjadi Label Jenis (Asumsi mapping sederhana) */}
-          {item.id_jenis == 1 ? "Bahan Baku" : item.id_jenis == 2 ? "Operasional" : "Lain-lain"}
-         </td>
-         <td className="px-6 py-4 text-gray-600 italic border-b border-gray-200">
-          {item.keterangan}
-         </td>
-         <td className="px-6 py-4 border-b border-gray-200">
-          <span
-           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            parseInt(item.jumlah) > 500000
-             ? "bg-red-100 text-red-600"
-             : "bg-green-100 text-green-600"
-           }`}
-          >
-           Rp {parseInt(item.jumlah).toLocaleString()}
-          </span>
-         </td>
-         <td className="px-6 py-4 text-gray-700 border-b border-gray-200">
-          {item.tanggal}
-         </td>
-         <td className="px-6 py-4 text-center border-b border-gray-200">
-          <div className="flex justify-center gap-3">
-           <button
-            className="text-green-600 hover:text-green-800"
-            onClick={() => setEditPengeluaran(item)}
-            title="Edit"
-           >
-            <Edit size={18} />
-           </button>
-           <button
-            className="text-red-500 hover:text-red-700"
-            onClick={() => confirmDelete(item.id_pengeluaran)}
-            title="Hapus"
-           >
-            <Trash size={18} />
-           </button>
-          </div>
-         </td>
-        </tr>
-       ))}
-      </tbody>
-     </table>
-    )}
-   </motion.div>
-   
-   {/* ✅ TOMBOL EXPORT LAPORAN */}
-   <div className="mt-6 flex justify-end">
-    <button
-     onClick={handleExportReport}
-     className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition font-semibold transform hover:scale-[1.01]"
-    >
-     <FileText size={18} /> Ekspor Laporan (Web View)
-    </button>
+  // Calculate total pengeluaran bulan ini
+  const totalPengeluaran = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
     
-   </div>
-
-   {/* --- Modal Tambah Pengeluaran --- (Tidak Berubah) */}
-   <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-    <h2 className="text-xl font-semibold mb-4 text-green-700 flex items-center gap-2">
-     <Plus size={18} /> Tambah Pengeluaran
-    </h2>
-    <form onSubmit={handleAdd}>
-     <label className="text-sm font-medium text-gray-700">Jenis Pengeluaran</label>
-     <select
-      value={formData.id_jenis}
-      onChange={(e) =>
-       setFormData({ ...formData, id_jenis: e.target.value })
+    return pengeluaranList.reduce((sum, item) => {
+      const itemDate = new Date(item.tanggal);
+      // Cek apakah item dari bulan dan tahun yang sama
+      if (itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear) {
+        return sum + (Number(item.jumlah) || 0);
       }
-      className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-      required
-     >
-      <option value="">-- Pilih Jenis Pengeluaran --</option>
-      <option value="1">Bahan Baku</option>
-      <option value="2">Operasional</option>
-      <option value="3">Lain-lain</option>
-     </select>
+      return sum;
+    }, 0);
+  }, [pengeluaranList]);
 
-     <label className="text-sm font-medium text-gray-700">Keterangan</label>
-     <textarea
-      value={formData.keterangan}
-      onChange={(e) =>
-       setFormData({ ...formData, keterangan: e.target.value })
-      }
-      className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-      rows="3"
-      placeholder="Deskripsi penggunaan"
-      required
-     />
+  return (
+    <>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar{width:6px}
+        .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}
+        .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+        .date-input-container input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+      `}</style>
+      
+      <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1>
+            <p className="text-gray-600">Kelola dan pantau semua pengeluaran cabang</p>
+          </div>
+          
+          {/* Add Button */}
+          <motion.button 
+            onClick={() => openModal('add')} 
+            whileHover={{ scale: 1.05 }} 
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-2 bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-800 transition-all duration-300 font-semibold"
+          >
+            <PlusCircle size={20} />
+            Tambah Pengeluaran
+          </motion.button>
+        </div>
 
-     <label className="text-sm font-medium text-gray-700">Jumlah</label>
-     <input
-      type="number"
-      value={formData.jumlah}
-      onChange={(e) =>
-       setFormData({ ...formData, jumlah: e.target.value })
-      }
-      className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-      placeholder="Nominal"
-      required
-     />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Pengeluaran Bulan Ini</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">{formatRupiah(totalPengeluaran)}</p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <DollarSign className="text-gray-700" size={24} />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Jumlah Transaksi</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">{pengeluaranList.length}</p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <FileText className="text-gray-700" size={24} />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Jenis Pengeluaran</p>
+                <p className="text-2xl font-bold text-gray-800 mt-1">{jenisList.length}</p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <Tag className="text-gray-700" size={24} />
+              </div>
+            </div>
+          </div>
+        </div>
 
-     <label className="text-sm font-medium text-gray-700">Tanggal</label>
-     <input
-      type="date"
-      value={formData.tanggal}
-      onChange={(e) =>
-       setFormData({ ...formData, tanggal: e.target.value })
-      }
-      className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-      required
-     />
+        {/* Message Alert */}
+        <AnimatePresence>
+          {message.text && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20, scale: 0.9 }} 
+              animate={{ opacity: 1, y: 0, scale: 1 }} 
+              exit={{ opacity: 0, y: -20, scale: 0.9 }} 
+              className={`fixed top-6 left-1/2 -translate-x-1/2 p-4 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${
+                message.type === "success" 
+                  ? "bg-green-100 text-green-800 border border-green-200" 
+                  : "bg-red-100 text-red-800 border border-red-200"
+              }`}
+            >
+              {message.type === "success" ? "✓" : "✗"} {message.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-     <div className="flex justify-end gap-3 mt-4">
-      <button
-       type="button"
-       onClick={() => setShowForm(false)}
-       className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-      >
-       Batal
-      </button>
-      <button
-       type="submit"
-       disabled={loading}
-       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-      >
-       {loading ? "Menyimpan..." : "Simpan"}
-      </button>
-     </div>
-    </form>
-   </Modal>
+        {/* Main Content */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          {renderContent()}
+        </div>
+      </motion.div>
 
-   {/* --- Modal Edit Pengeluaran --- (Tidak Berubah) */}
-   <Modal
-    isOpen={!!editPengeluaran}
-    onClose={() => setEditPengeluaran(null)}
-   >
-    <h2 className="text-xl font-semibold mb-4 text-green-700">
-     ✏ Edit Pengeluaran
-    </h2>
+      {/* Form Modal */}
+      <AnimatePresence>
+        {modalState.type === 'add' || modalState.type === 'edit' ? (
+          <motion.div 
+            onMouseDown={closeModal}
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              onMouseDown={e => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.9, y: 20 }} 
+              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+            >
+              <PengeluaranForm 
+                formData={formData}
+                setFormData={setFormData}
+                onSubmit={handleSubmit}
+                loading={isSubmitting}
+                isEditing={modalState.type === 'edit'}
+                jenisList={jenisList}
+                bahanBakuList={bahanBakuList}
+                cabangList={cabangList}
+                onAddJenis={handleAddJenis}
+              />
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
-    <label className="text-sm font-medium text-gray-700">Jenis Pengeluaran</label>
-    <select
-     value={editPengeluaran?.id_jenis || ""}
-     onChange={(e) =>
-      setEditPengeluaran({
-       ...editPengeluaran,
-       id_jenis: e.target.value,
-      })
-     }
-     className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-    >
-     <option value="">-- Pilih Jenis Pengeluaran --</option>
-     <option value="1">Bahan Baku</option>
-     <option value="2">Operasional</option>
-     <option value="3">Lain-lain</option>
-    </select>
+      {/* Detail Modal */}
+      <DetailModal 
+        isOpen={modalState.type === 'view'} 
+        onClose={closeModal} 
+        data={modalState.data} 
+      />
 
-    <label className="text-sm font-medium text-gray-700">Tanggal</label>
-    <input
-     type="date"
-     value={editPengeluaran?.tanggal || ""}
-     onChange={(e) =>
-      setEditPengeluaran({ ...editPengeluaran, tanggal: e.target.value })
-     }
-     className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-    />
-
-    <label className="text-sm font-medium text-gray-700">Jumlah</label>
-    <input
-     type="number"
-     value={editPengeluaran?.jumlah || ""}
-     onChange={(e) =>
-      setEditPengeluaran({ ...editPengeluaran, jumlah: e.target.value })
-     }
-     className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-    />
-
-    <label className="text-sm font-medium text-gray-700">Keterangan</label>
-    <textarea
-     value={editPengeluaran?.keterangan || ""}
-     onChange={(e) =>
-      setEditPengeluaran({
-       ...editPengeluaran,
-       keterangan: e.target.value,
-      })
-     }
-     className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-     rows="3"
-    />
-
-    <div className="flex justify-end gap-3 mt-4">
-     <button
-      onClick={() => setEditPengeluaran(null)}
-      className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-     >
-      Batal
-     </button>
-     <button
-      onClick={handleUpdate}
-      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-     >
-      Simpan
-     </button>
-    </div>
-   </Modal>
-
-   {/* --- Popup Hapus --- (Tidak Berubah) */}
-   <ConfirmDeletePopup
-    isOpen={showConfirm}
-    onClose={() => setShowConfirm(false)}
-    onConfirm={handleDelete}
-   />
-
-   {/* --- Popup Sukses --- (Tidak Berubah) */}
-   <SuccessPopup
-    isOpen={showSuccess}
-    onClose={closeSuccessPopup}
-    title="Aksi Berhasil 🎉"
-    message={successMessage}
-   />
-  </div>
- );
+      {/* Delete Modal */}
+      <DeleteModal 
+        isOpen={modalState.type === 'delete'} 
+        onClose={closeModal} 
+        onConfirm={handleDelete} 
+        data={modalState.data} 
+        isSubmitting={isSubmitting} 
+      />
+    </>
+  );
 };
 
-export default PengeluaranPage;
+// Detail Modal Component
+const DetailModal = ({ isOpen, onClose, data }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div 
+        onMouseDown={onClose}
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div 
+          onMouseDown={e => e.stopPropagation()}
+          initial={{ scale: 0.9, y: 20 }} 
+          animate={{ scale: 1, y: 0 }} 
+          exit={{ scale: 0.9, y: 20 }} 
+          className="bg-white rounded-xl shadow-2xl w-full max-w-2xl"
+        >
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-800">Detail Pengeluaran</h2>
+          </div>
+          <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-500">
+                <Tag size={14}/>
+                Jenis: <strong className="text-gray-800">{data?.jenis_pengeluaran?.jenis_pengeluaran}</strong>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500">
+                <Calendar size={14}/>
+                Tanggal: <strong className="text-gray-800">
+                  {data?.tanggal ? format(new Date(data.tanggal), 'd MMMM yyyy', { locale: id }) : 'N/A'}
+                </strong>
+              </div>
+            </div>
+            <div>
+              <p className="flex items-center gap-2 text-sm text-gray-500">
+                <FileText size={14}/> Keterangan:
+              </p>
+              <p className="p-3 bg-gray-50 rounded-lg mt-1 text-gray-800">{data?.keterangan}</p>
+            </div>
+            
+            {data?.details && data.details.length > 0 && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-md font-semibold mb-3 text-gray-800">Rincian Pembelian Bahan Baku</h3>
+                <div className="border rounded-lg overflow-hidden bg-white">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Bahan</th>
+                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Jumlah</th>
+                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Harga Satuan</th>
+                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.details.map(d => (
+                        <tr key={d.id_detail_pengeluaran} className="border-t border-gray-200">
+                          <td className="px-4 py-2 text-gray-700">{d.bahan_baku?.nama_bahan || 'N/A'}</td>
+                          <td className="px-4 py-2 text-center text-gray-700">{d.jumlah_item}</td>
+                          <td className="px-4 py-2 text-right text-gray-700">{formatRupiah(d.harga_satuan)}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-gray-800">{formatRupiah(d.total_harga)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            <div className="pt-4 text-right border-t border-gray-200">
+              <p className="text-gray-600">Total Pengeluaran</p>
+              <p className="text-3xl font-bold text-gray-700">{formatRupiah(data?.jumlah)}</p>
+            </div>
+          </div>
+          <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end">
+            <button 
+              onClick={onClose}
+              className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+            >
+              Tutup
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
 
+// Delete Modal Component
+const DeleteModal = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div 
+        onMouseDown={onClose}
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div 
+          onMouseDown={e => e.stopPropagation()}
+          initial={{ scale: 0.9, y: 20 }} 
+          animate={{ scale: 1, y: 0 }} 
+          exit={{ scale: 0.9, y: 20 }} 
+          className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
+        >
+          <AlertTriangle className="mx-auto text-red-500 h-12 w-12 mb-4" />
+          <h2 className="text-lg font-bold text-gray-800">Konfirmasi Hapus</h2>
+          <p className="text-sm text-gray-500 mt-2 mb-6">
+            Yakin ingin menghapus pengeluaran <strong>"{data?.keterangan}"</strong> senilai <strong>{formatRupiah(data?.jumlah)}</strong>? Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="flex justify-center gap-3">
+            <button 
+              onClick={onClose}
+              className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+              disabled={isSubmitting}
+            >
+              Batal
+            </button>
+            <button 
+              onClick={onConfirm}
+              className="flex items-center justify-center min-w-[100px] px-6 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : "Hapus"}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
+export default PengeluaranPage;

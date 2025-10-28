@@ -20,16 +20,16 @@ import TransaksiPage from "./pages/super-admin/TransaksiPage.jsx";
 import BahanPage from "./pages/super-admin/BahanPage.jsx";
 import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
-import DailyReportPage from "./pages/super-admin/DailyReportPage.jsx";
+
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
 import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
 import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
 import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
+import PemesananPageCabang from "./pages/admin-cabang/PemesananPage.jsx";
 import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
-import Settingspage from "./pages/admin-cabang/SettingsPage.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
@@ -45,11 +45,12 @@ function App() {
 
             {/* Super Admin */}
             <Route element={<ProtectedRoute allowedRole="super admin" />}>
+              <Route path="/super-admin" element={<Navigate to="/super-admin/dashboard" replace />} />
               <Route path="/super-admin/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Navigate to="general" replace />} />
                 <Route path="general" element={<GeneralPageSuper />} />
                 <Route path="reports" element={<ReportsPageSuper />} />
-                <Route path="reports/daily" element={<DailyReportPage />} />
+                <Route path="daily-reports" element={<DailyReportPage />} />
                 <Route path="kelola-cabang" element={<KelolaCabangPageSuper />} />
                 <Route path="produk" element={<ProdukPageSuper />} />
                 <Route path="branch" element={<BranchAdminPageSuper />} />
@@ -59,7 +60,6 @@ function App() {
                 <Route path="transaksi" element={<TransaksiPage />} />
                 <Route path="jenis-pengeluaran" element={<JenisPengeluaranPageSuper />} />
                 <Route path="bahan" element={<BahanPage />} />
-                <Route path="settings" element={<SettingsPage />} />
                 <Route path="help" element={<HelpPage />} />
               </Route>
             </Route>
@@ -71,9 +71,9 @@ function App() {
               <Route path="general" element={<GeneralPageCabang />} />
               <Route path="reports" element={<ReportsPageCabang />} />
               <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
+              <Route path="pemesanan" element={<PemesananPageCabang />} />
               <Route path="karyawan" element={<KaryawanPageCabang />} />
               <Route path="produk" element={<ProdukPage />} />
-              <Route path="settings" element={<Settingspage />} />
               <Route path="help" element={<HelpPageCabang />} />
             </Route>
           </Route>

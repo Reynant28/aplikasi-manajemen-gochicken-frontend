@@ -117,7 +117,7 @@ const ReportsPage = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2"> <SalesTrendChart data={reportData.salesTrend} /> </div>
-            <div> <TopProductsChart data={reportData.topProducts} /> </div>
+            <div> <TopProductsChart data={reportData.topProducts} filter={filter}/> </div>
             <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <DashboardCard title="Total Pendapatan" value={formatRupiah(reportData.summary.totalPendapatan)} />
                 <DashboardCard title="Total Transaksi" value={reportData.summary.totalTransaksi.toLocaleString('id-ID')} />

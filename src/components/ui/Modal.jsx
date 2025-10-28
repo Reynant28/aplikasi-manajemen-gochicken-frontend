@@ -1,29 +1,33 @@
-// src/components/Modal.jsx
+// components/Modal/Modal.jsx
 import { motion, AnimatePresence } from "framer-motion";
-/* eslint-disable react/prop-types */
+import { X } from "lucide-react";
+
 const Modal = ({ isOpen, onClose, children, maxWidth = "max-w-md" }) => {
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
           <motion.div
-            className={`bg-white rounded-xl shadow-2xl p-6 w-full ${maxWidth}`}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className={`bg-white shadow-xl rounded-xl p-5 w-full mx-auto border border-gray-200 relative ${maxWidth}`}
+            onClick={(e) => e.stopPropagation()}
           >
-            {children}
             <button
               onClick={onClose}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
             >
-              ✖
+              <X size={22} />
             </button>
+            {children}
           </motion.div>
         </motion.div>
       )}

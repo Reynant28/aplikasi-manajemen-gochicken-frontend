@@ -75,7 +75,7 @@ const Header = () => {
             placeholder="Search page..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full py-2 pl-10 pr-4 text-gray-700 rounded-full transition-all duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-700"
+            className="w-full py-2 pl-10 pr-4 text-gray-700 rounded-full transition-all duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-700"
           />
         </div>
 

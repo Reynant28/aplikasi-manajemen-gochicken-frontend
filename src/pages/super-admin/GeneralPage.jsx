@@ -1,9 +1,9 @@
 // src/pages/GeneralPage.jsx
 //eslint-disable-next-line no-unused-vars
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { Users, Building2, Wallet, Briefcase, TrendingUp, TrendingDown } from "lucide-react";
+import { Drumstick, ArrowRightLeft, Wallet, Briefcase, TrendingUp, TrendingDown, AlertTriangle, Package } from "lucide-react";
 import axios from "axios";
 import {
   ResponsiveContainer,
@@ -13,9 +13,9 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  Legend, // Import Legend for multi-line charts if needed
 } from "recharts";
 import { format, getDay, getMonth, getWeekOfMonth, parseISO } from "date-fns";
+import TopProductsChart from "../../components/TopProductsChart.jsx";
 import { id } from "date-fns/locale";
 
 const API_URL = "http://localhost:8000/api";
@@ -32,11 +32,9 @@ const formatRupiah = (value = 0) => {
   }
 };
 
-// --- ✨ NEW HELPER FUNCTION TO PROCESS CHART DATA ---
 const processChartData = (rawData = [], filter) => {
   if (!rawData || rawData.length === 0) return [];
 
-  // For weekly filter: format daily data
   if (filter === "minggu") {
     const days = [
       { name: "Min", value: 0 }, { name: "Sen", value: 0 },
@@ -45,13 +43,12 @@ const processChartData = (rawData = [], filter) => {
       { name: "Sab", value: 0 },
     ];
     rawData.forEach(item => {
-      const dayIndex = getDay(parseISO(item.tanggal)); // 0 for Sunday, 1 for Monday...
+      const dayIndex = getDay(parseISO(item.tanggal));
       days[dayIndex].value += parseFloat(item.total);
     });
     return days;
   }
   
-  // For monthly filter: aggregate into weeks
   if (filter === "bulan") {
     const weeks = [
       { name: "Minggu 1", value: 0 }, { name: "Minggu 2", value: 0 },
@@ -60,18 +57,17 @@ const processChartData = (rawData = [], filter) => {
     ];
     rawData.forEach(item => {
       const date = parseISO(item.tanggal);
-      const weekOfMonth = getWeekOfMonth(date) - 1; // getWeekOfMonth is 1-based
+      const weekOfMonth = getWeekOfMonth(date) - 1;
       if (weeks[weekOfMonth]) {
         weeks[weekOfMonth].value += parseFloat(item.total);
       }
     });
-    return weeks.filter(w => w.value > 0); // Only show weeks with data
+    return weeks.filter(w => w.value > 0);
   }
 
-  // For yearly filter: aggregate into months
   if (filter === "tahun") {
      const months = Array.from({ length: 12 }, (_, i) => ({
-      name: format(new Date(0, i), "MMM", { locale: id }), // Jan, Feb, Mar...
+      name: format(new Date(0, i), "MMM", { locale: id }),
       value: 0,
     }));
     rawData.forEach(item => {
@@ -84,9 +80,7 @@ const processChartData = (rawData = [], filter) => {
   return [];
 };
 
-
 const GeneralPage = () => {
-  // State for summary cards
   const [loading, setLoading] = useState(true);
   const [totalProduk, setTotalProduk] = useState(0);
   const [transaksiHariIni, setTransaksiHariIni] = useState(0);
@@ -94,26 +88,77 @@ const GeneralPage = () => {
   const [produkTerlaris, setProdukTerlaris] = useState(null);
   const [error, setError] = useState(null);
 
-  // --- ✨ NEW STATE FOR THE CHART ---
   const [chartData, setChartData] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
   const [chartError, setChartError] = useState(null);
-  const [chartMode, setChartMode] = useState("pendapatan"); // 'pendapatan' or 'pengeluaran'
-  const [chartFilter, setChartFilter] = useState("tahun"); // 'minggu', 'bulan', 'tahun'
+  const [chartMode, setChartMode] = useState("pendapatan");
+  const [chartFilter, setChartFilter] = useState("tahun");
 
-  // --- ✨ NEW STATE FOR RECENT ACTIVITIES ✨ ---
   const [recentActivities, setRecentActivities] = useState([]);
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activitiesError, setActivitiesError] = useState(null);
 
+  // ✨ NEW: Perbandingan bulan
+  const [monthComparison, setMonthComparison] = useState(null);
+  const [monthComparisonLoading, setMonthComparisonLoading] = useState(true);
 
-  // Ambil token + info cabang dari localStorage
+  // ✨ NEW: Produk menurun
+  const [decliningProducts, setDecliningProducts] = useState([]);
+  const [decliningLoading, setDecliningLoading] = useState(true);
+
+  // ✨ NEW: Low stock alert
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [lowStockLoading, setLowStockLoading] = useState(true);
+
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
   const cabangId = cabang?.id_cabang ?? null;
 
-  // --- useEffect for Summary Cards (No changes here) ---
+  const [topProducts, setTopProducts] = useState([]);
+  const [topProductsLoading, setTopProductsLoading] = useState(true);
+  const [topProductsError, setTopProductsError] = useState(null);
+
+  const [dailySummary, setDailySummary] = useState(null);
+  const [dailySummaryLoading, setDailySummaryLoading] = useState(true);
+  const [dailySummaryError, setDailySummaryError] = useState(null);
+
+  // Fetch top products
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchTopProducts = async () => {
+      setTopProductsLoading(true);
+      setTopProductsError(null);
+
+      try {
+        let res;
+        if (user?.role === "super admin") {
+          res = await axios.get(`${API_URL}/reports/all?filter=bulan`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+
+        if (res?.data?.status === "success" && !cancelled) {
+          setTopProducts(res.data.data.topProducts || []);
+        } else if (!cancelled) {
+          setTopProductsError("Gagal memuat produk terlaris.");
+        }
+      } catch (err) {
+        if (!cancelled) setTopProductsError("Terjadi kesalahan saat mengambil data produk terlaris.");
+      } finally {
+        if (!cancelled) setTopProductsLoading(false);
+      }
+    };
+
+    if (token) fetchTopProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, user?.role, cabangId]);
+
+  // Fetch summary cards
   useEffect(() => {
     let cancelled = false;
 
@@ -187,21 +232,24 @@ const GeneralPage = () => {
     };
   }, [token, cabangId, user?.role]);
 
-
-  // --- ✨ NEW useEffect FOR DYNAMIC CHART DATA ---
+  // Fetch chart data
   useEffect(() => {
     let cancelled = false;
 
     const fetchChartData = async () => {
-    setChartLoading(true);
-    setChartError(null);
+      setChartLoading(true);
+      setChartError(null);
 
       try {
         let res;
         if (user?.role === "super admin") {
-          // untuk super admin (semua cabang)
           res = await axios.get(
             `${API_URL}/dashboard/chart?filter=${chartFilter}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } else if (user?.role === "admin cabang" && cabangId) {
+          res = await axios.get(
+            `${API_URL}/dashboard/cabang/${cabangId}/chart?filter=${chartFilter}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
         }
@@ -226,35 +274,66 @@ const GeneralPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [token, chartMode, chartFilter]);
+  }, [token, chartMode, chartFilter, user?.role, cabangId]);
 
-  // --- ✨ NEW useEffect TO FETCH RECENT ACTIVITIES ✨ ---
-  // --- useEffect TO FETCH RECENT ACTIVITIES ---
+  // Fetch daily summary
+  useEffect(() => {
+    let cancelled = false;
+    const today = new Date().toISOString().split("T")[0];
+
+    const fetchDailySummary = async () => {
+      setDailySummaryLoading(true);
+      setDailySummaryError(null);
+
+      try {
+        const res = await axios.get(`${API_URL}/report/harian`, {
+          params: { tanggal: today },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res?.data && !cancelled) {
+          setDailySummary(res.data);
+        } else if (!cancelled) {
+          setDailySummaryError("Tidak ada data laporan harian.");
+        }
+      } catch (err) {
+        console.error("fetchDailySummary error:", err);
+        if (!cancelled) setDailySummaryError("Gagal memuat laporan harian.");
+      } finally {
+        if (!cancelled) setDailySummaryLoading(false);
+      }
+    };
+
+    if (token) fetchDailySummary();
+
+    return () => { cancelled = true; };
+  }, [token]);
+
+  // Fetch recent activities
   useEffect(() => {
     let cancelled = false;
 
     const fetchRecentActivities = async () => {
-      setActivitiesLoading(true);
-      setActivitiesError(null);
-
       try {
-        let res;
-        if (user?.role === "super admin") {
-          res = await axios.get(`${API_URL}/dashboard/activities`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        }
+        setActivitiesLoading(true);
+        const endpoint = user?.role === 'super admin' 
+          ? `${API_URL}/dashboard/activities` 
+          : `${API_URL}/dashboard/user/activities`;
+        
+        const response = await axios.get(endpoint, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-        if (res?.data?.status === "success" && !cancelled) {
-          setRecentActivities(res.data.data);
-        } else if (!cancelled) {
-          setActivitiesError("Gagal memuat aktivitas.");
+        if (response.data.status === 'success') {
+          setRecentActivities(response.data.data);
+        } else {
+          setActivitiesError('Gagal memuat aktivitas');
         }
-      } catch (err) {
-        console.error("fetchRecentActivities error", err);
-        if (!cancelled) setActivitiesError("Terjadi kesalahan saat mengambil data aktivitas.");
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+        setActivitiesError('Terjadi kesalahan saat memuat aktivitas');
       } finally {
-        if (!cancelled) setActivitiesLoading(false);
+        setActivitiesLoading(false);
       }
     };
 
@@ -269,228 +348,622 @@ const GeneralPage = () => {
     };
   }, [token, user?.role]);
 
-  
+  const getActivityIcon = (type, model) => {
+    switch (type) {
+      case 'add':
+        return '🟢'; // Green for additions
+      case 'update':
+        return '🔵'; // Blue for updates
+      case 'delete':
+        return '🔴'; // Red for deletions
+      case 'expense':
+        return '💰'; // Money for expenses
+      default:
+        return '⚪'; // Default
+    }
+  };
+
+
+  // ✨ NEW: Fetch month comparison
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchMonthComparison = async () => {
+      setMonthComparisonLoading(true);
+
+      try {
+        const res = await axios.get(`${API_URL}/dashboard/month-comparison`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res?.data?.status === "success" && !cancelled) {
+          setMonthComparison(res.data.data);
+        }
+      } catch (err) {
+        console.error("fetchMonthComparison error", err);
+      } finally {
+        if (!cancelled) setMonthComparisonLoading(false);
+      }
+    };
+
+    if (token) fetchMonthComparison();
+
+    return () => { cancelled = true; };
+  }, [token]);
+
+  // ✨ NEW: Fetch declining products
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchDecliningProducts = async () => {
+      setDecliningLoading(true);
+
+      try {
+        const res = await axios.get(`${API_URL}/dashboard/declining-products`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res?.data?.status === "success" && !cancelled) {
+          setDecliningProducts(res.data.data);
+        }
+      } catch (err) {
+        console.error("fetchDecliningProducts error", err);
+      } finally {
+        if (!cancelled) setDecliningLoading(false);
+      }
+    };
+
+    if (token) fetchDecliningProducts();
+
+    return () => { cancelled = true; };
+  }, [token]);
+
+  // ✨ NEW: Fetch low stock products
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchLowStockProducts = async () => {
+      setLowStockLoading(true);
+
+      try {
+        const res = await axios.get(`${API_URL}/dashboard/low-stock`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res?.data?.status === "success" && !cancelled) {
+          setLowStockProducts(res.data.data);
+        }
+      } catch (err) {
+        console.error("fetchLowStockProducts error", err);
+      } finally {
+        if (!cancelled) setLowStockLoading(false);
+      }
+    };
+
+    if (token) fetchLowStockProducts();
+
+    return () => { cancelled = true; };
+  }, [token]);
+
   const handleModeChange = (newMode) => {
     setChartMode(newMode);
-    // Reset filter to 'tahun' as default when mode changes
-    // And ensure 'minggu' isn't selected for 'pengeluaran'
     if (newMode === 'pengeluaran' && chartFilter === 'minggu') {
        setChartFilter('tahun');
     }
   };
 
-
   return (
-    <div className="p-6 space-y-6">
-      <motion.h1
-        className="text-3xl font-bold text-gray-800"
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 space-y-6">
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
       >
-        Dashboard Overview
-      </motion.h1>
-
-      {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
-      )}
-
-      {/* --- Summary Cards Grid (No Changes) --- */}
-      {/* --- ✨ REDESIGNED SUMMARY CARDS GRID ✨ --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Produk Tersedia */}
-          <motion.div
-              className="bg-white rounded-xl shadow-lg p-6 flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-          >
-              <div className="p-3 rounded-full bg-green-100">
-                  <Users size={24} className="text-green-600" />
-              </div>
-              <div className="flex flex-col">
-                  <h2 className="text-sm font-medium text-gray-500">Total Produk</h2>
-                  {loading ? (
-                      <p className="text-2xl font-bold text-gray-800 animate-pulse">...</p>
-                  ) : (
-                      <p className="text-2xl font-bold text-green-600">
-                          {totalProduk}
-                      </p>
-                  )}
-              </div>
-          </motion.div>
-
-          {/* Transaksi Hari Ini */}
-          <motion.div
-              className="bg-white rounded-xl shadow-lg p-6 flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-          >
-              <div className="p-3 rounded-full bg-blue-100">
-                  <Building2 size={24} className="text-blue-600" />
-              </div>
-              <div className="flex flex-col">
-                  <h2 className="text-sm font-medium text-gray-500">Transaksi Hari Ini</h2>
-                  {loading ? (
-                      <p className="text-2xl font-bold text-gray-800 animate-pulse">...</p>
-                  ) : (
-                      <p className="text-2xl font-bold text-blue-600">{transaksiHariIni}</p>
-                  )}
-              </div>
-          </motion.div>
-
-          {/* Pendapatan Bulan Ini */}
-          <motion.div
-              className="bg-white rounded-xl shadow-lg p-6 flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-          >
-              <div className="p-3 rounded-full bg-purple-100">
-                  <Wallet size={24} className="text-purple-600" />
-              </div>
-              <div className="flex flex-col">
-                  <h2 className="text-sm font-medium text-gray-500">Pendapatan Bulan Ini</h2>
-                  {loading ? (
-                      <p className="text-2xl font-bold text-gray-800 animate-pulse">...</p>
-                  ) : (
-                      <p className="text-2xl font-bold text-purple-600">{formatRupiah(pendapatanBulanIni)}</p>
-                  )}
-              </div>
-          </motion.div>
-
-          {/* Produk Terlaris */}
-          <motion.div
-              className="bg-white rounded-xl shadow-lg p-6 flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-          >
-              <div className="p-3 rounded-full bg-amber-100">
-                  <Briefcase size={24} className="text-amber-600" />
-              </div>
-              <div className="flex flex-col">
-                  <h2 className="text-sm font-medium text-gray-500">Produk Terlaris</h2>
-                  {loading ? (
-                      <p className="text-2xl font-bold text-gray-800 animate-pulse">...</p>
-                  ) : (
-                      <p className="text-2xl font-bold text-amber-600">{produkTerlaris ?? "—"}</p>
-                  )}
-              </div>
-          </motion.div>
-      </div>
-
-      {/* --- ✨ UPDATED DYNAMIC CHART SECTION --- */}
-      <motion.div
-        className="bg-white shadow-lg rounded-xl p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-700 capitalize">
-                {chartMode}
-            </h2>
-            <p className="text-sm text-gray-500">Grafik finansial berdasarkan filter waktu</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Mode Buttons */}
-            <div className="flex bg-gray-100 p-1 rounded-lg">
-              <button
-                onClick={() => handleModeChange('pendapatan')}
-                className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
-                  chartMode === 'pendapatan' ? 'bg-green-500 text-white shadow' : 'text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <TrendingUp className="inline-block mr-1 h-4 w-4"/> Pendapatan
-              </button>
-              <button
-                onClick={() => handleModeChange('pengeluaran')}
-                className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
-                  chartMode === 'pengeluaran' ? 'bg-red-500 text-white shadow' : 'text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <TrendingDown className="inline-block mr-1 h-4 w-4"/> Pengeluaran
-              </button>
-            </div>
-            {/* Filter Buttons */}
-             <div className="flex bg-gray-100 p-1 rounded-lg">
-               {chartMode === 'pendapatan' && (
-                 <button onClick={() => setChartFilter('minggu')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${chartFilter === 'minggu' ? 'bg-white text-gray-800 shadow' : 'text-gray-500'}`}>Minggu</button>
-               )}
-               <button onClick={() => setChartFilter('bulan')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${chartFilter === 'bulan' ? 'bg-white text-gray-800 shadow' : 'text-gray-500'}`}>Bulan</button>
-               <button onClick={() => setChartFilter('tahun')} className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${chartFilter === 'tahun' ? 'bg-white text-gray-800 shadow' : 'text-gray-500'}`}>Tahun</button>
-             </div>
-          </div>
-        </div>
-
-        <div style={{ width: '100%', height: 300 }}>
-           {chartLoading ? (
-            <div className="flex justify-center items-center h-full">Loading chart data...</div>
-          ) : chartError ? (
-            <div className="flex justify-center items-center h-full text-red-500">{chartError}</div>
-          ) : chartData.length === 0 ? (
-             <div className="flex justify-center items-center h-full text-gray-500">Tidak ada data untuk ditampilkan.</div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(value) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(value)} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value) => formatRupiah(value)} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  name={chartMode.charAt(0).toUpperCase() + chartMode.slice(1)} // Capitalize 'pendapatan' or 'pengeluaran'
-                  stroke={chartMode === 'pendapatan' ? '#10b981' : '#ef4444'}
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Dashboard Overview
+          </h1>
+          <p className="text-gray-600 mt-1">Ringkasan bisnis dan aktivitas terkini</p>
         </div>
       </motion.div>
 
-      {/* --- ✨ UPDATED DYNAMIC RECENT ACTIVITIES SECTION ✨ --- */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">{error}</div>
+      )}
+
+      {/* Summary Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          {
+            title: "Total Produk",
+            value: totalProduk,
+            icon: <Drumstick size={24} />,
+            gradient: "from-green-500 to-emerald-600",
+            bg: "bg-gradient-to-br from-green-50 to-emerald-50",
+          },
+          {
+            title: "Transaksi Hari Ini",
+            value: transaksiHariIni,
+            icon: <ArrowRightLeft size={24} />,
+            gradient: "from-blue-500 to-cyan-600",
+            bg: "bg-gradient-to-br from-blue-50 to-cyan-50",
+          },
+          {
+            title: "Pendapatan Bulan Ini",
+            value: formatRupiah(pendapatanBulanIni),
+            icon: <Wallet size={24} />,
+            gradient: "from-purple-500 to-pink-600",
+            bg: "bg-gradient-to-br from-purple-50 to-pink-50",
+          },
+          {
+            title: "Produk Terlaris",
+            value: produkTerlaris ?? "—",
+            icon: <Briefcase size={24} />,
+            gradient: "from-amber-500 to-orange-600",
+            bg: "bg-gradient-to-br from-amber-50 to-orange-50",
+          },
+        ].map((item, index) => (
+          <motion.div
+            key={index}
+            className={`${item.bg} rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-white/50 backdrop-blur-sm`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-md`}>
+                {item.icon}
+              </div>
+              <h2 className="text-sm font-semibold text-gray-700">{item.title}</h2>
+            </div>
+
+            {loading ? (
+              <p className="text-2xl font-bold text-gray-700 animate-pulse">...</p>
+            ) : (
+              <p className="text-2xl font-bold text-gray-800" style={{ wordBreak: "break-word" }}>
+                {item.value}
+              </p>
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ✨ NEW: Month Comparison Card */}
       <motion.div
-          className="bg-white shadow-lg rounded-xl p-6"
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <TrendingUp className="text-blue-600" />
+          Perbandingan Bulan Ini vs Bulan Lalu
+        </h2>
+
+        {monthComparisonLoading ? (
+          <div className="text-gray-500">Memuat data perbandingan...</div>
+        ) : monthComparison ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+              <p className="text-sm text-gray-600 mb-1">Pendapatan</p>
+              <p className="text-2xl font-bold text-blue-600 mb-2">
+                {formatRupiah(monthComparison.current_revenue)}
+              </p>
+              <div className={`flex items-center gap-1 text-sm ${monthComparison.revenue_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {monthComparison.revenue_change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                <span className="font-semibold">{Math.abs(monthComparison.revenue_change).toFixed(1)}%</span>
+                <span className="text-gray-500">vs bulan lalu</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+              <p className="text-sm text-gray-600 mb-1">Transaksi</p>
+              <p className="text-2xl font-bold text-purple-600 mb-2">
+                {monthComparison.current_transactions}
+              </p>
+              <div className={`flex items-center gap-1 text-sm ${monthComparison.transaction_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {monthComparison.transaction_change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                <span className="font-semibold">{Math.abs(monthComparison.transaction_change).toFixed(1)}%</span>
+                <span className="text-gray-500">vs bulan lalu</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+              <p className="text-sm text-gray-600 mb-1">Rata-rata per Transaksi</p>
+              <p className="text-2xl font-bold text-amber-600 mb-2">
+                {formatRupiah(monthComparison.avg_transaction)}
+              </p>
+              <div className={`flex items-center gap-1 text-sm ${monthComparison.avg_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {monthComparison.avg_change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                <span className="font-semibold">{Math.abs(monthComparison.avg_change).toFixed(1)}%</span>
+                <span className="text-gray-500">vs bulan lalu</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500">Data perbandingan tidak tersedia</div>
+        )}
+      </motion.div>
+
+      {/* Chart and Top Products Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div
+          className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-      >
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Aktivitas Terbaru</h2>
-          {activitiesLoading ? (
-              <div className="flex justify-center items-center h-24 text-gray-500">
-                  Memuat aktivitas...
+          transition={{ duration: 0.4 }}
+        >
+          <div className="flex flex-col gap-3 mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 capitalize flex items-center gap-2">
+                {chartMode === "pendapatan" ? (
+                  <TrendingUp className="text-green-500 h-6 w-6" />
+                ) : (
+                  <TrendingDown className="text-red-500 h-6 w-6" />
+                )}
+                {chartMode}
+              </h2>
+              
+              <div className="flex bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <button
+                  onClick={() => handleModeChange("pendapatan")}
+                  className={`px-4 py-2 text-sm font-semibold transition-all ${
+                    chartMode === "pendapatan"
+                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <TrendingUp className="inline-block h-4 w-4 mr-1" /> 
+                  Pendapatan
+                </button>
+                <button
+                  onClick={() => handleModeChange("pengeluaran")}
+                  className={`px-4 py-2 text-sm font-semibold transition-all ${
+                    chartMode === "pengeluaran"
+                      ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <TrendingDown className="inline-block h-4 w-4 mr-1" /> 
+                  Pengeluaran
+                </button>
               </div>
-          ) : activitiesError ? (
-              <div className="flex justify-center items-center h-24 text-red-500">
-                  {activitiesError}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">Grafik finansial berdasarkan periode waktu</p>
+              
+              <div className="flex bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                {["minggu", "bulan", "tahun"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setChartFilter(f)}
+                    className={`px-4 py-1.5 text-xs font-semibold capitalize transition-all ${
+                      chartFilter === f
+                        ? "bg-white text-gray-900 shadow-md"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
               </div>
-          ) : recentActivities.length === 0 ? (
-              <div className="flex justify-center items-center h-24 text-gray-500">
-                  Tidak ada aktivitas terbaru.
-              </div>
+            </div>
+          </div>
+
+          <div className="w-full h-[400px]">
+            {chartLoading ? (
+              <div className="flex justify-center items-center h-full text-gray-500">Memuat data grafik...</div>
+            ) : chartError ? (
+              <div className="flex justify-center items-center h-full text-red-500">{chartError}</div>
+            ) : chartData.length === 0 ? (
+              <div className="flex justify-center items-center h-full text-gray-400">Tidak ada data untuk ditampilkan.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#e5e7eb" }}
+                  />
+                  <YAxis
+                    tickFormatter={(value) =>
+                      new Intl.NumberFormat("id-ID", { notation: "compact" }).format(value)
+                    }
+                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                    tickLine={false}
+                    axisLine={{ stroke: "#e5e7eb" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      borderRadius: "0.75rem",
+                      border: "1px solid #e5e7eb",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
+                    formatter={(value) => formatRupiah(value)}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    name={chartMode === "pendapatan" ? "Pendapatan" : "Pengeluaran"}
+                    stroke={chartMode === "pendapatan" ? "#10b981" : "#ef4444"}
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: chartMode === "pendapatan" ? "#10b981" : "#ef4444" }}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff", fill: chartMode === "pendapatan" ? "#10b981" : "#ef4444" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="lg:col-span-1"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          {topProductsLoading ? (
+            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-gray-500">
+              Memuat data...
+            </div>
+          ) : topProductsError ? (
+            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-red-500">
+              {topProductsError}
+            </div>
+          ) : topProducts.length === 0 ? (
+            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-gray-400">
+              Tidak ada data produk terlaris.
+            </div>
           ) : (
-              <ul className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                      <li
-                          key={index}
-                          className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                          {/* We'll use a simple icon for now, your backend can dictate this */}
-                          <span className="text-gray-500">
-                              {activity.type === 'add' ? '🟢' : activity.type === 'update' ? '🔵' : '🔴'}
-                          </span>
-                          
-                          <div>
-                              <p className="text-sm font-semibold text-gray-700">{activity.description}</p>
-                              {/* Format the timestamp from the database */}
-                              <p className="text-xs text-gray-500 mt-1">
-                                  {format(parseISO(activity.timestamp), 'dd MMM yyyy, HH:mm', { locale: id })}
-                              </p>
-                          </div>
-                      </li>
-                  ))}
-              </ul>
+            <TopProductsChart data={topProducts} />
           )}
+        </motion.div>
+      </div>
+
+      {/* ✨ NEW: Declining Products & Low Stock Alert Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Declining Products */}
+        <motion.div
+          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <TrendingDown className="text-orange-600" />
+            Produk yang Menurun Penjualannya
+          </h2>
+
+          {decliningLoading ? (
+            <div className="text-gray-500">Memuat data produk menurun...</div>
+          ) : decliningProducts.length === 0 ? (
+            <div className="text-gray-500 text-center py-8">
+              Tidak ada produk dengan penurunan penjualan signifikan
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {decliningProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
+                    <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500">Bulan Ini</p>
+                      <p className="font-bold text-orange-600">{product.current_sales} terjual</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Bulan Lalu</p>
+                      <p className="font-bold text-gray-600">{product.previous_sales} terjual</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-1 text-red-600">
+                    <TrendingDown size={16} />
+                    <span className="font-semibold">{Math.abs(product.decline_percentage).toFixed(1)}% penurunan</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Low Stock Alert */}
+        <motion.div
+          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <AlertTriangle className="text-red-600" />
+            Stok Bahan Hampir Habis
+          </h2>
+
+          {lowStockLoading ? (
+            <div className="text-gray-500">Memuat data stok rendah...</div>
+          ) : lowStockProducts.length === 0 ? (
+            <div className="text-green-600 text-center py-8 flex flex-col items-center gap-2">
+              <Package size={48} className="text-green-500" />
+              <p className="font-semibold">Semua stok aman! 🎉</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {lowStockProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className={`p-4 rounded-xl border transition-all hover:shadow-md ${
+                    product.jumlah_stok === 0
+                      ? "bg-gradient-to-r from-red-50 to-rose-50 border-red-200"
+                      : product.jumlah_stok <= 2
+                      ? "bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200"
+                      : "bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        product.jumlah_stok === 0
+                          ? "bg-red-100 text-red-700"
+                          : product.jumlah_stok <= 2
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      Stok: {product.jumlah_stok}
+                    </span>
+                  </div>
+                  {product.nama_cabang && (
+                    <p className="text-sm text-gray-600 mb-2">
+                      📍 {product.nama_cabang}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle
+                      size={16}
+                      className={
+                        product.jumlah_stok === 0
+                          ? "text-red-600"
+                          : product.jumlah_stok <= 2
+                          ? "text-orange-600"
+                          : "text-yellow-600"
+                      }
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {product.jumlah_stok === 0
+                        ? "Habis! Segera restock"
+                        : "Perlu restock segera"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Ringkasan Laporan Harian */}
+      <motion.div
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Ringkasan Laporan Harian</h2>
+
+        {dailySummaryLoading ? (
+          <div className="text-gray-500">Memuat ringkasan harian...</div>
+        ) : dailySummaryError ? (
+          <div className="text-red-500">{dailySummaryError}</div>
+        ) : dailySummary ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+              <p className="text-sm text-gray-500 mb-1">Total Penjualan</p>
+              <p className="text-xl font-semibold text-blue-600">
+                {formatRupiah(dailySummary.total_penjualan || 0)}
+              </p>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+              <p className="text-sm text-gray-500 mb-1">Modal Bahan Baku</p>
+              <p className="text-xl font-semibold text-emerald-600">
+                {formatRupiah(dailySummary.modal_bahan_baku || 0)}
+              </p>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+              <p className="text-sm text-gray-500 mb-1">Pengeluaran Harian</p>
+              <p className="text-xl font-semibold text-amber-600">
+                {formatRupiah(dailySummary.pengeluaran_harian || 0)}
+              </p>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+              <p className="text-sm text-gray-500 mb-1">Laba Harian</p>
+              <p
+                className={`text-xl font-semibold ${
+                  (dailySummary.laba_harian || 0) >= 0
+                    ? "text-purple-600"
+                    : "text-red-600"
+                }`}
+              >
+                {formatRupiah(dailySummary.laba_harian || 0)}
+              </p>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-100">
+              <p className="text-sm text-gray-500 mb-1">Nett Income</p>
+              <p
+                className={`text-xl font-semibold ${
+                  (dailySummary.nett_income || 0) >= 0
+                    ? "text-pink-600"
+                    : "text-red-600"
+                }`}
+              >
+                {formatRupiah(dailySummary.nett_income || 0)}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500">Tidak ada data hari ini.</div>
+        )}
+      </motion.div>
+
+      {/* Recent Activities */}
+      <motion.div
+        className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-6 border border-white/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+      >
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Aktivitas Terbaru</h2>
+        {activitiesLoading ? (
+          <div className="flex justify-center items-center h-64 text-gray-500">
+            Memuat aktivitas...
+          </div>
+        ) : activitiesError ? (
+          <div className="flex justify-center items-center h-64 text-red-500">
+            {activitiesError}
+          </div>
+        ) : recentActivities.length === 0 ? (
+          <div className="flex justify-center items-center h-64 text-gray-500">
+            Tidak ada aktivitas terbaru.
+          </div>
+        ) : (
+          <ul className="space-y-3 max-h-96 overflow-y-auto">
+            {recentActivities.map((activity, index) => (
+              <li
+                key={`${activity.timestamp}-${index}`}
+                className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-slate-50 hover:from-blue-50 hover:to-indigo-50 transition-all border border-gray-100"
+              >
+                <span className="text-2xl flex-shrink-0 mt-0.5">
+                  {getActivityIcon(activity.type, activity.model)}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-700 break-words">
+                    {activity.description}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {format(parseISO(activity.timestamp), 'dd MMM yyyy, HH:mm', { locale: id })}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </motion.div>
     </div>
   );

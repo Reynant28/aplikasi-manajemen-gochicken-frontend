@@ -26,12 +26,12 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* Theme Colors */
-  --themered: #ef4444;
+  --themered: #6b7280;
   --themewhite: #fff;
   --themeblack: #000;
   --themedk: #fa6800;
   --themeredhover: #7e2214;
-  --themeorange: #f97316;
+  --themeorange: #9ca3af;
   --themeorangehover: #d28a0f;
 
   --light-bg: hsl(0 0% 95%);
@@ -45,4 +45,8 @@
   --dark-bg-light: hsl(0 0% 10%);
   --dark-text: hsl(0 0% 95%);
   --dark-text-muted: hsl(0 0% 70%);
+}
+
+body {
+  background-color: #e5e7eb; /* abu-abu muda */
 }
