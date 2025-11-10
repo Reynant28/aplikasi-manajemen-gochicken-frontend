@@ -21,7 +21,8 @@ import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import SettingsPage from "./pages/super-admin/SettingsPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
 import DailyReportPage from "./pages/super-admin/DailyReportPage.jsx";
-import AboutPage from "./pages/super-admin/AboutPage.jsx";
+import BackupPage from "./pages/BackupPage.jsx";
+import AuditlogPage from "./pages/super-admin/AuditlogPage.jsx";
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -52,7 +53,7 @@ function App() {
                 <Route index element={<Navigate to="general" replace />} />
                 <Route path="general" element={<GeneralPageSuper />} />
                 <Route path="reports" element={<ReportsPageSuper />} />
-                <Route path="reports/daily" element={<DailyReportPage />} />
+                <Route path="reports-daily" element={<DailyReportPage />} />
                 <Route path="kelola-cabang" element={<KelolaCabangPageSuper />} />
                 <Route path="produk" element={<ProdukPageSuper />} />
                 <Route path="branch" element={<BranchAdminPageSuper />} />
@@ -62,7 +63,8 @@ function App() {
                 <Route path="transaksi" element={<TransaksiPage />} />
                 <Route path="jenis-pengeluaran" element={<JenisPengeluaranPageSuper />} />
                 <Route path="bahan" element={<BahanPage />} />
-                <Route path="about" element={<AboutPage />} />
+                <Route path="backup" element={<BackupPage />} />
+                <Route path="auditlog" element={<AuditlogPage />} />
               </Route>
             </Route>
 
@@ -79,6 +81,7 @@ function App() {
                 <Route path="help" element={<HelpPageCabang />} />
                 <Route path="pemesanan" element={<PemesananPage />} />
                 <Route path="about" element={<AboutPageCabang />} />
+                <Route path="backup" element={<BackupPage />} />
               </Route>
             </Route>
 

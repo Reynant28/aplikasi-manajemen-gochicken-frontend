@@ -469,7 +469,7 @@ const GeneralPage = () => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <SummaryCard 
-                  title="Pendapatan Bulanan" 
+                  title="Pendapatan Bulan" 
                   value={formatRupiah(dashboardData.revenue_month)} 
                   icon={<DollarSign size={24} className="text-red-500"/>} 
                   loading={loading} 

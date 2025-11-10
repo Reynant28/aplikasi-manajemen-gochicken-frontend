@@ -5,8 +5,14 @@ import {
   Menu,
   Calendar,
   Clock,
-  Sparkles, // The new icon for Quick Actions
-  PlusCircle
+  Sparkles,
+  PlusCircle,
+  Package,
+  Users,
+  Building,
+  CreditCard,
+  FileText,
+  ShoppingCart
 } from "lucide-react"; 
 //eslint-disable-next-line no-unused-vars 
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,12 +61,73 @@ const Header = ({ toggleSidebar }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // The actions that will appear in the dropdown
-  const quickActions = [
-      { label: "Buat Pesanan Baru", to: `${basePath}/pemesanan`, icon: <PlusCircle size={16}/>, action: () => navigate(`${basePath}/pemesanan`) },
-      { label: "Tambah Pengeluaran", to: `${basePath}/pengeluaran`, icon: <PlusCircle size={16}/>, action: () => navigate(`${basePath}/pengeluaran`) },
-      { label: "Tambah Karyawan", to: `${basePath}/karyawan`, icon: <PlusCircle size={16}/>, action: () => navigate(`${basePath}/karyawan`) },
+  // Quick Actions for Admin Cabang
+  const adminCabangActions = [
+    { 
+      label: "Buat Pesanan Baru", 
+      to: `${basePath}/pemesanan`, 
+      icon: <PlusCircle size={16}/>, 
+      action: () => navigate(`${basePath}/pemesanan`) 
+    },
+    { 
+      label: "Tambah Pengeluaran", 
+      to: `${basePath}/pengeluaran`, 
+      icon: <PlusCircle size={16}/>, 
+      action: () => navigate(`${basePath}/pengeluaran`) 
+    },
+    { 
+      label: "Tambah Karyawan", 
+      to: `${basePath}/karyawan`, 
+      icon: <PlusCircle size={16}/>, 
+      action: () => navigate(`${basePath}/karyawan`) 
+    },
   ];
+
+  // Quick Actions for Super Admin (CRUD operations for the pages we redesigned)
+  const superAdminActions = [
+    { 
+      label: "Tambah Produk", 
+      to: "/super-admin/produk", 
+      icon: <Package size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/produk") 
+    },
+    { 
+      label: "Tambah Karyawan", 
+      to: "/super-admin/karyawan", 
+      icon: <Users size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/karyawan") 
+    },
+    { 
+      label: "Tambah Admin Cabang", 
+      to: "/super-admin/admin-cabang", 
+      icon: <Building size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/branch") 
+    },
+    { 
+      label: "Tambah Pengeluaran", 
+      to: "/super-admin/pengeluaran", 
+      icon: <CreditCard size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/pengeluaran") 
+    },
+    { 
+      label: "Tambah Jenis Pengeluaran", 
+      to: "/super-admin/jenis-pengeluaran", 
+      icon: <FileText size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/jenis-pengeluaran") 
+    },
+    { 
+      label: "Tambah Bahan Baku Pakai", 
+      to: "/super-admin/bahan-baku", 
+      icon: <ShoppingCart size={16}/>, 
+      action: () => navigate("/super-admin/dashboard/bahan-baku-pakai") 
+    },
+  ];
+
+  // Determine which actions to show based on user role
+  const quickActions = user?.role === "super admin" ? superAdminActions : adminCabangActions;
+
+  // Determine greeting based on user role
+  const userGreeting = user?.role === "super admin" ? "Hello, Super Admin" : `Hello, ${user?.nama || "Guest"}`;
 
   return (
     <header className="bg-gradient-to-r from-white to-gray-50 p-4 flex justify-between items-center border-b border-gray-200 shadow-sm h-16">
@@ -83,7 +150,7 @@ const Header = ({ toggleSidebar }) => {
       </div>
 
       <div className="flex items-center space-x-2 sm:space-x-4">
-        {/* ✨ REVISED: Notification bell is replaced with Quick Actions button */}
+        {/* Quick Actions Button */}
         <div className="relative" ref={actionsRef}>
           <motion.button 
             className="p-2 rounded-full hover:bg-gray-100 relative bg-red-50 text-red-600"
@@ -103,8 +170,11 @@ const Header = ({ toggleSidebar }) => {
               >
                 <div className="p-3 border-b bg-gray-50/50">
                   <h3 className="text-sm font-bold text-gray-800">Aksi Cepat</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {user?.role === "super admin" ? "Manajemen Sistem" : "Operasional Cabang"}
+                  </p>
                 </div>
-                <ul className="p-1">
+                <ul className="p-1 max-h-80 overflow-y-auto">
                   {quickActions.map((action) => (
                     <li key={action.label}>
                         <a 
@@ -128,7 +198,7 @@ const Header = ({ toggleSidebar }) => {
         
         <div className="flex items-center">
           <span className="text-sm font-semibold text-gray-700 hidden sm:block">
-            Hello, {user?.nama || "Guest"}
+            {userGreeting}
           </span>
         </div>
         <motion.div onClick={handleLogout} className="relative w-10 h-10 flex items-center justify-center rounded-full cursor-pointer overflow-hidden group" whileTap={{ scale: 0.9 }}>

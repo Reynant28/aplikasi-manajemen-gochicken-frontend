@@ -3,7 +3,9 @@ import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, Settings,
   HelpCircle, Building2, UserCog, Wallet,
-  Receipt, Package, Boxes, X, Feather, WalletCards
+  Receipt, Package, Boxes, X, Feather, WalletCards,
+  DatabaseBackup,
+  ClipboardClock
 } from "lucide-react";
 //eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -20,7 +22,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const menuItems = [
     { to: "/general", label: "General", icon: <Home size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/reports", label: "Reports", icon: <BarChart2 size={18} />, roles: ["super admin", "admin cabang"] },
-    { to: "/reports/daily", label: "Daily Report", icon: <BarChart2 size={18} />, roles: ["super admin"] },
+    { to: "/reports-daily", label: "Daily Report", icon: <BarChart2 size={18} />, roles: ["super admin"] },
     { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
     { to: "/produk", label: "Produk", icon: <Layers size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
@@ -42,7 +44,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   return (
     <div className={sidebarClasses}>
-      {/* ✨ PERUBAHAN: Header Sidebar Didesain Ulang */}
+      {/* Header Sidebar */}
       <div className="p-5 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center gap-3">
             <div className="bg-red-500 p-2 rounded-lg">
@@ -58,7 +60,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         </button>
       </div>
 
-      {/* ✨ PERUBAHAN: Menghilangkan Dropdown "All Sites" */}
+      {/* Main Menu Items */}
       <div className="flex-grow px-4 py-5 space-y-1 overflow-y-auto scrollbar-hide">
         {menuItems
           .filter(item => item.roles.includes(user?.role))
@@ -78,7 +80,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  {/* ✨ PERUBAHAN: Mengganti warna tema menjadi merah */}
                   <span
                     className={`relative flex items-center gap-3 ${
                       isActive
@@ -95,14 +96,30 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           ))}
       </div>
 
-      <div className="p-4 border-t border-gray-200">
-        <NavLink to={`${basePath}/about`} className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all">
-          <HelpCircle size={18} /> About
+      {/* Bottom Menu Items - Conditionally shown based on role */}
+      <div className="space-y-2 p-4 border-t border-gray-200">
+        {/* Backup Data - Show for both super admin and admin cabang */}
+        <NavLink 
+          to={`${basePath}/backup`} 
+          className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all"
+        >
+          <DatabaseBackup size={18} /> 
+          Backup Data
         </NavLink>
+
+        {/* Audit Log - ONLY show for super admin */}
+        {user?.role === "super admin" && (
+          <NavLink 
+            to={`${basePath}/auditlog`} 
+            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all"
+          >
+            <ClipboardClock size={18} /> 
+            Audit Log
+          </NavLink>
+        )}
       </div>
     </div>
   );
 };
 
 export default Sidebar;
-

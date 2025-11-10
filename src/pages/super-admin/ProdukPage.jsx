@@ -2,16 +2,30 @@
 import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle } from "lucide-react";
-import { SuccessPopup, Modal, ConfirmDeletePopup, Card, Button } from "../../components/ui";
+import { Package, Edit, Trash2, Plus, Eye, Loader2, Search, Filter, Save, XCircle, ListChecks, ChevronUp, ChevronDown } from "lucide-react";
+import axios from "axios";
 
 const API_URL = "http://localhost:8000/api";
 
-// --- ProdukPage Component (Tema Hijau/Green) ---
 const ProdukPage = () => {
+    const [produk, setProduk] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [message, setMessage] = useState({ type: "", text: "" });
+
+    // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    //eslint-disable-next-line no-unused-vars
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    
+    // Data states
     const [editingProduk, setEditingProduk] = useState(null);
-    const [currentImageUrl, setCurrentImageUrl] = useState("");
+    const [deleteProduk, setDeleteProduk] = useState(null);
+    const [selectedImage, setSelectedImage] = useState("");
+    
+    // Form and filter states
     const [formData, setFormData] = useState({
         nama_produk: "",
         harga: "",
@@ -19,37 +33,49 @@ const ProdukPage = () => {
         deskripsi: "",
         gambar_produk: null,
     });
+    const [searchTerm, setSearchTerm] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("");
 
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
-    const [produk, setProduk] = useState([]);
-    const [selectedProduk, setSelectedProduk] = useState(null);
-
-
-    // State untuk Custom Popups
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [deleteId, setDeleteId] = useState(null);
+    // Action loading states
+    const [actionLoading, setActionLoading] = useState(null);
+    //eslint-disable-next-line no-unused-vars
+    const [pendingChanges, setPendingChanges] = useState({});
+    //eslint-disable-next-line no-unused-vars
+    const [isBarMinimized, setIsBarMinimized] = useState(false);
 
     const token = localStorage.getItem("token");
 
+    // Fetch products
     const fetchProduk = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
-            const res = await fetch(`${API_URL}/produk`, {
-                headers: { Authorization: `Bearer ${token}` },
+            const res = await axios.get(`${API_URL}/produk`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            const data = await res.json();
-            setProduk(data.data || []);
+            setProduk(res.data.data || []);
         } catch (err) {
             console.error("Failed to fetch produk:", err);
-            setProduk([]);
+            setError("Terjadi kesalahan koneksi ke server.");
+        } finally {
+            setLoading(false);
         }
     }, [token]);
 
     useEffect(() => {
         if (token) fetchProduk();
     }, [token, fetchProduk]);
+
+    // Filter products based on search and category
+    const filteredProduk = produk.filter(prod => {
+        const matchesSearch = prod.nama_produk.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            prod.deskripsi.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = !categoryFilter || prod.kategori === categoryFilter;
+        return matchesSearch && matchesCategory;
+    });
+
+    // Get unique categories for filter
+    const categories = [...new Set(produk.map(p => p.kategori))];
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -58,14 +84,6 @@ const ProdukPage = () => {
         } else {
             setFormData({ ...formData, [name]: value });
         }
-    };
-
-    const handleDetail = (prod) => {
-        setSelectedProduk(prod);
-    };
-
-    const closeDetail = () => {
-        setSelectedProduk(null);
     };
 
     const handleAddProduk = () => {
@@ -77,7 +95,6 @@ const ProdukPage = () => {
             deskripsi: "",
             gambar_produk: null,
         });
-        setMessage(''); 
         setIsModalOpen(true);
     };
 
@@ -90,421 +107,455 @@ const ProdukPage = () => {
             deskripsi: prod.deskripsi,
             gambar_produk: null,
         });
-        setCurrentImageUrl(prod.gambar_produk_url);
-        setMessage(''); 
         setIsModalOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingProduk(null);
-        setMessage('');
-        setCurrentImageUrl("");
+    const handleImagePreview = (imageUrl, e) => {
+        e?.stopPropagation();
+        setSelectedImage(imageUrl);
+        setIsImageModalOpen(true);
     };
 
-    // Fungsi Submit Produk (Tambah/Edit)
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setMessage("");
+        setActionLoading(editingProduk ? "editing" : "adding");
 
-        const form = new FormData();
+        const submitData = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
             if (value !== null) {
-                form.append(key, value);
+                submitData.append(key, value);
             }
         });
 
-        let url = `${API_URL}/produk`;
-        // --- 🎯 AMBIL NAMA PRODUK DARI FORM ---
-        
-        const action = editingProduk ? "mengubah" : "menambah";
-        
-        if (editingProduk) {
-            url = `${API_URL}/produk/${editingProduk.id_produk}`;
-            form.append("_method", "PUT"); 
-        }
-
         try {
-            const res = await fetch(url, {
-                method: "POST", // Tetap POST untuk FormData dengan _method=PUT
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: form,
-            });
-
-            // --- Cek Response Status (Error Handling) ---
-            if (!res.ok) {
-                const text = await res.text();
-                let errorMsg = `Gagal ${action} produk. Coba lagi.`;
-
-                if (text.startsWith('<!DOCTYPE')) {
-                    errorMsg = "Server Error: Sesi kedaluwarsa atau Kesalahan Internal Server (500).";
-                    console.error("Server returned HTML error page (Not JSON):", text);
-                } else {
-                    try {
-                        const data = JSON.parse(text);
-                        errorMsg = data.message || errorMsg;
-                        //eslint-disable-next-line no-unused-vars
-                    } catch (e) {
-                        // Jika bukan JSON atau HTML, gunakan pesan default
-                    }
-                }
-                
-                // 🛑 Notifikasi Gagal (Pesan DULU, Tipe KEMUDIAN)
-                
-                
-                setMessage("❌ " + errorMsg);
-                setLoading(false);
-                return;
-            }
-            // --- Akhir Cek Response Status ---
-
-            const data = await res.json(); 
-
-            if (res.ok) {
-                
-                
-                
-
-                
-                setShowSuccess(true);
-                fetchProduk();
-                handleCloseModal();
+            if (editingProduk) {
+                submitData.append("_method", "PUT");
+                await axios.post(`${API_URL}/produk/${editingProduk.id_produk}`, submitData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setMessage({ type: "success", text: "Produk berhasil diperbarui!" });
             } else {
-                setMessage("❌ " + (data.message || "Error tidak teridentifikasi"));
-                
-                
+                await axios.post(`${API_URL}/produk`, submitData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setMessage({ type: "success", text: "Produk berhasil ditambahkan!" });
             }
+            
+            await fetchProduk();
+            setIsModalOpen(false);
+            setEditingProduk(null);
         } catch (err) {
-            console.error("Fetch error:", err);
-            const errorMsg = "Error koneksi server atau respons tidak valid";
-            setMessage("❌ " + errorMsg);
-            
+            console.error("Submit error:", err);
+            setMessage({ type: "error", text: "Gagal menyimpan produk" });
         } finally {
-            setLoading(false);
+            setActionLoading(null);
         }
     };
 
-    // Fungsi untuk menampilkan konfirmasi hapus
-    const confirmDelete = (id) => {
-        setDeleteId(id);
-        setShowConfirm(true);
-    };
-
-    // Fungsi untuk mengeksekusi hapus setelah konfirmasi
     const handleDelete = async () => {
-        setShowConfirm(false);
-        if (!deleteId) return;
-
-        // --- 🎯 CARI NAMA PRODUK UNTUK NOTIFIKASI ---
-        const produkToDelete = produk.find(p => p.id_produk === deleteId);
-        const produkName = produkToDelete ? produkToDelete.nama_produk : `ID ${deleteId}`; 
-
+        if (!deleteProduk) return;
+        
+        setActionLoading("deleting");
         try {
-            const res = await fetch(`${API_URL}/produk/${deleteId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
+            await axios.delete(`${API_URL}/produk/${deleteProduk.id_produk}`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
-            
-            const data = await res.json();
-
-            if (res.ok) {
-                
-                // ✅ Notifikasi Sukses Hapus (Pesan DULU, Tipe KEMUDIAN)
-                const notificationMsg = `[Produk] Berhasil menghapus produk: ${produkName}`;
-                
-                
-                setSuccessMessage(data.message || notificationMsg);
-                setShowSuccess(true);
-                fetchProduk();
-            } else {
-                const errorMsg = data.message || "Gagal menghapus produk.";
-                
-                
-                
-                setMessage("❌ " + errorMsg);
-            }
+            setMessage({ type: "success", text: "Produk berhasil dihapus!" });
+            await fetchProduk();
+            setIsDeleteModalOpen(false);
+            setDeleteProduk(null);
         } catch (err) {
             console.error("Delete error:", err);
-            const errorMsg = "Error koneksi server saat menghapus.";
-            
-            
-            
-            setMessage("❌ " + errorMsg);
+            setMessage({ type: "error", text: "Gagal menghapus produk" });
         } finally {
-            setDeleteId(null);
+            setActionLoading(null);
         }
+    };
+
+    const confirmDelete = (prod) => {
+        setDeleteProduk(prod);
+        setIsDeleteModalOpen(true);
+    };
+
+    const formatRupiah = (value) => {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            maximumFractionDigits: 0,
+        }).format(value);
+    };
+
+    const renderContent = () => {
+        if (loading) return (
+            <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+                <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
+                <p>Memuat data produk...</p>
+            </div>
+        );
+        
+        if (error) return (
+            <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
+                <XCircle className="h-10 w-10 mb-4" />
+                <p className="font-semibold">Terjadi Kesalahan</p>
+                <p>{error}</p>
+            </div>
+        );
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProduk.map((prod) => (
+                    <motion.div
+                        key={prod.id_produk}
+                        whileHover={{ y: -2 }}
+                        className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                    >
+                        {/* Product Image with Hover Effect */}
+                        <div 
+                            className="relative w-full h-48 overflow-hidden cursor-pointer group"
+                            onClick={() => handleImagePreview(prod.gambar_produk_url)}
+                        >
+                            <img
+                                src={prod.gambar_produk_url}
+                                alt={prod.nama_produk}
+                                className="w-full h-full object-cover object-center transform group-hover:scale-105 transition duration-500"
+                            />
+                            {/* Hover Overlay with Eye Icon */}
+                            <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+                                <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" size={24} />
+                            </div>
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="p-4 flex-1 flex flex-col">
+                            <div className="space-y-2 flex-1">
+                                <h3 className="font-semibold text-gray-900 line-clamp-2">
+                                    {prod.nama_produk}
+                                </h3>
+                                <p className="text-red-600 font-bold text-lg">
+                                    {formatRupiah(prod.harga)}
+                                </p>
+                                <div className="flex items-center justify-between text-sm text-gray-500">
+                                    <span className="bg-gray-100 px-2 py-1 rounded">
+                                        {prod.kategori}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-600 line-clamp-2">
+                                    {prod.deskripsi}
+                                </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 mt-4">
+                                <button
+                                    onClick={() => handleEdit(prod)}
+                                    className="flex-1 text-xs px-3 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition font-medium flex items-center justify-center gap-1"
+                                >
+                                    <Edit size={14} /> Edit
+                                </button>
+                                <button
+                                    onClick={() => confirmDelete(prod)}
+                                    className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition font-medium flex items-center justify-center gap-1"
+                                >
+                                    <Trash2 size={14} /> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        );
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-            <motion.h1
-                className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                Kelola Produk
-            </motion.h1>
+        <>
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+            `}</style>
 
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-green-700">
-                    📦 Daftar Produk
-                </h3>
-                <button
-                    onClick={handleAddProduk}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md"
-                >
-                    <Plus size={18} /> Tambah Produk
-                </button>
-            </div>
+            <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Kelola Produk</h1>
+                        <p className="text-gray-500 text-sm sm:text-base">Kelola produk dan inventaris toko Anda</p>
+                    </div>
+                    <button
+                        onClick={handleAddProduk}
+                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition shadow-md font-semibold self-start sm:self-center"
+                    >
+                        <Plus size={18} /> Tambah Produk
+                    </button>
+                </div>
 
-            {/* List Produk */}
-            <div>
-                {produk.length === 0 ? (
-                    <p className="text-gray-500">Belum ada produk ditambahkan.</p>
-                ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {produk.map((prod) => (
-                            <motion.div
-                                key={prod.id_produk}
-                                whileHover={{ scale: 1.02 }}
-                                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
-                                >
-                                {/* Gambar Produk */}
-                                {prod.gambar_produk_url && (
-                                    <div className="relative w-full h-48 overflow-hidden">
-                                    <img
-                                        src={prod.gambar_produk_url}
-                                        alt={prod.nama_produk}
-                                        className="w-full h-full object-cover object-center transform hover:scale-105 transition duration-500"
-                                    />
-                                    </div>
-                                )}
-                                {/* Info Produk */}
-                                <div className="p-5 flex-1 flex flex-col justify-between">
-                                    <div className="space-y-2">
-                                    <h2 className="text-lg font-bold text-gray-900 line-clamp-2">
-                                        {prod.nama_produk}
-                                    </h2>
-                                    <p className="text-green-600 font-semibold text-base">
-                                        Rp {parseInt(prod.harga).toLocaleString()}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Kategori:{" "}
-                                        <span className="font-medium text-gray-700">{prod.kategori}</span>
-                                    </p>
-                                    <p className="text-sm text-gray-500 line-clamp-1">
-                                        {prod.deskripsi}
-                                    </p>
-                                    </div>
+                {/* Message Display */}
+                {message.text && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className={`p-3 rounded-lg flex items-center gap-3 text-sm font-semibold ${
+                            message.type === "success" 
+                                ? "bg-green-100 text-green-800" 
+                                : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                        {message.type === "success" ? "✓" : "✗"} {message.text}
+                    </motion.div>
+                )}
 
-                                    {/* Tombol Aksi */}
-                                    <div className="flex gap-2 mt-4">
-                                    <button
-                                        onClick={() => handleDetail(prod)}
-                                        className="flex-1 text-xs px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
-                                    >
-                                        Lihat
-                                    </button>
-                                    <button
-                                        onClick={() => handleEdit(prod)}
-                                        className="flex-1 text-xs px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                                    >
-                                        <Edit size={14} className="inline-block mr-1" /> Edit
-                                    </button>
-                                    <button
-                                        onClick={() => confirmDelete(prod.id_produk)}
-                                        className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                                    >
-                                        <Trash2 size={14} className="inline-block mr-1" /> Hapus
-                                    </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                {/* Search and Filter Section */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Cari produk..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-400"
+                        />
+                    </div>
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                        <select
+                            value={categoryFilter}
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 bg-white appearance-none"
+                        >
+                            <option value="">Semua Kategori</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Products Content */}
+                <div>{renderContent()}</div>
+
+                {/* Empty State */}
+                {!loading && !error && filteredProduk.length === 0 && (
+                    <div className="text-center py-12">
+                        <Package className="mx-auto text-gray-400" size={48} />
+                        <p className="text-gray-500 mt-4">Tidak ada produk ditemukan</p>
                     </div>
                 )}
-            </div>
+            </motion.div>
 
-            {/* --- MODAL ADD/EDIT PRODUK --- */}
+            {/* Add/Edit Product Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={handleCloseModal}
+                    <motion.div 
+                        onMouseDown={() => setIsModalOpen(false)}
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }} 
+                        className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
                     >
-                        <motion.div
-                            initial={{ opacity: 0, y: -50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 50 }}
-                            transition={{ duration: 0.3 }}
-                            className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-xl mx-auto border-t-4 border-green-600 relative"
-                            onClick={(e) => e.stopPropagation()}
+                        <motion.div 
+                            onMouseDown={e => e.stopPropagation()}
+                            initial={{ scale: 0.9, y: 20 }} 
+                            animate={{ scale: 1, y: 0 }} 
+                            exit={{ scale: 0.9, y: 20 }} 
+                            className="bg-white rounded-xl shadow-2xl w-full max-w-md"
                         >
-                            <button
-                                onClick={handleCloseModal}
-                                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                            >
-                                ✖
-                            </button>
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-green-700">
-                                <Package className="text-green-600" />
-                                {editingProduk ? "Edit Produk" : "Tambah Produk Baru"}
-                            </h2>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <input
-                                    type="text"
-                                    name="nama_produk"
-                                    placeholder="Nama Produk"
-                                    value={formData.nama_produk}
-                                    onChange={handleChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 text-gray-900 placeholder:text-gray-400"
-                                    required
-                                />
-                                <input
-                                    type="number"
-                                    name="harga"
-                                    placeholder="Harga (contoh: 50000)"
-                                    value={formData.harga}
-                                    onChange={handleChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 text-gray-900 placeholder:text-gray-400"
-                                    required
-                                />
-                                <input
-                                    type="text"
-                                    name="kategori"
-                                    placeholder="Kategori (contoh: Minuman, Makanan)"
-                                    value={formData.kategori}
-                                    onChange={handleChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 text-gray-900 placeholder:text-gray-400"
-                                    required
-                                />
-                                <textarea
-                                    name="deskripsi"
-                                    placeholder="Deskripsi"
-                                    value={formData.deskripsi}
-                                    onChange={handleChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 text-gray-900 placeholder:text-gray-400 h-24"
-                                    required
-                                ></textarea>
-                                {editingProduk && currentImageUrl && (
-                                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                        <span className="font-semibold">Gambar Saat Ini:</span>
-                                        <span className="truncate max-w-[calc(100%-150px)]">{currentImageUrl.split('/').pop()}</span>
-                                        <span className="text-green-500">(Ganti untuk update)</span>
-                                    </div>
-                                )}
-                                <label className="block text-sm font-medium text-gray-700 pt-2">Unggah Gambar Produk (JPG, PNG)</label>
-                                <input
-                                    type="file"
-                                    name="gambar_produk"
-                                    accept="image/*"
-                                    onChange={handleChange}
-                                    className="w-full border p-2 rounded-lg text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-600 hover:file:bg-green-100 cursor-pointer"
-                                    required={!editingProduk}
-                                />
-                                <motion.button
-                                    whileTap={{ scale: 0.98 }}
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-green-600 text-white p-3 rounded-lg hover:bg-green-700 transition font-semibold disabled:bg-gray-400"
-                                >
-                                    {loading ? "Menyimpan..." : editingProduk ? "Simpan Perubahan" : "Tambah Produk"}
-                                </motion.button>
+                            <div className="p-6 border-b">
+                                <h2 className="text-xl font-bold text-gray-800">
+                                    {editingProduk ? "Edit Produk" : "Tambah Produk Baru"}
+                                </h2>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Nama Produk
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="nama_produk"
+                                        value={formData.nama_produk}
+                                        onChange={handleChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Harga
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="harga"
+                                        value={formData.harga}
+                                        onChange={handleChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Kategori
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="kategori"
+                                        value={formData.kategori}
+                                        onChange={handleChange}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Deskripsi
+                                    </label>
+                                    <textarea
+                                        name="deskripsi"
+                                        value={formData.deskripsi}
+                                        onChange={handleChange}
+                                        rows="3"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Gambar Produk
+                                    </label>
+                                    <input
+                                        type="file"
+                                        name="gambar_produk"
+                                        accept="image/*"
+                                        onChange={handleChange}
+                                        className="w-full border border-gray-300 rounded-lg p-2 text-gray-900 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100"
+                                        required={!editingProduk}
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={actionLoading}
+                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:bg-red-400 flex items-center justify-center gap-2"
+                                    >
+                                        {actionLoading ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={18} />
+                                                Menyimpan...
+                                            </>
+                                        ) : (
+                                            editingProduk ? "Simpan Perubahan" : "Tambah Produk"
+                                        )}
+                                    </button>
+                                </div>
                             </form>
-                            {/* Pesan error/sukses dari API tetap ditampilkan di modal jika ada */}
-                            {message && (
-                                <p className={`mt-4 text-center text-sm font-medium ${message.includes("❌") ? "text-red-600" : "text-green-600"}`}>
-                                    {message}
-                                </p>
-                            )}
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* --- MODAL DETAIL PRODUK --- */}
+            {/* Delete Confirmation Modal */}
             <AnimatePresence>
-                {selectedProduk && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={closeDetail}
+                {isDeleteModalOpen && deleteProduk && (
+                    <motion.div 
+                        onMouseDown={() => setIsDeleteModalOpen(false)}
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }} 
+                        className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
                     >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-8 relative border-t-4 border-green-600"
-                            onClick={(e) => e.stopPropagation()}
+                        <motion.div 
+                            onMouseDown={e => e.stopPropagation()}
+                            initial={{ scale: 0.9, y: 20 }} 
+                            animate={{ scale: 1, y: 0 }} 
+                            exit={{ scale: 0.9, y: 20 }} 
+                            className="bg-white rounded-xl shadow-2xl w-full max-w-md"
                         >
-                            <button
-                                onClick={closeDetail}
-                                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                            >
-                                ✖
-                            </button>
-                            <h2 className="text-2xl font-bold text-green-700 mb-4 flex items-center gap-2">
-                                Detail Produk
-                            </h2>
-                            {selectedProduk.gambar_produk_url && (
-                                <img
-                                    src={selectedProduk.gambar_produk_url}
-                                    alt={selectedProduk.nama_produk}
-                                    className="w-full h-60 object-cover rounded-lg mb-4 shadow-md"
-                                />
-                            )}
-                            <div className="space-y-3 text-gray-800">
-                                <p>
-                                    <span className="font-semibold">Nama:</span> {selectedProduk.nama_produk}
+                            <div className="p-6 border-b">
+                                <h2 className="text-xl font-bold text-gray-800">Hapus Produk</h2>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Apakah Anda yakin ingin menghapus produk ini?
                                 </p>
-                                <p>
-                                    <span className="font-semibold">Harga:</span> <span className="text-xl font-bold text-green-600">Rp{selectedProduk.harga}</span>
-                                </p>
-                                <p>
-                                    <span className="font-semibold">Kategori:</span> {selectedProduk.kategori}
-                                </p>
-                                <div>
-                                    <span className="font-semibold block mb-1">Deskripsi:</span>
-                                    <p className="text-gray-600 text-sm italic">{selectedProduk.deskripsi}</p>
+                            </div>
+                            
+                            <div className="p-6">
+                                <div className="flex items-center gap-4 p-4 bg-red-50 rounded-lg">
+                                    {deleteProduk.gambar_produk_url && (
+                                        <img
+                                            src={deleteProduk.gambar_produk_url}
+                                            alt={deleteProduk.nama_produk}
+                                            className="w-12 h-12 rounded-md object-cover"
+                                        />
+                                    )}
+                                    <div>
+                                        <p className="font-semibold text-gray-800">{deleteProduk.nama_produk}</p>
+                                        <p className="text-sm text-gray-500">{formatRupiah(deleteProduk.harga)}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(false)}
+                                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        disabled={actionLoading === "deleting"}
+                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:bg-red-400 flex items-center justify-center gap-2"
+                                    >
+                                        {actionLoading === "deleting" ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={18} />
+                                                Menghapus...
+                                            </>
+                                        ) : (
+                                            "Hapus"
+                                        )}
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex justify-end mt-6">
-                                <button
-                                    onClick={closeDetail}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                                >
-                                    Tutup
-                                </button>
-                            </div>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* --- CUSTOM POPUPS --- */}
-
-            {/* Modal Konfirmasi Hapus */}
-            <ConfirmDeletePopup
-                isOpen={showConfirm}
-                onClose={() => setShowConfirm(false)}
-                onConfirm={handleDelete}
-            />
-            {/* Modal Sukses */}
-            <SuccessPopup
-                isOpen={showSuccess}
-                onClose={() => setShowSuccess(false)}
-                title="Aksi Berhasil! 🎉"
-                message={successMessage}
-            />
-        </div>
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {isImageModalOpen && (
+                    <motion.div 
+                        onClick={() => setIsImageModalOpen(false)}
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }} 
+                        className="fixed inset-0 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-8"
+                    >
+                        <motion.img 
+                            initial={{ scale: 0.8 }} 
+                            animate={{ scale: 1 }} 
+                            exit={{ scale: 0.8 }} 
+                            src={selectedImage} 
+                            alt="Product Preview" 
+                            className="max-w-full max-h-full rounded-lg shadow-2xl" 
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 

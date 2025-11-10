@@ -1,6 +1,6 @@
 // src/components/Modal.jsx
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-/* eslint-disable react/prop-types */
 const Modal = ({ isOpen, onClose, children, maxWidth = "max-w-md" }) => {
   return (
     <AnimatePresence>

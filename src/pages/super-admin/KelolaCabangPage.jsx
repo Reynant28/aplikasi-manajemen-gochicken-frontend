@@ -1,78 +1,73 @@
 // src/pages/KelolaCabangPage.jsx
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash, AlertTriangle, CheckCircle } from "lucide-react"; 
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  AlertTriangle, 
+  Building2, 
+  MapPin, 
+  Phone,
+  Loader2,
+  X,
+  Search
+} from "lucide-react"; 
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = "http://localhost:8000/api";
 
-// --- Custom SuccessPopup Component DENGAN COUNTDOWN ---
-const SuccessPopup = ({ isOpen, onClose, title, message }) => {
-    const [countdown, setCountdown] = useState(4); // State untuk hitungan mundur
-
-    // Efek untuk mengelola countdown
-    useEffect(() => {
-        if (isOpen) {
-            setCountdown(4); // Reset hitungan saat modal dibuka
-            
-            const timerInterval = setInterval(() => {
-                setCountdown((prevCount) => {
-                    if (prevCount <= 1) {
-                        clearInterval(timerInterval);
-                        onClose(); // Tutup modal saat hitungan mencapai 0
-                        return 0;
-                    }
-                    return prevCount - 1;
-                });
-            }, 1000); // Hitungan setiap 1 detik
-
-            // Cleanup function untuk membersihkan interval
-            return () => clearInterval(timerInterval);
-        }
-    }, [isOpen, onClose]); // Dependensi: isOpen dan onClose
-
+// --- Custom ConfirmDeletePopup Component ---
+const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm, loading = false }) => {
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    // Background putih transparan
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm" 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
                 >
                     <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border-t-4 border-green-500"
-                        initial={{ y: -50, opacity: 0, scale: 0.8 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 50, opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.3 }}
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-auto border border-gray-200"
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <CheckCircle className="w-12 h-12 text-green-500 stroke-2" /> 
-                            <h3 className="text-xl font-semibold text-gray-800 text-center">{title}</h3>
-                        </div>
-
-                        <div className="mt-4 mb-6">
-                            <p className="text-sm text-gray-600 text-center">{message}</p>
-                            
-                            {/* Tampilan Countdown */}
-                            <p className="text-xs text-gray-500 font-bold text-center mt-2">
-                                (Otomatis tertutup dalam {countdown} detik)
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                                </div>
+                                <h2 className="text-lg font-semibold text-gray-800">
+                                    Konfirmasi Hapus
+                                </h2>
+                            </div>
+                            <p className="text-gray-600 mb-6">
+                                Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
                             </p>
-                        </div>
-
-                        <div className="flex justify-center">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                // Tombol dinonaktifkan sementara selama hitungan mundur (opsional)
-                                // disabled={countdown > 0} 
-                                className="w-full py-3 px-4 text-sm font-medium rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors disabled:bg-green-300"
-                            >
-                                Tutup
-                            </button>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={onClose}
+                                    disabled={loading}
+                                    className="flex-1 py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={onConfirm}
+                                    disabled={loading}
+                                    className="flex-1 py-2 px-4 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                                >
+                                    {loading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        "Hapus"
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 </motion.div>
@@ -81,61 +76,150 @@ const SuccessPopup = ({ isOpen, onClose, title, message }) => {
     );
 };
 
-// --- Custom ConfirmDeletePopup Component ---
-const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm }) => {
+// --- Modal Form Component ---
+const CabangFormModal = ({ 
+    isOpen, 
+    onClose, 
+    title, 
+    cabangData, 
+    onChange, 
+    onSubmit, 
+    loading = false,
+    isEdit = false 
+}) => {
+    if (!isOpen) return null;
+
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                >
-                    <motion.div
-                        className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm relative border-t-4 border-red-500"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.8, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <AlertTriangle className="text-red-500" size={28} />
-                            <h2 className="text-lg font-bold text-gray-800">
-                                Konfirmasi Hapus
-                            </h2>
+        <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+        >
+            <motion.div 
+                className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto border border-gray-200"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                            <Building2 className="w-5 h-5 text-red-500" />
+                            {title}
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <form onSubmit={onSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Nama Cabang
+                            </label>
+                            <input
+                                type="text"
+                                value={cabangData.nama_cabang}
+                                onChange={(e) => onChange({ ...cabangData, nama_cabang: e.target.value })}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                                placeholder="Masukkan nama cabang"
+                                required
+                            />
                         </div>
-                        <p className="text-gray-600 mb-6">
-                            Apakah Anda yakin ingin menghapus cabang ini? Tindakan ini tidak dapat dibatalkan.
-                        </p>
-                        <div className="flex justify-end gap-3">
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Alamat
+                            </label>
+                            <input
+                                type="text"
+                                value={cabangData.alamat}
+                                onChange={(e) => onChange({ ...cabangData, alamat: e.target.value })}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                                placeholder="Masukkan alamat cabang"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Telepon
+                            </label>
+                            <input
+                                type="text"
+                                value={cabangData.telepon}
+                                onChange={(e) => onChange({ ...cabangData, telepon: e.target.value })}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                                placeholder="Masukkan nomor telepon"
+                                required
+                            />
+                        </div>
+
+                        {!isEdit && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Password Cabang
+                                </label>
+                                <input
+                                    type="password"
+                                    value={cabangData.password_cabang}
+                                    onChange={(e) => onChange({ ...cabangData, password_cabang: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                                    placeholder="Masukkan password"
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 pt-4">
                             <button
+                                type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                                disabled={loading}
+                                className="flex-1 py-2 px-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Batal
                             </button>
                             <button
-                                onClick={onConfirm}
-                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 py-2 px-4 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:bg-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                             >
-                                Hapus
+                                {loading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    "Simpan"
+                                )}
                             </button>
                         </div>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                    </form>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
+// --- Loading Component ---
+const LoadingState = () => (
+    <div className="flex justify-center items-center h-64 bg-white rounded-xl shadow-sm border border-gray-200">
+        <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+        <p className="ml-3 text-gray-600">Memuat data cabang...</p>
+    </div>
+);
 
 // --- KelolaCabangPage Component ---
 const KelolaCabangPage = () => {
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const [cabang, setCabang] = useState([]);
+    const [filteredCabang, setFilteredCabang] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [newCabang, setNewCabang] = useState({
         nama_cabang: "",
         alamat: "",
@@ -145,26 +229,27 @@ const KelolaCabangPage = () => {
     const [editCabang, setEditCabang] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
 
-    // state untuk custom hapus
     const [showConfirm, setShowConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
-
-    // state untuk custom sukses
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const token = localStorage.getItem("token");
 
     const fetchCabang = useCallback(async () => {
+        setLoading(true);
         try {
             const res = await fetch(`${API_URL}/cabang`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
             setCabang(data.data || []);
+            setFilteredCabang(data.data || []);
         } catch (err) {
             console.error("Failed to fetch cabang:", err);
             setCabang([]);
+            setFilteredCabang([]);
+        } finally {
+            setLoading(false);
         }
     }, [token]);
 
@@ -172,10 +257,19 @@ const KelolaCabangPage = () => {
         if (token) fetchCabang();
     }, [token, fetchCabang]);
 
+    // Filter cabang based on search term
+    useEffect(() => {
+        const filtered = cabang.filter(branch =>
+            branch.nama_cabang.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            branch.alamat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            branch.telepon.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredCabang(filtered);
+    }, [searchTerm, cabang]);
+
     const handleAdd = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setMessage("");
+        setActionLoading(true);
 
         try {
             const res = await fetch(`${API_URL}/cabang`, {
@@ -187,12 +281,7 @@ const KelolaCabangPage = () => {
                 body: JSON.stringify(newCabang),
             });
 
-            const data = await res.json();
             if (res.status === 201) {
-                // Panggil Success Popup
-                setSuccessMessage(data.message || "Cabang berhasil ditambahkan!");
-                setShowSuccess(true);
-                
                 setNewCabang({
                     nama_cabang: "",
                     alamat: "",
@@ -200,45 +289,43 @@ const KelolaCabangPage = () => {
                     password_cabang: "",
                 });
                 setShowAddForm(false);
-                fetchCabang();
-            } else {
-                setMessage("❌ " + (data.message || "Error"));
+                // Reload data without notification
+                await fetchCabang();
             }
         } catch (err) {
             console.error("Fetch error:", err);
-            setMessage("❌ Error koneksi server");
         }
 
-        setLoading(false);
+        setActionLoading(false);
     };
 
-    // buka modal konfirmasi hapus
     const confirmDelete = (id) => {
         setDeleteId(id);
         setShowConfirm(true);
     };
 
-    // eksekusi hapus setelah konfirmasi
     const handleDelete = async () => {
+        setDeleteLoading(true);
         try {
             const res = await fetch(`${API_URL}/cabang/${deleteId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
-                // Tampilkan pesan sukses setelah hapus
-                setSuccessMessage("Cabang berhasil dihapus!");
-                setShowSuccess(true); 
-                fetchCabang();
+                // Reload data without notification
+                await fetchCabang();
             }
         } catch (err) {
             console.error("Delete cabang error:", err);
         }
+        setDeleteLoading(false);
         setShowConfirm(false);
         setDeleteId(null);
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        setActionLoading(true);
         try {
             const res = await fetch(`${API_URL}/cabang/${editCabang.id_cabang}`, {
                 method: "PUT",
@@ -249,260 +336,185 @@ const KelolaCabangPage = () => {
                 body: JSON.stringify(editCabang),
             });
             if (res.ok) {
-                // Tampilkan pesan sukses setelah update
-                setSuccessMessage(`Cabang ${editCabang.nama_cabang} berhasil diupdate!`);
-                setShowSuccess(true);
+                // Reload data without notification
                 await fetchCabang();
                 setEditCabang(null);
             }
         } catch (err) {
             console.error("Update cabang error:", err);
         }
+        setActionLoading(false);
     };
 
     return (
-        <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-            <motion.h1
-                className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
-                Kelola Cabang
-            </motion.h1>
+        <motion.div
+            className="space-y-6 p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Kelola Cabang</h1>
+                    <p className="text-gray-500 text-sm sm:text-base">
+                        Kelola data cabang dan informasi kontak
+                    </p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-3 self-start md:self-center">
+                    {/* Search Input */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Cari cabang..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 border border-gray-300 text-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition w-full sm:w-64"
+                            disabled={loading}
+                        />
+                    </div>
 
-            {/* Tombol tambah cabang */}
-            <div className="mb-6">
-                <button
-                    onClick={() => setShowAddForm(true)}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md"
-                >
-                    <Plus size={18} /> Tambah Cabang
-                </button>
+                    {/* Add Button */}
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        disabled={loading}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Tambah Cabang
+                    </button>
+                </div>
             </div>
 
-            {/* Grid daftar cabang */}
-            <motion.div
-                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-            >
-                {cabang.map((branch, index) => (
+            {/* Loading State */}
+            {loading ? (
+                <LoadingState />
+            ) : (
+                <>
+                    {/* Cabang Grid */}
                     <motion.div
-                        key={branch.id_cabang}
-                        className="bg-white shadow-lg rounded-xl p-6 border-t-4 border-green-600"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <h3 className="text-xl font-bold text-green-800 mb-1">
-                            {branch.nama_cabang}
-                        </h3>
-                        <p className="text-gray-700 font-medium">🏠 {branch.alamat}</p>
-                        <p className="text-gray-600 text-sm mt-1">📞 {branch.telepon}</p>
-                        <div className="flex gap-3 mt-5">
-                            <button
-                                onClick={() => setEditCabang(branch)}
-                                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                            >
-                                <Edit size={16} /> <span>Edit</span>
-                            </button>
-                            <button
-                                onClick={() => confirmDelete(branch.id_cabang)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
-                            >
-                                <Trash size={16} /> <span>Hapus</span>
-                            </button>
-                        </div>
-                    </motion.div>
-                ))}
-            </motion.div>
-
-            {/* Modal tambah cabang */}
-            <AnimatePresence>
-                {showAddForm && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowAddForm(false)}
                     >
-                        <motion.div 
-                            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.8, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h2 className="text-xl font-semibold mb-4 text-green-700 flex items-center gap-2">
-                                <Plus size={18} /> Tambah Cabang
-                            </h2>
-                            <form onSubmit={handleAdd}>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Nama Cabang
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newCabang.nama_cabang}
-                                    onChange={(e) =>
-                                        setNewCabang({ ...newCabang, nama_cabang: e.target.value })
-                                    }
-                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                                    placeholder="Nama Cabang"
-                                    required
-                                />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Alamat
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newCabang.alamat}
-                                    onChange={(e) =>
-                                        setNewCabang({ ...newCabang, alamat: e.target.value })
-                                    }
-                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                                    placeholder="Alamat"
-                                    required
-                                />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Telepon
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newCabang.telepon}
-                                    onChange={(e) =>
-                                        setNewCabang({ ...newCabang, telepon: e.target.value })
-                                    }
-                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                                    placeholder="Telepon"
-                                    required
-                                />
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Password Cabang
-                                </label>
-                                <input
-                                    type="password"
-                                    value={newCabang.password_cabang}
-                                    onChange={(e) =>
-                                        setNewCabang({
-                                            ...newCabang,
-                                            password_cabang: e.target.value,
-                                        })
-                                    }
-                                    className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                                    placeholder="Password Cabang"
-                                    required
-                                />
-                                <div className="flex justify-end gap-3 mt-4">
+                        {filteredCabang.map((branch, index) => (
+                            <motion.div
+                                key={branch.id_cabang}
+                                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-red-50 rounded-lg">
+                                            <Building2 className="w-5 h-5 text-red-500" />
+                                        </div>
+                                        <h3 className="text-lg font-semibold text-gray-800">
+                                            {branch.nama_cabang}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex items-center gap-3 text-gray-600">
+                                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <span className="text-sm">{branch.alamat}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-gray-600">
+                                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                        <span className="text-sm">{branch.telepon}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 pt-4 border-t border-gray-100">
                                     <button
-                                        type="button"
-                                        onClick={() => setShowAddForm(false)}
-                                        className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                                        onClick={() => setEditCabang(branch)}
+                                        className="flex-1 py-2 px-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                                     >
-                                        Batal
+                                        <Edit className="w-4 h-4" />
+                                        Edit
                                     </button>
                                     <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                                        onClick={() => confirmDelete(branch.id_cabang)}
+                                        className="flex-1 py-2 px-3 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                                     >
-                                        {loading ? "Menyimpan..." : "Simpan"}
+                                        <Trash2 className="w-4 h-4" />
+                                        Hapus
                                     </button>
                                 </div>
-                            </form>
-                        </motion.div>
+                            </motion.div>
+                        ))}
                     </motion.div>
-                )}
-            </AnimatePresence>
 
-            {/* Modal edit */}
-            <AnimatePresence>
-                {editCabang && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-70 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setEditCabang(null)}
-                    >
+                    {/* Empty State */}
+                    {filteredCabang.length === 0 && (
                         <motion.div 
-                            className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600"
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.8, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
+                            className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                         >
-                            <h2 className="text-xl font-semibold mb-4 text-green-700">
-                                ✏️ Edit Cabang
-                            </h2>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Nama Cabang
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.nama_cabang}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, nama_cabang: e.target.value })
+                            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                                {searchTerm ? "Cabang tidak ditemukan" : "Belum ada cabang"}
+                            </h3>
+                            <p className="text-gray-500 text-sm mb-4">
+                                {searchTerm 
+                                    ? "Coba ubah kata kunci pencarian Anda"
+                                    : "Mulai dengan menambahkan cabang pertama Anda"
                                 }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <label className="block text-sm font-medium text-gray-700">
-                                Alamat
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.alamat}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, alamat: e.target.value })
-                                }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <label className="block text-sm font-medium text-gray-700">
-                                Telepon
-                            </label>
-                            <input
-                                type="text"
-                                value={editCabang.telepon}
-                                onChange={(e) =>
-                                    setEditCabang({ ...editCabang, telepon: e.target.value })
-                                }
-                                className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-                            />
-                            <div className="flex justify-end gap-3 mt-4">
+                            </p>
+                            {!searchTerm && (
                                 <button
-                                    onClick={() => setEditCabang(null)}
-                                    className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
+                                    onClick={() => setShowAddForm(true)}
+                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 mx-auto"
                                 >
-                                    Batal
+                                    <Plus className="w-4 h-4" />
+                                    Tambah Cabang Pertama
                                 </button>
-                                <button
-                                    onClick={handleUpdate}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-                                >
-                                    Simpan
-                                </button>
-                            </div>
+                            )}
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </>
+            )}
 
-            {/* Modal Konfirmasi Hapus */}
+            {/* Add Cabang Modal */}
+            <CabangFormModal
+                isOpen={showAddForm}
+                onClose={() => setShowAddForm(false)}
+                title="Tambah Cabang Baru"
+                cabangData={newCabang}
+                onChange={setNewCabang}
+                onSubmit={handleAdd}
+                loading={actionLoading}
+            />
+
+            {/* Edit Cabang Modal */}
+            <CabangFormModal
+                isOpen={!!editCabang}
+                onClose={() => setEditCabang(null)}
+                title="Edit Cabang"
+                cabangData={editCabang || {}}
+                onChange={setEditCabang}
+                onSubmit={handleUpdate}
+                loading={actionLoading}
+                isEdit={true}
+            />
+
+            {/* Delete Confirmation Modal */}
             <ConfirmDeletePopup
                 isOpen={showConfirm}
                 onClose={() => setShowConfirm(false)}
                 onConfirm={handleDelete}
+                loading={deleteLoading}
             />
-
-            {/* Modal Sukses DENGAN COUNTDOWN */}
-            <SuccessPopup
-                isOpen={showSuccess}
-                onClose={() => setShowSuccess(false)}
-                title="Aksi Berhasil! 🎉"
-                message={successMessage}
-            />
-        </div>
+        </motion.div>
     );
 };
 
 export default KelolaCabangPage;
+
+//terakhir kali, revisi page setelah page kelola cabang
+// ayo es em en ge te
