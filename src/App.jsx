@@ -16,11 +16,10 @@ import BranchAdminPageSuper from "./pages/super-admin/BranchAdminPage.jsx";
 import PengeluaranPageSuper from "./pages/super-admin/PengeluaranPage.jsx";
 import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
 import JenisPengeluaranPageSuper from "./pages/super-admin/JenisPengeluaranPage.jsx";
-import TransaksiPage from "./pages/super-admin/TransaksiPage.jsx";
+import TransaksiPageSuper from "./pages/super-admin/TransaksiPage.jsx";
 import BahanPage from "./pages/super-admin/BahanPage.jsx";
 import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
-
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -28,11 +27,13 @@ import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
 import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
 import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
 import PemesananPageCabang from "./pages/admin-cabang/PemesananPage.jsx";
+import TransaksiPageCabang from "./pages/admin-cabang/TransaksiPage.jsx";
 import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
+import AuditLogPage from "./pages/super-admin/AuditLogPage.jsx";
 
 function App() {
   return (
@@ -57,10 +58,11 @@ function App() {
                 <Route path="bahan-baku-pakai" element={<BahanBakuPakaiPage />} />
               <Route path="pengeluaran" element={<PengeluaranPageSuper />} />
                 <Route path="karyawan" element={<KaryawanPageSuper />} />
-                <Route path="transaksi" element={<TransaksiPage />} />
+                <Route path="transaksi" element={<TransaksiPageSuper />} />
                 <Route path="jenis-pengeluaran" element={<JenisPengeluaranPageSuper />} />
                 <Route path="bahan" element={<BahanPage />} />
                 <Route path="help" element={<HelpPage />} />
+                <Route path="audit-log" element={<AuditLogPage />} />
               </Route>
             </Route>
 
@@ -73,6 +75,7 @@ function App() {
               <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
               <Route path="pemesanan" element={<PemesananPageCabang />} />
               <Route path="karyawan" element={<KaryawanPageCabang />} />
+              <Route path="transaksi" element={<TransaksiPageCabang />} />
               <Route path="produk" element={<ProdukPage />} />
               <Route path="help" element={<HelpPageCabang />} />
             </Route>

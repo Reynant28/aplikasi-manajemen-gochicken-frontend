@@ -285,6 +285,7 @@ const PengeluaranPage = () => {
                 bahanBakuList={bahanBakuList}
                 cabangList={cabangList}
                 onAddJenis={handleAddJenis}
+                onClose={closeModal}
               />
             </motion.div>
           </motion.div>

@@ -16,7 +16,8 @@
         jenisList,
         bahanBakuList,
         cabangList,
-        onAddJenis
+        onAddJenis,
+        onClose
     }) => {
         const [displayJumlah, setDisplayJumlah] = useState('Rp 0');
         const [isCicilanHarian, setIsCicilanHarian] = useState(false);
@@ -121,6 +122,8 @@
                 <form onSubmit={handleFormSubmit} className="max-h-[70vh] overflow-y-auto px-6">
                     <div className="space-y-4 pb-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Only show cabang dropdown for super admin */}
+                            {cabangList && cabangList.length > 0 && (
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Cabang
@@ -139,6 +142,7 @@
                                     ))}
                                 </select>
                             </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -316,7 +320,7 @@
                     <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-xl">
                         <button 
                             type="button" 
-                            onClick={() => window.history.back()}
+                            onClick={onClose}
                             className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
                             disabled={loading}
                         >

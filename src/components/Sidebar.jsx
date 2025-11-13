@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Home, BarChart2, Users, Layers, ChartColumn,
   HelpCircle, Building2, UserCog, Wallet, ChevronDown,
   Receipt, Package, Boxes, WalletCards, FileChartColumnIncreasing, PackagePlus,
-  DatabaseBackup
+  DatabaseBackup,
+  X // ✅ Added close icon for mobile
 } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +15,21 @@ const token = localStorage.getItem("token");
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   const cabang = JSON.parse(localStorage.getItem("cabang"));
+  const [isMobile, setIsMobile] = useState(false);
+
+  // ✅ Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const handleBackup = async () => {
     try {
@@ -24,7 +40,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         },
       });
 
-      // Extract filename from response headers if available
       const contentDisposition = response.headers['content-disposition'];
       let filename = "database_backup.sql";
       
@@ -35,7 +50,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         }
       }
 
-      // Create a link to download the file
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -43,16 +57,13 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       document.body.appendChild(link);
       link.click();
       
-      // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
       
     } catch (error) {
       console.error("Backup failed:", error);
       
-      // Handle different error types
       if (error.response) {
-        // Server responded with error status
         const { status, data } = error.response;
         
         if (status === 401) {
@@ -65,10 +76,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           alert(data.message || "Failed to create backup.");
         }
       } else if (error.request) {
-        // Request was made but no response received
         alert("Network error: Cannot connect to server.");
       } else {
-        // Other errors
         alert("Error: " + error.message);
       }
     }
@@ -97,6 +106,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       items: [
         { to: "/reports", label: "Laporan Master", icon: <ChartColumn size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/daily-reports", label: "Laporan Harian", icon: <FileChartColumnIncreasing size={18} />, roles: ["super admin", "admin cabang"] },
+        { to: "/audit-log", label: "Audit Log", icon: <Receipt size={18} />, roles: ["super admin"] },
       ],
     },
     {
@@ -119,7 +129,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       items: [
         { to: "/pemesanan", label: "Pemesanan", icon: <PackagePlus size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
-        { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin", "admin cabang"] },
+        { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin"] },
         { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
         { to: "/bahan-baku-pakai", label: "Bahan Baku Pakai", icon: <Boxes size={18} />, roles: ["super admin"] },
@@ -131,53 +141,66 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     Object.fromEntries(groupedMenus.filter((m) => m.dropdown).map((m) => [m.key, true]))
   );
 
-  // 🔥 Pisahkan menu untuk dua role
   const superAdminMenus = groupedMenus;
   const adminCabangMenus = groupedMenus.map((group) => ({
     ...group,
     items: group.items.filter((item) => item.roles.includes("admin cabang")),
   })).filter((group) => group.items.length > 0);
 
-  // Tentukan mana yang dipakai berdasarkan role user
   const visibleMenus = user?.role === "super admin" ? superAdminMenus : adminCabangMenus;
+
+  // ✅ Close sidebar when clicking on a link in mobile
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   return (
     <div className="relative">
       {/* Background overlay for mobile */}
-      {isSidebarOpen && window.innerWidth < 768 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.5 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black z-30 md:hidden"
-        />
-      )}
+      <AnimatePresence>
+        {isSidebarOpen && isMobile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black z-30 md:hidden"
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <motion.div
         initial={false}
-        animate={{ x: isSidebarOpen || window.innerWidth >= 768 ? 0 : -300 }}
-        transition={{ duration: 0.3 }}
-        className="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white 
+        animate={{ 
+          x: isSidebarOpen || !isMobile ? 0 : -300,
+          opacity: isSidebarOpen || !isMobile ? 1 : 0
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className={`fixed md:relative inset-y-0 left-0 z-40 w-64 bg-white 
                    border-r border-gray-200 flex flex-col h-screen 
-                   shadow-lg transform md:translate-x-0 md:flex transition-transform duration-300"
+                   shadow-lg transform md:translate-x-0 md:flex transition-all duration-300
+                   ${isMobile ? 'fixed' : 'static'}`}
       >
         {/* Header */}
-        <div className="relative flex flex-col items-center md:items-start gap-2 p-5 bg-gradient-to-r from-gray-700 to-gray-900 text- shadow-md ">
-          {/* Mobile Toggle */}
-          <button
-            className="absolute top-4 left-4 z-50 p-2 bg-white/20 hover:bg-white/30 text-white rounded-md md:hidden"
-            onClick={() => setIsSidebarOpen((p) => !p)}
-          >
-            {isSidebarOpen ? "✕" : "☰"}
-          </button>
+        <div className="relative flex flex-col items-center md:items-start gap-2 p-5 pl-0 sm:p-5 bg-gradient-to-r from-gray-700 to-gray-900 shadow-md">
+          {/* ✅ Mobile Close Button */}
+          {isMobile && (
+            <button
+              className="absolute top-4 right-4 z-50 p-1 bg-white/20 hover:bg-white/30 text-white rounded-md md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          )}
 
           {/* Logo */}
-          <div className="flex items-center gap-3 mt-6 md:mt-0">
+          <div className="flex items-center gap-3 mt-2 md:mt-0">
             <img src="/images/LogoGoChickenReal.png" alt="GoChicken Logo" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="text-lg font-bold leading-tight">GoChicken</h1>
+              <h1 className="text-lg font-bold leading-tight text-white">GoChicken</h1>
               <p className="text-xs text-gray-300">{cabang?.nama_cabang || "Pusat"}</p>
             </div>
           </div>
@@ -237,9 +260,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                    ? "bg-gray-700 text-gray-100 font-semibold"
                                    : "text-gray-500 hover:bg-gray-700 hover:text-white"}`
                               }
-                              onClick={() => {
-                                if (window.innerWidth < 768) setIsSidebarOpen(false);
-                              }}
+                              onClick={handleLinkClick}
                             >
                               {item.icon}
                               {item.label}
@@ -260,9 +281,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                            ? "bg-gray-700 border-gray-600 text-white"
                            : "border-gray-700 text-gray-500 hover:bg-gray-700 hover:text-white"}`
                       }
-                      onClick={() => {
-                        if (window.innerWidth < 768) setIsSidebarOpen(false);
-                      }}
+                      onClick={handleLinkClick}
                     >
                       {item.icon}
                       {item.label}
@@ -278,21 +297,19 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           <NavLink
             to={`${basePath}/help`}
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-700 hover:text-white transition-all"
-            onClick={() => {
-              if (window.innerWidth < 768) setIsSidebarOpen(false);
-            }}
+            onClick={handleLinkClick}
           >
             <HelpCircle size={18} /> Help Center
           </NavLink>
-          <NavLink
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-700 hover:text-white transition-all"
+          <button
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-700 hover:text-white transition-all text-left"
             onClick={() => {
-              if (window.innerWidth < 768) setIsSidebarOpen(false);
+              handleLinkClick();
               handleBackup();
             }}
           >
             <DatabaseBackup size={18} /> Backup Database
-          </NavLink>
+          </button>
         </div>
       </motion.div>
     </div>

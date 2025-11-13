@@ -1,9 +1,21 @@
 // src/pages/GeneralPage.jsx
-//eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
-//eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { Drumstick, ArrowRightLeft, Wallet, Briefcase, TrendingUp, TrendingDown, AlertTriangle, Package } from "lucide-react";
+import { 
+  Drumstick, 
+  ArrowRightLeft, 
+  Wallet, 
+  Briefcase, 
+  TrendingUp, 
+  TrendingDown, 
+  AlertTriangle, 
+  Package,
+  RefreshCw,
+  BarChart3,
+  Calendar,
+  Users,
+  ShoppingCart
+} from "lucide-react";
 import axios from "axios";
 import {
   ResponsiveContainer,
@@ -98,15 +110,12 @@ const GeneralPage = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activitiesError, setActivitiesError] = useState(null);
 
-  // ✨ NEW: Perbandingan bulan
   const [monthComparison, setMonthComparison] = useState(null);
   const [monthComparisonLoading, setMonthComparisonLoading] = useState(true);
 
-  // ✨ NEW: Produk menurun
   const [decliningProducts, setDecliningProducts] = useState([]);
   const [decliningLoading, setDecliningLoading] = useState(true);
 
-  // ✨ NEW: Low stock alert
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [lowStockLoading, setLowStockLoading] = useState(true);
 
@@ -348,23 +357,7 @@ const GeneralPage = () => {
     };
   }, [token, user?.role]);
 
-  const getActivityIcon = (type, model) => {
-    switch (type) {
-      case 'add':
-        return '🟢'; // Green for additions
-      case 'update':
-        return '🔵'; // Blue for updates
-      case 'delete':
-        return '🔴'; // Red for deletions
-      case 'expense':
-        return '💰'; // Money for expenses
-      default:
-        return '⚪'; // Default
-    }
-  };
-
-
-  // ✨ NEW: Fetch month comparison
+  // Fetch month comparison
   useEffect(() => {
     let cancelled = false;
 
@@ -391,7 +384,7 @@ const GeneralPage = () => {
     return () => { cancelled = true; };
   }, [token]);
 
-  // ✨ NEW: Fetch declining products
+  // Fetch declining products
   useEffect(() => {
     let cancelled = false;
 
@@ -418,7 +411,7 @@ const GeneralPage = () => {
     return () => { cancelled = true; };
   }, [token]);
 
-  // ✨ NEW: Fetch low stock products
+  // Fetch low stock products
   useEffect(() => {
     let cancelled = false;
 
@@ -452,85 +445,125 @@ const GeneralPage = () => {
     }
   };
 
+  const handleRefresh = () => {
+    // Trigger all data refetches
+    window.location.reload(); // Simple refresh for demo, you can implement individual refetches
+  };
+
+  const getActivityIcon = (type, model) => {
+    switch (type) {
+      case 'add':
+        return '🟢';
+      case 'update':
+        return '🔵';
+      case 'delete':
+        return '🔴';
+      case 'expense':
+        return '💰';
+      default:
+        return '⚪';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Dashboard Overview
-          </h1>
-          <p className="text-gray-600 mt-1">Ringkasan bisnis dan aktivitas terkini</p>
-        </div>
-      </motion.div>
+    <div className="p-6 space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
+          <p className="text-gray-500 mt-1">Ringkasan bisnis dan aktivitas terkini</p>
+        </motion.div>
+        
+        <motion.div 
+          className="flex gap-3"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2.5 text-white bg-gray-700 rounded-lg hover:bg-gray-800 transition-all font-medium shadow-sm disabled:bg-gray-400"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </motion.div>
+      </div>
 
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">{error}</div>
       )}
 
-      {/* Summary Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Main Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             title: "Total Produk",
             value: totalProduk,
             icon: <Drumstick size={24} />,
-            gradient: "from-green-500 to-emerald-600",
-            bg: "bg-gradient-to-br from-green-50 to-emerald-50",
+            color: "text-gray-700",
+            bg: "bg-gray-100",
           },
           {
             title: "Transaksi Hari Ini",
             value: transaksiHariIni,
             icon: <ArrowRightLeft size={24} />,
-            gradient: "from-blue-500 to-cyan-600",
-            bg: "bg-gradient-to-br from-blue-50 to-cyan-50",
+            color: "text-gray-700",
+            bg: "bg-gray-100",
           },
           {
             title: "Pendapatan Bulan Ini",
             value: formatRupiah(pendapatanBulanIni),
             icon: <Wallet size={24} />,
-            gradient: "from-purple-500 to-pink-600",
-            bg: "bg-gradient-to-br from-purple-50 to-pink-50",
+            color: "text-gray-700",
+            bg: "bg-gray-100",
           },
           {
             title: "Produk Terlaris",
             value: produkTerlaris ?? "—",
             icon: <Briefcase size={24} />,
-            gradient: "from-amber-500 to-orange-600",
-            bg: "bg-gradient-to-br from-amber-50 to-orange-50",
+            color: "text-gray-700",
+            bg: "bg-gray-100",
           },
         ].map((item, index) => (
-          <motion.div
+          <motion.div 
             key={index}
-            className={`${item.bg} rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-white/50 backdrop-blur-sm`}
+            className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`p-3 rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-md`}>
-                {item.icon}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{item.title}</p>
+                {loading ? (
+                  <p className="text-2xl font-bold text-gray-800 mt-1 animate-pulse">...</p>
+                ) : (
+                  <p
+                  className={`font-bold text-gray-800 mt-1 ${
+                      String(item.value).length > 15 ? "text-lg" : "text-2xl"
+                    }`}
+                    style={{ wordBreak: "break-word" }}
+                  >
+                    {item.value}
+                  </p>
+                )}
               </div>
-              <h2 className="text-sm font-semibold text-gray-700">{item.title}</h2>
+              <div className={`p-3 rounded-xl ${item.bg}`}>
+                <div className={item.color}>{item.icon}</div>
+              </div>
             </div>
-
-            {loading ? (
-              <p className="text-2xl font-bold text-gray-700 animate-pulse">...</p>
-            ) : (
-              <p className="text-2xl font-bold text-gray-800" style={{ wordBreak: "break-word" }}>
-                {item.value}
-              </p>
-            )}
           </motion.div>
         ))}
       </div>
 
-      {/* ✨ NEW: Month Comparison Card */}
-      <motion.div
-        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+      {/* Month Comparison */}
+      <motion.div 
+        className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -544,9 +577,9 @@ const GeneralPage = () => {
           <div className="text-gray-500">Memuat data perbandingan...</div>
         ) : monthComparison ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-600 mb-1">Pendapatan</p>
-              <p className="text-2xl font-bold text-blue-600 mb-2">
+              <p className="text-2xl font-bold text-gray-800 mb-2">
                 {formatRupiah(monthComparison.current_revenue)}
               </p>
               <div className={`flex items-center gap-1 text-sm ${monthComparison.revenue_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -556,9 +589,9 @@ const GeneralPage = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-600 mb-1">Transaksi</p>
-              <p className="text-2xl font-bold text-purple-600 mb-2">
+              <p className="text-2xl font-bold text-gray-800 mb-2">
                 {monthComparison.current_transactions}
               </p>
               <div className={`flex items-center gap-1 text-sm ${monthComparison.transaction_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -568,9 +601,9 @@ const GeneralPage = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-600 mb-1">Rata-rata per Transaksi</p>
-              <p className="text-2xl font-bold text-amber-600 mb-2">
+              <p className="text-2xl font-bold text-gray-800 mb-2">
                 {formatRupiah(monthComparison.avg_transaction)}
               </p>
               <div className={`flex items-center gap-1 text-sm ${monthComparison.avg_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -585,32 +618,29 @@ const GeneralPage = () => {
         )}
       </motion.div>
 
-      {/* Chart and Top Products Row */}
+      {/* Charts and Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div
-          className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+        {/* Financial Chart */}
+        <motion.div 
+          className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-gray-100 p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ delay: 0.3 }}
         >
           <div className="flex flex-col gap-3 mb-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-800 capitalize flex items-center gap-2">
-                {chartMode === "pendapatan" ? (
-                  <TrendingUp className="text-green-500 h-6 w-6" />
-                ) : (
-                  <TrendingDown className="text-red-500 h-6 w-6" />
-                )}
+                <BarChart3 className="text-gray-700" size={24} />
                 {chartMode}
               </h2>
               
-              <div className="flex bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="flex bg-gray-100 rounded-lg border border-gray-200 overflow-hidden">
                 <button
                   onClick={() => handleModeChange("pendapatan")}
                   className={`px-4 py-2 text-sm font-semibold transition-all ${
                     chartMode === "pendapatan"
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   <TrendingUp className="inline-block h-4 w-4 mr-1" /> 
@@ -620,8 +650,8 @@ const GeneralPage = () => {
                   onClick={() => handleModeChange("pengeluaran")}
                   className={`px-4 py-2 text-sm font-semibold transition-all ${
                     chartMode === "pengeluaran"
-                      ? "bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50"
                   }`}
                 >
                   <TrendingDown className="inline-block h-4 w-4 mr-1" /> 
@@ -633,15 +663,15 @@ const GeneralPage = () => {
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500">Grafik finansial berdasarkan periode waktu</p>
               
-              <div className="flex bg-gradient-to-r from-gray-100 to-gray-50 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="flex bg-gray-100 rounded-lg border border-gray-200 overflow-hidden">
                 {["minggu", "bulan", "tahun"].map((f) => (
                   <button
                     key={f}
                     onClick={() => setChartFilter(f)}
                     className={`px-4 py-1.5 text-xs font-semibold capitalize transition-all ${
                       chartFilter === f
-                        ? "bg-white text-gray-900 shadow-md"
-                        : "text-gray-500 hover:bg-gray-100"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {f}
@@ -703,38 +733,39 @@ const GeneralPage = () => {
           </div>
         </motion.div>
 
+        {/* Top Products */}
         <motion.div
           className="lg:col-span-1"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ delay: 0.4 }}
         >
           {topProductsLoading ? (
-            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-gray-500">
+            <div className="flex justify-center items-center h-full bg-white rounded-2xl shadow-md border border-gray-100 text-gray-500">
               Memuat data...
             </div>
           ) : topProductsError ? (
-            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-red-500">
+            <div className="flex justify-center items-center h-full bg-white rounded-2xl shadow-md border border-gray-100 text-red-500">
               {topProductsError}
             </div>
           ) : topProducts.length === 0 ? (
-            <div className="flex justify-center items-center h-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 text-gray-400">
+            <div className="flex justify-center items-center h-full bg-white rounded-2xl shadow-md border border-gray-100 text-gray-400">
               Tidak ada data produk terlaris.
             </div>
           ) : (
-            <TopProductsChart data={topProducts} />
+            <TopProductsChart data={topProducts} filter="bulan" />
           )}
         </motion.div>
       </div>
 
-      {/* ✨ NEW: Declining Products & Low Stock Alert Row */}
+      {/* Alerts and Warnings Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Declining Products */}
-        <motion.div
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+        <motion.div 
+          className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.5 }}
         >
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingDown className="text-orange-600" />
@@ -752,7 +783,7 @@ const GeneralPage = () => {
               {decliningProducts.map((product, index) => (
                 <div
                   key={index}
-                  className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100 hover:shadow-md transition-all"
+                  className="p-4 bg-orange-50 rounded-xl border border-orange-100 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
@@ -781,11 +812,11 @@ const GeneralPage = () => {
         </motion.div>
 
         {/* Low Stock Alert */}
-        <motion.div
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+        <motion.div 
+          className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.6 }}
         >
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <AlertTriangle className="text-red-600" />
@@ -795,8 +826,7 @@ const GeneralPage = () => {
           {lowStockLoading ? (
             <div className="text-gray-500">Memuat data stok rendah...</div>
           ) : lowStockProducts.length === 0 ? (
-            <div className="text-green-600 text-center py-8 flex flex-col items-center gap-2">
-              <Package size={48} className="text-green-500" />
+            <div className="text-gray-700 text-center py-8 flex flex-col items-center gap-2">
               <p className="font-semibold">Semua stok aman! 🎉</p>
             </div>
           ) : (
@@ -806,10 +836,10 @@ const GeneralPage = () => {
                   key={index}
                   className={`p-4 rounded-xl border transition-all hover:shadow-md ${
                     product.jumlah_stok === 0
-                      ? "bg-gradient-to-r from-red-50 to-rose-50 border-red-200"
+                      ? "bg-red-50 border-red-200"
                       : product.jumlah_stok <= 2
-                      ? "bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200"
-                      : "bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200"
+                      ? "bg-orange-50 border-orange-200"
+                      : "bg-yellow-50 border-yellow-200"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -855,14 +885,17 @@ const GeneralPage = () => {
         </motion.div>
       </div>
 
-      {/* Ringkasan Laporan Harian */}
-      <motion.div
-        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50"
+      {/* Daily Summary */}
+      <motion.div 
+        className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ delay: 0.7 }}
       >
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Ringkasan Laporan Harian</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <Calendar className="text-blue-600" />
+          Ringkasan Laporan Harian
+        </h2>
 
         {dailySummaryLoading ? (
           <div className="text-gray-500">Memuat ringkasan harian...</div>
@@ -870,49 +903,41 @@ const GeneralPage = () => {
           <div className="text-red-500">{dailySummaryError}</div>
         ) : dailySummary ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-1">Total Penjualan</p>
-              <p className="text-xl font-semibold text-blue-600">
+              <p className="text-xl font-semibold text-gray-800">
                 {formatRupiah(dailySummary.total_penjualan || 0)}
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-1">Modal Bahan Baku</p>
-              <p className="text-xl font-semibold text-emerald-600">
+              <p className="text-xl font-semibold text-gray-800">
                 {formatRupiah(dailySummary.modal_bahan_baku || 0)}
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-1">Pengeluaran Harian</p>
-              <p className="text-xl font-semibold text-amber-600">
+              <p className="text-xl font-semibold text-gray-800">
                 {formatRupiah(dailySummary.pengeluaran_harian || 0)}
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-1">Laba Harian</p>
-              <p
-                className={`text-xl font-semibold ${
-                  (dailySummary.laba_harian || 0) >= 0
-                    ? "text-purple-600"
-                    : "text-red-600"
-                }`}
-              >
+              <p className={`text-xl font-semibold ${
+                (dailySummary.laba_harian || 0) >= 0 ? "text-green-600" : "text-red-600"
+              }`}>
                 {formatRupiah(dailySummary.laba_harian || 0)}
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl border border-pink-100">
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <p className="text-sm text-gray-500 mb-1">Nett Income</p>
-              <p
-                className={`text-xl font-semibold ${
-                  (dailySummary.nett_income || 0) >= 0
-                    ? "text-pink-600"
-                    : "text-red-600"
-                }`}
-              >
+              <p className={`text-xl font-semibold ${
+                (dailySummary.nett_income || 0) >= 0 ? "text-green-600" : "text-red-600"
+              }`}>
                 {formatRupiah(dailySummary.nett_income || 0)}
               </p>
             </div>
@@ -923,13 +948,16 @@ const GeneralPage = () => {
       </motion.div>
 
       {/* Recent Activities */}
-      <motion.div
-        className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-6 border border-white/50"
+      <motion.div 
+        className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
+        transition={{ delay: 0.8 }}
       >
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Aktivitas Terbaru</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <Users className="text-gray-700" />
+          Aktivitas Terbaru
+        </h2>
         {activitiesLoading ? (
           <div className="flex justify-center items-center h-64 text-gray-500">
             Memuat aktivitas...
@@ -947,7 +975,7 @@ const GeneralPage = () => {
             {recentActivities.map((activity, index) => (
               <li
                 key={`${activity.timestamp}-${index}`}
-                className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-slate-50 hover:from-blue-50 hover:to-indigo-50 transition-all border border-gray-100"
+                className="flex items-start gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all border border-gray-200"
               >
                 <span className="text-2xl flex-shrink-0 mt-0.5">
                   {getActivityIcon(activity.type, activity.model)}

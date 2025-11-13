@@ -1,22 +1,11 @@
-// src/pages/KaryawanPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Trash2, X, User, Phone, MapPin, DollarSign, Building2, Plus, Users } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
+import KaryawanCard from "../../components/karyawan/KaryawanCard";
+import KaryawanForm from "../../components/karyawan/KaryawanForm";
 
 const API_URL = "http://localhost:8000/api";
-
-const formatRupiah = (value = 0) => {
-    try {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            maximumFractionDigits: 0,
-        }).format(value);
-    } catch {
-        return `Rp ${value}`;
-    }
-};
 
 const KaryawanPage = () => {
     const [loading, setLoading] = useState(false);
@@ -71,8 +60,7 @@ const KaryawanPage = () => {
         }
     }, [token, fetchKaryawan, fetchCabang]);
 
-    const handleAdd = async (e) => {
-        e.preventDefault();
+    const handleAdd = async (formData) => {
         setLoading(true);
 
         try {
@@ -82,7 +70,7 @@ const KaryawanPage = () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(newKaryawan),
+                body: JSON.stringify(formData),
             });
 
             const data = await res.json();
@@ -130,18 +118,18 @@ const KaryawanPage = () => {
         setDeleteId(null);
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = async (formData) => {
         try {
-            const res = await fetch(`${API_URL}/karyawan/${editKaryawan.id_karyawan}`, {
+            const res = await fetch(`${API_URL}/karyawan/${formData.id_karyawan}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(editKaryawan),
+                body: JSON.stringify(formData),
             });
             if (res.ok) {
-                setSuccessMessage(`Karyawan ${editKaryawan.nama_karyawan} berhasil diupdate!`);
+                setSuccessMessage(`Karyawan ${formData.nama_karyawan} berhasil diupdate!`);
                 setShowSuccess(true);
                 await fetchKaryawan();
                 await fetchCabang();
@@ -191,62 +179,13 @@ const KaryawanPage = () => {
             ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {karyawan.map((item, index) => (
-                        <motion.div
+                        <KaryawanCard
                             key={item.id_karyawan}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            whileHover={{ y: -4 }}
-                            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
-                        >
-                            {/* Header with Avatar */}
-                            <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 flex flex-col items-center">
-                                <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mb-3 shadow-lg">
-                                    <User size={36} className="text-white" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-800 text-center">
-                                    {item.nama_karyawan}
-                                </h3>
-                                <div className="mt-2 px-3 py-1 bg-gray-700 bg-opacity-90 text-white text-xs font-semibold rounded-full flex items-center gap-1">
-                                    <Building2 size={12} />
-                                    {item.cabang?.nama_cabang || "N/A"}
-                                </div>
-                            </div>
-
-                            {/* Info Section */}
-                            <div className="p-5 space-y-3">
-                                <div className="flex items-start gap-2 text-sm">
-                                    <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                    <span className="text-gray-600">{item.alamat}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Phone size={16} className="text-gray-400 flex-shrink-0" />
-                                    <span className="text-gray-600">{item.telepon}</span>
-                                </div>
-                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                    <DollarSign size={16} className="text-gray-400 flex-shrink-0" />
-                                    <span className="text-gray-700 font-bold">
-                                        {formatRupiah(item.gaji)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-2 p-4 bg-gray-50 border-t border-gray-100">
-                                <button
-                                    onClick={() => setEditKaryawan(item)}
-                                    className="flex-1 text-xs px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium flex items-center justify-center gap-1"
-                                >
-                                    <Edit size={14} /> Edit
-                                </button>
-                                <button
-                                    onClick={() => confirmDelete(item.id_karyawan)}
-                                    className="flex-1 text-xs px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium flex items-center justify-center gap-1"
-                                >
-                                    <Trash2 size={14} /> Hapus
-                                </button>
-                            </div>
-                        </motion.div>
+                            karyawan={item}
+                            index={index}
+                            onEdit={setEditKaryawan}
+                            onDelete={confirmDelete}
+                        />
                     ))}
                 </div>
             )}
@@ -257,258 +196,34 @@ const KaryawanPage = () => {
                 </div>
             )}
 
-            {/* --- MODAL TAMBAH KARYAWAN --- */}
+            {/* Add Karyawan Form */}
             <AnimatePresence>
-                {showAddForm && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowAddForm(false)}
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-xl mx-auto border border-gray-200 relative"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={() => setShowAddForm(false)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-                            >
-                                <X size={24} />
-                            </button>
-                            
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-800">
-                                <div className="p-2 bg-gray-100 rounded-lg">
-                                    <Plus className="text-gray-700" size={24} />
-                                </div>
-                                Tambah Karyawan
-                            </h2>
-
-                            <form onSubmit={handleAdd} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nama Karyawan
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newKaryawan.nama_karyawan}
-                                        onChange={(e) => setNewKaryawan({ ...newKaryawan, nama_karyawan: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-                                        placeholder="Masukkan nama karyawan"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Alamat
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newKaryawan.alamat}
-                                        onChange={(e) => setNewKaryawan({ ...newKaryawan, alamat: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-                                        placeholder="Masukkan alamat"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Telepon
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newKaryawan.telepon}
-                                        onChange={(e) => setNewKaryawan({ ...newKaryawan, telepon: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-                                        placeholder="Masukkan nomor telepon"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Gaji
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={newKaryawan.gaji}
-                                        onChange={(e) => setNewKaryawan({ ...newKaryawan, gaji: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 placeholder:text-gray-400"
-                                        placeholder="5000000"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Cabang
-                                    </label>
-                                    <select
-                                        value={newKaryawan.id_cabang}
-                                        onChange={(e) => setNewKaryawan({ ...newKaryawan, id_cabang: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        required
-                                        disabled={cabang.length === 0}
-                                    >
-                                        <option value="">
-                                            {cabang.length === 0 ? "Tidak ada cabang tersedia" : "Pilih Cabang"}
-                                        </option>
-                                        {cabang.map((cab) => (
-                                            <option key={cab.id_cabang} value={cab.id_cabang}>
-                                                {cab.nama_cabang}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="flex gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddForm(false)}
-                                        className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        {loading ? "Menyimpan..." : "Simpan"}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
+                <KaryawanForm
+                    isOpen={showAddForm}
+                    onClose={() => setShowAddForm(false)}
+                    onSubmit={handleAdd}
+                    formData={newKaryawan}
+                    onFormChange={setNewKaryawan}
+                    cabang={cabang}
+                    loading={loading}
+                    mode="add"
+                />
             </AnimatePresence>
 
-            {/* --- MODAL EDIT KARYAWAN --- */}
+            {/* Edit Karyawan Form */}
             <AnimatePresence>
-                {editKaryawan && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setEditKaryawan(null)}
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-xl mx-auto border border-gray-200 relative"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                onClick={() => setEditKaryawan(null)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-                            >
-                                <X size={24} />
-                            </button>
-                            
-                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-gray-800">
-                                <div className="p-2 bg-gray-100 rounded-lg">
-                                    <Edit className="text-gray-700" size={24} />
-                                </div>
-                                Edit Karyawan
-                            </h2>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nama Karyawan
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={editKaryawan?.nama_karyawan || ""}
-                                        onChange={(e) => setEditKaryawan({ ...editKaryawan, nama_karyawan: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Alamat
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={editKaryawan?.alamat || ""}
-                                        onChange={(e) => setEditKaryawan({ ...editKaryawan, alamat: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Telepon
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={editKaryawan?.telepon || ""}
-                                        onChange={(e) => setEditKaryawan({ ...editKaryawan, telepon: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Gaji
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={editKaryawan?.gaji || ""}
-                                        onChange={(e) => setEditKaryawan({ ...editKaryawan, gaji: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Cabang
-                                    </label>
-                                    <select
-                                        value={editKaryawan?.id_cabang || ""}
-                                        onChange={(e) => setEditKaryawan({ ...editKaryawan, id_cabang: e.target.value })}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 disabled:opacity-70"
-                                        disabled={cabang.length === 0}
-                                    >
-                                        <option value="">Pilih Cabang</option>
-                                        {cabang.map((cab) => (
-                                            <option key={cab.id_cabang} value={cab.id_cabang}>
-                                                {cab.nama_cabang}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="flex gap-3 mt-6">
-                                    <button
-                                        onClick={() => setEditKaryawan(null)}
-                                        className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        onClick={handleUpdate}
-                                        className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition font-semibold"
-                                    >
-                                        Simpan
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
+                <KaryawanForm
+                    isOpen={!!editKaryawan}
+                    onClose={() => setEditKaryawan(null)}
+                    onSubmit={handleUpdate}
+                    formData={editKaryawan || {}}
+                    onFormChange={setEditKaryawan}
+                    cabang={cabang}
+                    mode="edit"
+                />
             </AnimatePresence>
 
-            {/* --- CUSTOM POPUPS --- */}
+            {/* Custom Popups */}
             <ConfirmDeletePopup
                 isOpen={showConfirm}
                 onClose={() => setShowConfirm(false)}

@@ -6,22 +6,32 @@ import { Outlet } from "react-router-dom";
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
 
-  // Auto update if resize dari besar → kecil
+  // Auto close on small screens, but don't auto-open on large screens
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) setIsSidebarOpen(true);
-      else setIsSidebarOpen(false);
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+      // Don't auto-open on large screens - let user control it manually
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // ✅ Simple toggle function
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
       <Sidebar isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header setIsSidebarOpen={setIsSidebarOpen} />
+        <Header 
+          onToggleSidebar={toggleSidebar}
+          isSidebarOpen={isSidebarOpen}
+        />
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 scrollbar-hide">
           <Outlet />
         </main>
