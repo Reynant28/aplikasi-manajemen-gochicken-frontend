@@ -17,8 +17,6 @@ import KaryawanPageSuper from "./pages/super-admin/KaryawanPage.jsx";
 import JenisPengeluaranPageSuper from "./pages/super-admin/JenisPengeluaranPage.jsx";
 import TransaksiPage from "./pages/super-admin/TransaksiPage.jsx";
 import BahanPage from "./pages/super-admin/BahanPage.jsx";
-import HelpPage from "./pages/super-admin/HelpPage.jsx";
-import SettingsPage from "./pages/super-admin/SettingsPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
 import DailyReportPage from "./pages/super-admin/DailyReportPage.jsx";
 import BackupPage from "./pages/BackupPage.jsx";
@@ -29,6 +27,7 @@ import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
 import ReportsPageCabang from './pages/admin-cabang/ReportsPage.jsx';
 import PengeluaranPageCabang from "./pages/admin-cabang/PengeluaranPage.jsx";
 import KaryawanPageCabang from "./pages/admin-cabang/KaryawanPage.jsx";
+import KasirPage from "./pages/admin-cabang/KasirPage.jsx";
 import ProdukPage from "./pages/admin-cabang/ProdukPage.jsx";
 import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
 import Settingspage from "./pages/admin-cabang/SettingsPage.jsx";
@@ -76,6 +75,7 @@ function App() {
                 <Route path="reports" element={<ReportsPageCabang />} />
                 <Route path="pengeluaran" element={<PengeluaranPageCabang />} />
                 <Route path="karyawan" element={<KaryawanPageCabang />} />
+                <Route path="kasir" element={<KasirPage />} />
                 <Route path="produk" element={<ProdukPage />} />
                 <Route path="settings" element={<Settingspage />} />
                 <Route path="help" element={<HelpPageCabang />} />

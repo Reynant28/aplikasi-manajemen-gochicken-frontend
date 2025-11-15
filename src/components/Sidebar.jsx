@@ -5,7 +5,8 @@ import {
   HelpCircle, Building2, UserCog, Wallet,
   Receipt, Package, Boxes, X, Feather, WalletCards,
   DatabaseBackup,
-  ClipboardClock
+  ClipboardClock,
+  HandCoins
 } from "lucide-react";
 //eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -26,6 +27,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
     { to: "/produk", label: "Produk", icon: <Layers size={18} />, roles: ["super admin", "admin cabang"] },
     { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
+    { to: "/kasir", label: "Kasir", icon: <HandCoins size={18} />, roles: ["admin cabang"] },
     { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} />, roles: ["super admin"] },
     { to: "/pemesanan", label: "Pemesanan", icon: <Receipt size={18} />, roles: ["admin cabang"] },
     { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },

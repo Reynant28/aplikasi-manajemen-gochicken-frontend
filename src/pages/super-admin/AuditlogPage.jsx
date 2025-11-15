@@ -614,7 +614,7 @@ const AuditLogPage = () => {
                                 type="date"
                                 value={dateFilter.startDate}
                                 onChange={(e) => setDateFilter(prev => ({...prev, startDate: e.target.value}))}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                             />
                         </div>
                         <div>
@@ -625,7 +625,7 @@ const AuditLogPage = () => {
                                 type="date"
                                 value={dateFilter.endDate}
                                 onChange={(e) => setDateFilter(prev => ({...prev, endDate: e.target.value}))}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 text-gray-700 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                             />
                         </div>
                     </div>
