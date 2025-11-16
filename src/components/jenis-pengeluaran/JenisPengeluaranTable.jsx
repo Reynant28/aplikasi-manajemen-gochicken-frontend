@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, LoaderCircle } from 'lucide-react';
 
 const JenisPengeluaranTable = ({ 
   data, 
@@ -55,7 +55,7 @@ const JenisPengeluaranTable = ({
 
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -76,8 +76,10 @@ const JenisPengeluaranTable = ({
                 {loading ? (
                   <tr>
                     <td colSpan={3} className="text-center py-8">
-                      <div className="flex items-center justify-center text-gray-500">
-                        <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                      <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                        </div>
                       </div>
                     </td>
                   </tr>

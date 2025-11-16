@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, LoaderCircle, AlertTriangle } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import KaryawanCard from "../../components/karyawan/KaryawanCard";
 import KaryawanForm from "../../components/karyawan/KaryawanForm";
@@ -8,7 +8,8 @@ import KaryawanForm from "../../components/karyawan/KaryawanForm";
 const API_URL = "http://localhost:8000/api";
 
 const KaryawanPage = () => {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Changed to true initially
+    const [error, setError] = useState(null);
     const [karyawan, setKaryawan] = useState([]);
     const [cabang, setCabang] = useState([]);
     const [newKaryawan, setNewKaryawan] = useState({ 
@@ -36,6 +37,7 @@ const KaryawanPage = () => {
             setKaryawan(data.data || []);
         } catch (err) {
             console.error("Failed to fetch karyawan:", err);
+            setError("Gagal memuat data karyawan");
             setKaryawan([]);
         }
     }, [token]);
@@ -49,19 +51,35 @@ const KaryawanPage = () => {
             setCabang(data.data || []);
         } catch (err) {
             console.error("Failed to fetch cabang:", err);
+            setError("Gagal memuat data cabang");
             setCabang([]);
         }
     }, [token]);
 
-    useEffect(() => {
-        if (token) {
-            fetchKaryawan();
-            fetchCabang();
+    // Combined fetch function
+    const fetchAllData = useCallback(async () => {
+        if (!token) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            await Promise.all([fetchKaryawan(), fetchCabang()]);
+        } catch (err) {
+            console.error("Failed to fetch all data:", err);
+            setError("Gagal memuat data");
+        } finally {
+            setLoading(false);
         }
     }, [token, fetchKaryawan, fetchCabang]);
 
+    useEffect(() => {
+        fetchAllData();
+    }, [fetchAllData]);
+
     const handleAdd = async (formData) => {
         setLoading(true);
+        setError(null);
 
         try {
             const res = await fetch(`${API_URL}/karyawan`, {
@@ -85,13 +103,16 @@ const KaryawanPage = () => {
                     gaji: "",
                 });
                 setShowAddForm(false);
-                fetchCabang();
-                fetchKaryawan();
+                await fetchAllData(); // Refresh all data
+            } else {
+                setError(data.message || "Gagal menambahkan karyawan");
             }
         } catch (err) {
             console.error("Fetch error:", err);
+            setError("Error koneksi server");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const confirmDelete = (id) => {
@@ -100,6 +121,7 @@ const KaryawanPage = () => {
     };
 
     const handleDelete = async () => {
+        setLoading(true);
         try {
             const res = await fetch(`${API_URL}/karyawan/${deleteId}`, {
                 method: "DELETE",
@@ -108,17 +130,22 @@ const KaryawanPage = () => {
             if (res.ok) {
                 setSuccessMessage("Karyawan berhasil dihapus!");
                 setShowSuccess(true);
-                fetchKaryawan();
-                fetchCabang();
+                await fetchAllData(); // Refresh all data
+            } else {
+                setError("Gagal menghapus karyawan");
             }
         } catch (err) {
             console.error("Delete karyawan error:", err);
+            setError("Error koneksi server saat menghapus");
+        } finally {
+            setLoading(false);
+            setShowConfirm(false);
+            setDeleteId(null);
         }
-        setShowConfirm(false);
-        setDeleteId(null);
     };
 
     const handleUpdate = async (formData) => {
+        setLoading(true);
         try {
             const res = await fetch(`${API_URL}/karyawan/${formData.id_karyawan}`, {
                 method: "PUT",
@@ -131,17 +158,26 @@ const KaryawanPage = () => {
             if (res.ok) {
                 setSuccessMessage(`Karyawan ${formData.nama_karyawan} berhasil diupdate!`);
                 setShowSuccess(true);
-                await fetchKaryawan();
-                await fetchCabang();
+                await fetchAllData(); // Refresh all data
                 setEditKaryawan(null);
+            } else {
+                setError("Gagal mengupdate karyawan");
             }
         } catch (err) {
             console.error("Update karyawan error:", err);
+            setError("Error koneksi server saat mengupdate");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <motion.div 
+            className="p-6 space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <motion.div
@@ -165,38 +201,64 @@ const KaryawanPage = () => {
                 </motion.button>
             </div>
 
-            {/* Karyawan Grid */}
-            {karyawan.length === 0 && !loading ? (
-                <motion.div 
-                    className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <Users size={64} className="text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-lg font-medium">Belum ada karyawan</p>
-                    <p className="text-gray-400 text-sm mt-1">Klik "Tambah Karyawan" untuk memulai</p>
-                </motion.div>
-            ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {karyawan.map((item, index) => (
-                        <KaryawanCard
-                            key={item.id_karyawan}
-                            karyawan={item}
-                            index={index}
-                            onEdit={setEditKaryawan}
-                            onDelete={confirmDelete}
-                        />
-                    ))}
-                </div>
-            )}
-
+            {/* Loading State - Now shows first */}
             {loading && (
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-600">Memuat data karyawan...</p>
+              <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                <div className="text-center">
+                  <div className="flex items-center justify-center h-64 text-gray-500">
+                    <LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...
+                  </div>
                 </div>
+              </div>
             )}
 
-            {/* Add Karyawan Form */}
+            {/* Error State */}
+            {error && !loading && (
+              <motion.div 
+                className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+                  <p className="text-sm">{error}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Karyawan Grid - Only shows when not loading and no error */}
+            {!loading && !error && (
+              <>
+                {karyawan.length === 0 ? (
+                    <motion.div 
+                        className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        <Users size={64} className="text-gray-300 mb-4" />
+                        <p className="text-gray-500 text-lg font-medium">Belum ada karyawan</p>
+                        <p className="text-gray-400 text-sm mt-1">Klik "Tambah Karyawan" untuk memulai</p>
+                    </motion.div>
+                ) : (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {karyawan.map((item, index) => (
+                            <KaryawanCard
+                                key={item.id_karyawan}
+                                karyawan={item}
+                                index={index}
+                                onEdit={setEditKaryawan}
+                                onDelete={confirmDelete}
+                            />
+                        ))}
+                    </div>
+                )}
+              </>
+            )}
+
+            {/* Rest of your components remain the same */}
             <AnimatePresence>
                 <KaryawanForm
                     isOpen={showAddForm}
@@ -210,7 +272,6 @@ const KaryawanPage = () => {
                 />
             </AnimatePresence>
 
-            {/* Edit Karyawan Form */}
             <AnimatePresence>
                 <KaryawanForm
                     isOpen={!!editKaryawan}
@@ -223,7 +284,6 @@ const KaryawanPage = () => {
                 />
             </AnimatePresence>
 
-            {/* Custom Popups */}
             <ConfirmDeletePopup
                 isOpen={showConfirm}
                 onClose={() => setShowConfirm(false)}
@@ -235,7 +295,7 @@ const KaryawanPage = () => {
                 title="Aksi Berhasil! 🎉"
                 message={successMessage}
             />
-        </div>
+        </motion.div>
     );
 };
 

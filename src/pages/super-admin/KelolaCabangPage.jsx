@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Building2 } from "lucide-react";
+import { Plus, Building2, LoaderCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import Modal from "../../components/ui/Modal.jsx";
-import CabangCard from "../../components/ui/Card/CabangCard.jsx";
-import CabangForm from "../../components/ui/Form/CabangForm.jsx";
+import CabangCard from "../../components/cabang/CabangCard.jsx";
+import CabangForm from "../../components/cabang/CabangForm.jsx";
 
 const API_URL = "http://localhost:8000/api";
 
 const KelolaCabangPage = () => {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [cabang, setCabang] = useState([]);
     const [formData, setFormData] = useState({
         nama_cabang: "",
@@ -28,6 +29,8 @@ const KelolaCabangPage = () => {
 
     const fetchCabang = useCallback(async () => {
         try {
+            setLoading(true);
+            setError(null);
             const res = await fetch(`${API_URL}/cabang`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -36,6 +39,8 @@ const KelolaCabangPage = () => {
         } catch (err) {
             console.error("Failed to fetch cabang:", err);
             setCabang([]);
+        } finally {
+            setLoading(false);
         }
     }, [token]);
 
@@ -50,6 +55,7 @@ const KelolaCabangPage = () => {
     const handleAdd = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
 
         try {
             const res = await fetch(`${API_URL}/cabang`, {
@@ -160,7 +166,12 @@ const KelolaCabangPage = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <motion.div
+            className="p-6 space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <motion.div
@@ -184,29 +195,61 @@ const KelolaCabangPage = () => {
                 </motion.button>
             </div>
 
-            {/* Cabang Grid */}
-            {cabang.length === 0 && !loading ? (
-                <motion.div 
-                    className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <Building2 size={64} className="text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-lg font-medium">Belum ada cabang</p>
-                    <p className="text-gray-400 text-sm mt-1">Klik "Tambah Cabang" untuk memulai</p>
-                </motion.div>
-            ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {cabang.map((branch, index) => (
-                        <CabangCard
-                            key={branch.id_cabang}
-                            cabang={branch}
-                            index={index}
-                            onEdit={handleEdit}
-                            onDelete={confirmDelete}
-                        />
-                    ))}
+            {/* Loading State */}
+            {loading && (
+                <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                <div className="text-center">
+                    <div className="flex items-center justify-center h-64 text-gray-500">
+                    <LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...
+                    </div>
                 </div>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+                <motion.div 
+                className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                >
+                    <div className="p-2 bg-red-100 rounded-lg">
+                        <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+                        <p className="text-sm">{error}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Cabang Grid */}
+            {!loading && !error && (
+                <>
+                {cabang.length === 0 ? (
+                    <motion.div 
+                        className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        <Building2 size={64} className="text-gray-300 mb-4" />
+                        <p className="text-gray-500 text-lg font-medium">Belum ada cabang</p>
+                        <p className="text-gray-400 text-sm mt-1">Klik "Tambah Cabang" untuk memulai</p>
+                    </motion.div>
+                ) : (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {cabang.map((branch, index) => (
+                            <CabangCard
+                                key={branch.id_cabang}
+                                cabang={branch}
+                                index={index}
+                                onEdit={handleEdit}
+                                onDelete={confirmDelete}
+                            />
+                        ))}
+                    </div>
+                )}
+                </>
             )}
 
             {/* Modal Add/Edit with Form Component */}
@@ -236,7 +279,7 @@ const KelolaCabangPage = () => {
                 title="Aksi Berhasil! 🎉"
                 message={successMessage}
             />
-        </div>
+        </motion.div>
     );
 };
 

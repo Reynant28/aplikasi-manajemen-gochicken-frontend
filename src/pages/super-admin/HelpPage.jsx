@@ -11,63 +11,90 @@ import {
   Wallet,
   Receipt,
   Package,
+  ChartColumn,
+  FileChartColumnIncreasing,
+  Boxes,
 } from "lucide-react";
 
 const HelpPage = () => {
   const guides = [
     {
-      icon: <BookOpen className="text-green-600" size={22} />,
+      icon: <BookOpen className="text-gray-600" size={22} />,
       title: "General Page",
       desc:
         "Menampilkan ringkasan aktivitas operasional, statistik utama, dan aktivitas terbaru. Super Admin dan Admin Cabang dapat memantau performa sistem, penjualan, serta aktivitas harian melalui grafik dan daftar aktivitas.",
     },
     {
-      icon: <BarChart2 className="text-green-600" size={22} />,
-      title: "Reports Page",
+      icon: <ChartColumn className="text-gray-600" size={22} />,
+      title: "Laporan Master",
       desc:
         "Menampilkan laporan data secara mendetail dengan diagram dan visualisasi untuk memudahkan analisis. Pengguna dapat melihat laporan penjualan, pengeluaran, dan performa karyawan yang dapat difilter atau diunduh.",
     },
     {
-      icon: <Building2 className="text-green-600" size={22} />,
+      icon: <FileChartColumnIncreasing className="text-gray-600" size={22} />,
+      title: "Laporan Harian",
+      desc:
+        "Ringkasan penjualan, bahan baku, dan pengeluaran setiap hari. Super Admin dapat memantau performa harian dengan data yang mudah dipahami dan diakses kapan saja.",
+    },
+    {
+      icon: <Receipt className="text-gray-600" size={22} />,
+      title: "Audit Log",
+      desc:
+        "Riwayat aktivitas dan perubahan data sistem. Super Admin dapat meninjau tindakan yang dilakukan oleh admin cabang untuk memastikan keamanan dan integritas data.",
+    },
+    {
+      icon: <Building2 className="text-gray-600" size={22} />,
       title: "Kelola Cabang Page",
       desc:
         "Digunakan untuk mengelola data seluruh cabang di sistem. Super Admin dapat menambah, memperbarui, atau menghapus cabang yang tidak aktif.",
     },
     {
-      icon: <Layers className="text-green-600" size={22} />,
+      icon: <Layers className="text-gray-600" size={22} />,
       title: "Kelola Produk Page",
       desc:
         "Berfungsi untuk menambah, mengubah, dan menghapus produk yang tersedia. Setiap produk dapat memiliki deskripsi, harga, dan gambar untuk tampilan yang menarik.",
     },
     {
-      icon: <Users className="text-green-600" size={22} />,
+      icon: <Users className="text-gray-600" size={22} />,
       title: "Karyawan Page",
       desc:
         "Menampilkan daftar seluruh karyawan yang bekerja di setiap cabang. Admin Cabang dapat menambahkan, memperbarui, atau menghapus data karyawan sesuai kebutuhan.",
     },
     {
-      icon: <UserCog className="text-green-600" size={22} />,
+      icon: <UserCog className="text-gray-600" size={22} />,
       title: "Admin Cabang Page",
       desc:
         "Fitur khusus untuk Super Admin dalam menambah dan mengelola akun Admin Cabang. Setiap Admin Cabang bertanggung jawab atas aktivitas di cabangnya masing-masing.",
     },
     {
-      icon: <Wallet className="text-green-600" size={22} />,
-      title: "Pengeluaran Page",
+      icon: <Wallet className="text-gray-600" size={22} />,
+      title: "Pengeluaran",
       desc:
         "Digunakan untuk mencatat semua jenis pengeluaran di cabang. Setiap transaksi pengeluaran harus disertai keterangan rinci agar memudahkan evaluasi keuangan.",
     },
     {
-      icon: <Receipt className="text-green-600" size={22} />,
+      icon: <Wallet className="text-gray-600" size={22} />,
+      title: "Jenis Pengeluaran",
+      desc:
+        "Kelola jenis-jenis pengeluaran untuk sistem. Super Admin dapat menambah, memperbarui, atau menghapus kategori pengeluaran sesuai kebutuhan operasional.",
+    },
+    {
+      icon: <Receipt className="text-gray-600" size={22} />,
       title: "Transaksi Page",
       desc:
         "Menampilkan seluruh riwayat transaksi yang terjadi di sistem. Pengguna dapat meninjau detail transaksi, status pembayaran, dan mengekspor data ke PDF atau Excel.",
     },
     {
-      icon: <Package className="text-green-600" size={22} />,
-      title: "Daftar Bahan Baku Page",
+      icon: <Package className="text-gray-600" size={22} />,
+      title: "Daftar Bahan Baku",
       desc:
         "Berfungsi untuk mengelola data bahan baku yang digunakan dalam operasional. Super Admin dapat menambah, memperbarui, atau menghapus bahan baku sesuai kebutuhan stok produksi.",
+    },
+    {
+      icon: <Boxes className="text-gray-600" size={22} />,
+      title: "Daftar Bahan Baku Pakai",
+      desc:
+        "Kelola dan pantau pemakaian bahan baku per hari. Super Admin dapat mencatat penggunaan bahan baku setiap harinya agar stok yang terpakai tetap tercatat.",
     },
   ];
 
@@ -101,7 +128,7 @@ const HelpPage = () => {
             className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-all"
           >
             <div className="flex items-start gap-4">
-              <div className="bg-green-100 p-3 rounded-full">
+              <div className="bg-gray-100 p-3 rounded-full">
                 {item.icon}
               </div>
               <div>

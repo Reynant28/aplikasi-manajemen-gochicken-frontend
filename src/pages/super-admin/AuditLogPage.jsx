@@ -14,6 +14,7 @@ const API_URL = "http://localhost:8000/api";
 const AuditLogPage = () => {
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     type: 'all',
     model: 'all',
@@ -54,6 +55,7 @@ const AuditLogPage = () => {
   const fetchAuditLogs = async () => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams({
         page: pagination.current_page,
         per_page: pagination.per_page,
@@ -74,6 +76,7 @@ const AuditLogPage = () => {
       setShowSuccess(true);
     } finally {
       setLoading(false);
+      setError(true);
     }
   };
 
@@ -85,9 +88,15 @@ const AuditLogPage = () => {
 
       if (response.data.status === 'success') {
         setFilterOptions(response.data.data);
+      } else {
+        console.error('Failed to fetch filter options:', response.data.message);
+        setSuccessMessage("Gagal memuat opsi filter");
+        setShowSuccess(true);
       }
     } catch (error) {
       console.error('Error fetching filters:', error);
+      setSuccessMessage("Terjadi kesalahan saat memuat opsi filter");
+      setShowSuccess(true);
     }
   };
 
@@ -173,7 +182,7 @@ const AuditLogPage = () => {
           <button
             onClick={fetchAuditLogs}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 text-white bg-gray-700 rounded-lg hover:bg-gray-800 transition-all font-medium shadow-sm disabled:bg-gray-400"
+            className="flex items-center gap-2 px-4 py-2.5 text-white bg-gray-700 rounded-lg hover:bg-gray-800 transition-all font-medium shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -247,6 +256,7 @@ const AuditLogPage = () => {
         <AuditLogTable
           data={auditLogs}
           loading={loading}
+          Error={error}
           pagination={pagination}
           onPageChange={handlePageChange}
           onViewDetails={handleViewDetails}

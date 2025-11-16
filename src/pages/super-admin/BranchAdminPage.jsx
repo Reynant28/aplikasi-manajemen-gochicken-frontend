@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Shield } from "lucide-react";
+import { Plus, Shield, LoaderCircle } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import Modal from "../../components/ui/Modal.jsx";
-import AdminCabangForm from "../../components/ui/Form/BranchAdminForm.jsx";
-import AdminCabangCard from "../../components/ui/Card/BranchAdminCard.jsx";
+import AdminCabangForm from "../../components/branch-admin/BranchAdminForm.jsx";
+import AdminCabangCard from "../../components/branch-admin/BranchAdminCard.jsx";
+import { set } from "date-fns";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -16,7 +17,8 @@ const BranchAdminPage = () => {
         id_cabang: "",
     });
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [admins, setAdmins] = useState([]);
     const [cabang, setCabang] = useState([]);
     const [showAddForm, setShowAddForm] = useState(false);
@@ -30,6 +32,8 @@ const BranchAdminPage = () => {
 
     const fetchAdmins = useCallback(async () => {
         try {
+            setLoading(true);
+            setError(null);
             const res = await fetch(`${API_URL}/admin-cabang`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -37,12 +41,17 @@ const BranchAdminPage = () => {
             setAdmins(data.data || []);
         } catch (err) {
             console.error("Failed to fetch admins:", err);
+            setError("Terjadi kesalahan saat mengambil data admin.");
             setAdmins([]);
+        } finally {
+            setLoading(false);
         }
     }, [token]);
 
     const fetchCabang = useCallback(async () => {
         try {
+            setLoading(true);
+            setError(null);
             const res = await fetch(`${API_URL}/cabang-without-admin`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -50,7 +59,10 @@ const BranchAdminPage = () => {
             setCabang(data.data || []);
         } catch (err) {
             console.error("Failed to fetch cabang:", err);
+            setError("Terjadi kesalahan saat mengambil data cabang.");
             setCabang([]);
+        } finally {
+            setLoading(false);
         }
     }, [token]);
 
@@ -67,6 +79,7 @@ const BranchAdminPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
 
         try {
             const res = await fetch(`${API_URL}/create-admin-cabang`, {
@@ -164,7 +177,12 @@ const BranchAdminPage = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <motion.div 
+            className="p-6 space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <motion.div
@@ -188,29 +206,61 @@ const BranchAdminPage = () => {
                 </motion.button>
             </div>
 
-            {/* Admin Grid */}
-            {admins.length === 0 && !loading ? (
-                <motion.div 
-                    className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <Shield size={64} className="text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-lg font-medium">Belum ada admin cabang</p>
-                    <p className="text-gray-400 text-sm mt-1">Klik "Tambah Admin" untuk memulai</p>
-                </motion.div>
-            ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {admins.map((admin, index) => (
-                        <AdminCabangCard
-                            key={admin.id_user}
-                            admin={admin}
-                            index={index}
-                            onEdit={handleEdit}
-                            onDelete={confirmDelete}
-                        />
-                    ))}
+            {/* Loading State */}
+            {loading && (
+                <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                <div className="text-center">
+                    <div className="flex items-center justify-center h-64 text-gray-500">
+                    <LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...
+                    </div>
                 </div>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && !loading && (
+                <motion.div 
+                className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                >
+                <div className="p-2 bg-red-100 rounded-lg">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                </div>
+                <div className="flex-1">
+                    <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+                </motion.div>
+            )}
+
+            {/* Admin Grid */}
+            {!loading && !error && (
+                <>
+                {admins.length === 0 ? (
+                    <motion.div 
+                        className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        <Shield size={64} className="text-gray-300 mb-4" />
+                        <p className="text-gray-500 text-lg font-medium">Belum ada admin cabang</p>
+                        <p className="text-gray-400 text-sm mt-1">Klik "Tambah Admin" untuk memulai</p>
+                    </motion.div>
+                ) : (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {admins.map((admin, index) => (
+                            <AdminCabangCard
+                                key={admin.id_user}
+                                admin={admin}
+                                index={index}
+                                onEdit={handleEdit}
+                                onDelete={confirmDelete}
+                            />
+                        ))}
+                    </div>
+                )}
+                </>
             )}
 
             {/* Modal Add/Edit with Form Component */}
@@ -241,7 +291,7 @@ const BranchAdminPage = () => {
                 title="Aksi Berhasil! 🎉"
                 message={successMessage}
             />
-        </div>
+        </motion.div>
     );
 };
 

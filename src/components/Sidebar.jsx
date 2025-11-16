@@ -127,7 +127,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       dropdown: true,
       icon: <Wallet size={18} className="text-gray-200" />,
       items: [
-        { to: "/pemesanan", label: "Pemesanan", icon: <PackagePlus size={18} />, roles: ["super admin", "admin cabang"] },
+        { to: "/pemesanan", label: "Pemesanan", icon: <PackagePlus size={18} />, roles: ["admin cabang"] },
         { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin"] },
         { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin", "admin cabang"] },

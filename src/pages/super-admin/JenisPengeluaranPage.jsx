@@ -9,7 +9,7 @@ import {
 } from "../../components/ui";
 import { FileText } from "lucide-react";
 import JenisPengeluaranTable from "../../components/jenis-pengeluaran/JenisPengeluaranTable.jsx";
-import JenisPengeluaranForm from "../../components/ui/Form/JenisPengeluaranForm.jsx";
+import JenisPengeluaranForm from "../../components/jenis-pengeluaran/JenisPengeluaranForm.jsx";
 
 const API_URL = "http://localhost:8000/api";
 

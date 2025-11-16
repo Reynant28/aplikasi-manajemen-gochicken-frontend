@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Calendar, CreditCard, Package } from "lucide-react";
+import { X, User, Calendar, CreditCard, Package, LoaderCircle } from "lucide-react";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { 
     style: "currency", 
@@ -13,7 +13,7 @@ const TransaksiDetailModal = ({ isOpen, onClose, data, loading }) => {
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -23,7 +23,7 @@ const TransaksiDetailModal = ({ isOpen, onClose, data, loading }) => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-white shadow-2xl rounded-2xl w-full max-w-2xl mx-auto border border-gray-200 relative"
+                        className="bg-white shadow-2xl rounded-2xl w-full max-w-xl mx-auto border border-gray-200 relative"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
@@ -40,10 +40,12 @@ const TransaksiDetailModal = ({ isOpen, onClose, data, loading }) => {
                             </p>
                         </div>
 
-                        <div className="p-6 max-h-[70vh] overflow-y-auto">
+                        <div className="p-4 max-h-[60vh] overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {loading ? (
-                                <div className="flex items-center justify-center h-48">
-                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
+                                <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                                    <div className="text-center">
+                                        <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -107,7 +109,7 @@ const TransaksiDetailModal = ({ isOpen, onClose, data, loading }) => {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100">
-                                                    {data?.detail?.map((d, idx) => (
+                                                    {data?.details?.map((d, idx) => ( // Change 'detail' to 'details'
                                                         <tr key={idx} className="hover:bg-gray-50">
                                                             <td className="px-4 py-3 text-gray-800">
                                                                 {d.produk?.nama_produk || "Produk"}

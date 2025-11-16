@@ -149,7 +149,12 @@ const TransaksiPage = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <motion.div
+            className="p-6 space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <motion.div
@@ -265,7 +270,7 @@ const TransaksiPage = () => {
                 data={detailTransaksi}
                 loading={loadingDetail}
             />
-        </div>
+        </motion.div>
     );
 };
 

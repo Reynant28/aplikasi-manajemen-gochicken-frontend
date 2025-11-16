@@ -124,8 +124,8 @@ const AlertPopup = ({
       case "success":
         return {
           icon: CheckCircle,
-          iconColor: "text-green-500",
-          confirmClass: "bg-green-500 hover:bg-green-600",
+          iconColor: "text-green-600",
+          confirmClass: "bg-green-600 hover:bg-green-700",
         };
       case "error":
         return {
@@ -336,7 +336,7 @@ const Login = () => {
       if (res.data.status === "success") {
         // Success Popup
         showPopup(
-          "Login Berhasil! 👑",
+          "Login Berhasil!",
           "Selamat datang, Anda akan diarahkan ke dashboard Super Admin.",
           "success",
           "Lanjut"

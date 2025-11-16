@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const API_URL = "http://localhost:8000/api";
 const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
-const ProductReport = ({ cabangId, token }) => {
+const ProductReport = ({ token }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,25 +86,25 @@ const ProductReport = ({ cabangId, token }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="overflow-x-auto bg-white rounded-lg border">
+      <div className="overflow-x-auto bg-white rounded-2xl shadow-md border border-gray-100">
         <table className="min-w-full text-sm divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-              <th className='px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider'>Cabang</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Harga</th>
-              <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Stok Saat Ini</th>
+              <th className="px-6 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider">Nama Produk</th>
+              <th className="px-6 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider">Kategori</th>
+              <th className="px-6 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider">Cabang</th>
+              <th className="px-6 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider">Harga</th>
+              <th className="px-6 py-4 text-left font-semibold text-gray-700 uppercase tracking-wider">Stok Saat Ini</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {data.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+              <tr key={index} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{item.nama_produk}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.kategori}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.cabang}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{formatRupiah(item.harga)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.jumlah_stok}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{item.kategori}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{item.cabang}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatRupiah(item.harga)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-600">{item.jumlah_stok}</td>
               </tr>
             ))}
           </tbody>

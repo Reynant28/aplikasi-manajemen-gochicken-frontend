@@ -32,14 +32,16 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
   // 🔹 List halaman berdasarkan role (TIDAK BERUBAH)
   const superAdminPages = [
     { name: "General", path: "/super-admin/dashboard/general" },
-    { name: "Reports", path: "/super-admin/dashboard/reports" },
+    { name: "Laporan Master", path: "/super-admin/dashboard/reports" },
+    { name: "Laporan Harian", path: "/super-admin/dashboard/daily-reports" },
+    { name: "Audit Log", path: "/super-admin/dashboard/audit-log" },
     { name: "Kelola Cabang", path: "/super-admin/dashboard/kelola-cabang" },
     { name: "Produk", path: "/super-admin/dashboard/produk" },
     { name: "Admin Cabang", path: "/super-admin/dashboard/branch" },
     { name: "Pengeluaran", path: "/super-admin/dashboard/pengeluaran" },
     { name: "Karyawan", path: "/super-admin/dashboard/karyawan" },
     { name: "Transaksi", path: "/super-admin/dashboard/transaksi" },
-    { name: "Bahan", path: "/super-admin/dashboard/bahan" },
+    { name: "Bahan Baku", path: "/super-admin/dashboard/bahan" },
     { name: "Jenis Pengeluaran", path: "/super-admin/dashboard/jenis-pengeluaran" },
     { name: "Bahan Baku Pakai", path: "/super-admin/dashboard/bahan-baku-pakai" },
   ];
@@ -89,7 +91,7 @@ const Header = ({ onToggleSidebar, isSidebarOpen }) => {
               placeholder="Search page..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-50 border border-gray-200 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full py-2 pl-10 pr-4 text-gray-700 bg-gray-50 border border-gray-200 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
             />
           </div>
 

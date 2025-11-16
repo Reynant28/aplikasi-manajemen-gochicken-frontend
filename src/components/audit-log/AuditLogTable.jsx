@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, RefreshCw, FileText, User, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, RefreshCw, FileText, User, Calendar, ChevronLeft, ChevronRight, LoaderCircle, AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 
-const AuditLogTable = ({ data, loading, pagination, onPageChange, onViewDetails }) => {
+const AuditLogTable = ({ data, loading, error, pagination, onPageChange, onViewDetails }) => {
   const getTypeColor = (type) => {
     switch (type) {
       case 'created': return 'bg-green-100 text-green-700 border-green-200';
@@ -67,7 +67,7 @@ const AuditLogTable = ({ data, loading, pagination, onPageChange, onViewDetails 
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -94,12 +94,32 @@ const AuditLogTable = ({ data, loading, pagination, onPageChange, onViewDetails 
 
             <tbody className="bg-white divide-y divide-gray-100">
               <AnimatePresence>
+                {error ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12">
+                      <motion.div 
+                        className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div className="p-2 bg-red-100 rounded-lg">
+                          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+                          <p className="text-sm">{error}</p>
+                        </div>
+                      </motion.div>
+                    </td>
+                  </tr>
+                ) : null}
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="text-center py-12">
-                      <div className="flex flex-col items-center gap-3">
-                        <RefreshCw className="animate-spin h-8 w-8 text-gray-400" />
-                        <p className="text-gray-500 font-medium">Memuat data...</p>
+                      <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                        </div>
                       </div>
                     </td>
                   </tr>

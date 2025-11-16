@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, AlertTriangle, Package, RefreshCw } from 'lucide-react';
+import { Trash2, AlertTriangle, Package, LoaderCircle } from 'lucide-react';
 
 const formatRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -23,7 +23,7 @@ const BahanBakuPakaiTable = ({ data, loading, onDelete }) => {
 
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-aut [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -56,8 +56,10 @@ const BahanBakuPakaiTable = ({ data, loading, onDelete }) => {
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="text-center py-8">
-                      <div className="flex items-center justify-center text-gray-500">
-                        <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                      <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                        </div>
                       </div>
                     </td>
                   </tr>

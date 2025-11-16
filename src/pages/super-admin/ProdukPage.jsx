@@ -1,12 +1,12 @@
 // src/pages/ProdukPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle, X, ShoppingBag } from "lucide-react";
+import { Package, Edit, Trash2, Plus, AlertTriangle, CheckCircle, X, ShoppingBag, LoaderCircle } from "lucide-react";
 
 import { SuccessPopup, ConfirmDeletePopup } from "../../components/ui";
 import Modal from "../../components/ui/Modal.jsx";
-import ProductCard from "../../components/ui/Card/ProductCard";
-import ProductForm from "../../components/ui/Form/ProductForm.jsx";
+import ProductCard from "../../components/produk/ProductCard.jsx";
+import ProductForm from "../../components/produk/ProductForm.jsx";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -23,7 +23,8 @@ const ProdukPage = () => {
     gambar_produk: null,
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [message, setMessage] = useState("");
   const [produk, setProduk] = useState([]);
   const [selectedProduk, setSelectedProduk] = useState(null);
@@ -39,6 +40,8 @@ const ProdukPage = () => {
   // --- Fetch Produk ---
   const fetchProduk = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch(`${API_URL}/produk`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -46,7 +49,10 @@ const ProdukPage = () => {
       setProduk(data.data || []);
     } catch (err) {
       console.error("Failed to fetch produk:", err);
+      setError("Terjadi kesalahan saat mengambil data produk.");
       setProduk([]);
+    } finally {
+      setLoading(false);
     }
   }, [token]);
 
@@ -179,7 +185,7 @@ const ProdukPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
@@ -200,30 +206,62 @@ const ProdukPage = () => {
         </motion.button>
       </div>
 
-      {/* Product Grid */}
-      {produk.length === 0 ? (
-        <motion.div
-          className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <ShoppingBag size={64} className="text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg font-medium">Belum ada produk</p>
-          <p className="text-gray-400 text-sm mt-1">Klik "Tambah Produk" untuk memulai</p>
-        </motion.div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {produk.map((prod, index) => (
-            <ProductCard
-              key={prod.id_produk}
-              product={prod}
-              index={index}
-              onDetail={handleDetail}
-              onEdit={handleEdit}
-              onDelete={confirmDelete}
-            />
-          ))}
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+          <div className="text-center">
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <motion.div 
+          className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="p-2 bg-red-100 rounded-lg">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Product Grid */}
+      {!loading && !error && (
+        <>
+          {produk.length === 0 ? (
+            <motion.div
+              className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <ShoppingBag size={64} className="text-gray-300 mb-4" />
+              <p className="text-gray-500 text-lg font-medium">Belum ada produk</p>
+              <p className="text-gray-400 text-sm mt-1">Klik "Tambah Produk" untuk memulai</p>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {produk.map((prod, index) => (
+                <ProductCard
+                  key={prod.id_produk}
+                  product={prod}
+                  index={index}
+                  onDetail={handleDetail}
+                  onEdit={handleEdit}
+                  onDelete={confirmDelete}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Modal Tambah/Edit Produk */}

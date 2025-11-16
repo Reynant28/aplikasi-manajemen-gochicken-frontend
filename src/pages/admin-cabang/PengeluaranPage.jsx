@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Tag, Calendar, FileText, Plus, DollarSign } from "lucide-react";
 import axios from 'axios';
 import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable'; // Reuse super admin table
-import PengeluaranForm from '../../components/ui/Form/PengeluaranForm'; // Reuse super admin form
+import PengeluaranForm from '../../components/pengeluaran/PengeluaranForm'; // Reuse super admin form
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, RefreshCw} from "lucide-react";
+import { Eye, LoaderCircle } from "lucide-react";
 
 const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { 
     style: "currency", 
@@ -12,7 +12,7 @@ const TransaksiTable = ({ transaksi, loading, onDetail }) => {
         return (
             <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
                 <div className="text-center">
-                    <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+                    <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
                 </div>
             </div>
         );

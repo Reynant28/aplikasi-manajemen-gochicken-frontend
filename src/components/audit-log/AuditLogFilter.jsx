@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Search, Calendar, Filter } from 'lucide-react';
+import { X, Search, Calendar, Filter, AlertCircle } from 'lucide-react';
 import Modal from "../ui/Modal.jsx";
 
 const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChange, onReset }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Reset error when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+    }
+  }, [isOpen]);
+
   const getTypeText = (type) => {
     switch (type) {
       case 'created': return 'Tambah';
@@ -17,6 +27,9 @@ const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChang
     e.preventDefault();
     onClose();
   };
+
+  // Safe array access for filter options
+  const safeArray = (array) => Array.isArray(array) ? array : [];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-4xl">
@@ -32,6 +45,14 @@ const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChang
           </h2>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <AlertCircle size={16} />
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Tipe Aktivitas */}
@@ -45,7 +66,7 @@ const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChang
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
               >
                 <option value="all">Semua Tipe</option>
-                {filterOptions.types.map(type => (
+                {safeArray(filterOptions.types).map(type => (
                   <option key={type} value={type}>
                     {getTypeText(type)}
                   </option>
@@ -64,7 +85,7 @@ const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChang
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
               >
                 <option value="all">Semua Model</option>
-                {filterOptions.models.map(model => (
+                {safeArray(filterOptions.models).map(model => (
                   <option key={model} value={model}>
                     {model.replace('Model', '')}
                   </option>
@@ -83,9 +104,9 @@ const AuditLogFilter = ({ isOpen, onClose, filters, filterOptions, onFilterChang
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900"
               >
                 <option value="all">Semua User</option>
-                {filterOptions.users.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
+                {safeArray(filterOptions.users).map(user => (
+                  <option key={user.id_user} value={user.id}>
+                    {user.nama}
                   </option>
                 ))}
               </select>
