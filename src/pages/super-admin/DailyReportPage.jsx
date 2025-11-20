@@ -226,7 +226,7 @@ const DailyReportPage = () => {
               title="Total Penjualan" 
               value={formatRupiah(data.penjualan_harian)}
               icon={<ShoppingBag size={24} className="text-white" />}
-              gradient="bg-gradient-to-br from-blue-500 to-blue-600"
+              gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
               index={0}
               isPositive={data.penjualan_harian > 0}
             />
@@ -274,8 +274,8 @@ const DailyReportPage = () => {
             <div className="p-6 border-b bg-gradient-to-r from-blue-50 via-white to-blue-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <ShoppingBag className="text-blue-600" size={24} />
+                  <div className="p-2 bg-emerald-100 rounded-lg">
+                    <ShoppingBag className="text-emerald-600" size={24} />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-800">Penjualan Produk</h2>
@@ -284,7 +284,7 @@ const DailyReportPage = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Total Penjualan</p>
-                  <p className="text-2xl font-bold text-blue-600">{formatRupiah(data.penjualan?.total_penjualan || 0)}</p>
+                  <p className="text-2xl font-bold text-emerald-600">{formatRupiah(data.penjualan?.total_penjualan || 0)}</p>
                 </div>
               </div>
             </div>
@@ -293,7 +293,7 @@ const DailyReportPage = () => {
                 <TableHeader>
                   <TableCell>Produk</TableCell>
                   <TableCell align="center">Jumlah</TableCell>
-                  <TableCell align="right">Harga Rata-rata</TableCell>
+                  <TableCell align="right">Harga Satuan</TableCell>
                   <TableCell align="right">Total</TableCell>
                 </TableHeader>
                 <tbody className="divide-y divide-gray-100">
@@ -324,7 +324,7 @@ const DailyReportPage = () => {
                           {formatRupiah(item.harga_item)}
                         </td>
                         <td className="p-4 text-right">
-                          <span className="text-blue-600 font-bold text-lg">
+                          <span className="text-emerald-600 font-bold text-lg">
                             {formatRupiah(item.total_penjualan_produk)}
                           </span>
                         </td>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Package } from "lucide-react";
+import { PlusCircle, Package, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   ConfirmDeletePopup,
   SuccessPopup,
   Modal,
+  DataTable
 } from "../../components/ui";
 import BahanTable from "../../components/bahan-baku/BahanBakuTable.jsx";
 import BahanForm from "../../components/bahan-baku/BahanBakuForm.jsx";
@@ -14,6 +15,8 @@ const API_URL = "http://localhost:8000/api";
 const BahanPage = () => {
   const [bahanList, setBahanList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -149,6 +152,76 @@ const BahanPage = () => {
 
   const closeSuccessPopup = () => setShowSuccess(false);
 
+  const BahanBakuColumns = [
+    { 
+      key: 'nama_bahan', 
+      header: 'Nama Bahan',
+    },
+    { 
+      key: 'harga_satuan', 
+      header: 'Harga Satuan',
+      bold: true
+    },
+    { 
+      key: 'satuan', 
+      header: 'Satuan',
+    },
+    { 
+      key: 'jumlah_stok', 
+      header: 'Jumlah Stok',
+    },
+  ];
+
+  const renderAction = (item) => (
+    <div className="flex gap-2 justify-center">
+      <button
+        onClick={() => setEditBahan(item)}
+        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <Edit size={14} />
+      </button>
+      <button
+        onClick={() => confirmDelete(item.id_bahan_baku)}
+        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+
+  const totalPages = Math.ceil(bahanList.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentData = bahanList.slice(indexOfFirst, indexOfLast);
+
+  const getPageNumbers = () => {
+    const maxPagesToShow = 5;
+    const pages = [];
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(2, currentPage - Math.floor((maxPagesToShow - 3) / 2));
+      const endPage = Math.min(totalPages - 1, currentPage + Math.ceil((maxPagesToShow - 3) / 2));
+
+      pages.push(1);
+      if (startPage > 2) pages.push("...");
+      for (let i = startPage; i <= endPage; i++) pages.push(i);
+      if (endPage < totalPages - 1) pages.push("...");
+      if (totalPages > 1) pages.push(totalPages);
+    }
+
+    return pages.filter((value, index, self) => self.indexOf(value) === index);
+  };
+
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   // Calculate total value
   const totalNilaiBahan = bahanList.reduce((sum, item) => 
     sum + (Number(item.jumlah_stok) * Number(item.harga_satuan)), 0
@@ -222,18 +295,73 @@ const BahanPage = () => {
           </div>
         </div>
 
-        {/* Table Section */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          <BahanTable
-            data={bahanList}
-            loading={loading}
-            currentPage={currentPage}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onEdit={setEditBahan}
-            onDelete={confirmDelete}
-          />
+        {/* Filter and Pagination */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-gray-100">
+          {/* Data Info */}
+          <div className="text-sm text-gray-600">
+            Menampilkan {indexOfFirst + 1}-{Math.min(indexOfLast, bahanList.length)} dari {bahanList.length} bahan baku
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, i) => (
+                  <button
+                    key={i}
+                    onClick={() => typeof page === "number" && changePage(page)}
+                    disabled={page === "..."}
+                    className={`min-w-[36px] px-3 py-2 text-sm font-medium rounded-lg transition ${
+                      currentPage === page
+                        ? "bg-gray-700 text-white"
+                        : page === "..."
+                        ? "text-gray-400 cursor-default"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Table Section */}
+        <DataTable
+          data={currentData}  // Use paginated data
+          columns={BahanBakuColumns}
+          loading={loading}
+          emptyMessage="Tidak ada bahan baku"
+          emptyDescription="Belum ada data bahan baku untuk ditampilkan"
+          onRowAction={renderAction}
+          showActions={true}
+          actionLabel="Aksi"
+        />
       </motion.div>
 
       {/* Form Modal */}

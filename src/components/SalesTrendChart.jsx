@@ -6,6 +6,14 @@ import { TrendingUp } from 'lucide-react';
 const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
 const SalesTrendChart = ({ data }) => {
+  // Color configuration
+  const chartColors = {
+    pendapatan: '#10b981',    
+    transaksi: '#3b82f6',     
+    grid: '#f3f4f6',
+    text: '#6b7280'
+  };
+
   if (!data || data.length === 0) {
     return (
       <motion.div 
@@ -33,26 +41,26 @@ const SalesTrendChart = ({ data }) => {
       <div className="flex-grow">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.grid} />
             <XAxis 
               dataKey="period" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 12, fill: '#6b7280' }} 
+              tick={{ fontSize: 12, fill: chartColors.text }} 
             />
             <YAxis 
               yAxisId="left" 
               axisLine={false} 
               tickLine={false} 
               tickFormatter={(value) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(value)} 
-              tick={{ fontSize: 12, fill: '#6b7280' }} 
+              tick={{ fontSize: 12, fill: chartColors.text }} 
             />
             <YAxis 
               yAxisId="right" 
               orientation="right" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 12, fill: '#6b7280' }} 
+              tick={{ fontSize: 12, fill: chartColors.text }} 
             />
             <Tooltip
               formatter={(value, name) => (name === 'Pendapatan' ? formatRupiah(value) : `${value} transaksi`)}
@@ -71,7 +79,7 @@ const SalesTrendChart = ({ data }) => {
               yAxisId="left" 
               type="monotone" 
               dataKey="total_pendapatan" 
-              stroke="#374151" 
+              stroke={chartColors.pendapatan} 
               strokeWidth={2} 
               dot={false} 
               name="Pendapatan" 
@@ -80,7 +88,7 @@ const SalesTrendChart = ({ data }) => {
               yAxisId="right" 
               type="monotone" 
               dataKey="jumlah_transaksi" 
-              stroke="#6b7280" 
+              stroke={chartColors.transaksi} 
               strokeWidth={2} 
               dot={false} 
               name="Transaksi" 

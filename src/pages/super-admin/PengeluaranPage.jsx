@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Loader2, Eye, Tag, Calendar, FileText, Plus, DollarSign } from "lucide-react";
+import { PlusCircle, Loader2, Tag, Calendar, FileText, DollarSign, AlertTriangle, Search, ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
 import axios from 'axios';
-import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable.jsx';
-import PengeluaranForm from '../../components/pengeluaran/PengeluaranForm.jsx';
 import {
- ConfirmDeletePopup,
- SuccessPopup,
+  ConfirmDeletePopup,
+  SuccessPopup,
+  DataTable
 } from "../../components/ui";
-import { format } from 'date-fns';
+import PengeluaranForm from '../../components/pengeluaran/PengeluaranForm.jsx';
 import DetailModal from '../../components/pengeluaran/PengeluaranDetail.jsx';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale'; 
 
 const API_URL = "http://localhost:8000/api";
 
@@ -28,7 +29,13 @@ const PengeluaranPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ details: [] });
   
+  // pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const itemsPerPage = 10;
+
   const token = localStorage.getItem("token");
+  const role = JSON.parse(localStorage.getItem("user"))?.role || "";
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
@@ -50,8 +57,11 @@ const PengeluaranPage = () => {
       setBahanBakuList(resBahan.data.data || []);
       setCabangList(resCabang.data.data || []);
     } catch (err) {
-      console.error(err);
+      if (err.code === 'ECONNABORTED') {
+      setError("Request timeout. Silakan coba lagi.");
+    } else {
       setError("Gagal mengambil data esensial.");
+    }
     } finally {
       setLoading(false);
     }
@@ -139,6 +149,148 @@ const PengeluaranPage = () => {
     }, 0);
   }, [pengeluaranList]);
 
+  // Filter data based on search
+  const filteredData = useMemo(() => {
+    if (!pengeluaranList) return [];
+    
+    const filtered = pengeluaranList.filter(p =>
+      p.keterangan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.jenis_pengeluaran?.jenis_pengeluaran?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.cabang?.nama_cabang?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    // Sorting: tanggal terbaru di atas
+    return filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  }, [pengeluaranList, searchTerm]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirst, indexOfLast);
+
+  const getPageNumbers = () => {
+    const maxPagesToShow = 5;
+    const pages = [];
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(2, currentPage - Math.floor((maxPagesToShow - 3) / 2));
+      const endPage = Math.min(totalPages - 1, currentPage + Math.ceil((maxPagesToShow - 3) / 2));
+
+      pages.push(1);
+      if (startPage > 2) pages.push("...");
+      for (let i = startPage; i <= endPage; i++) pages.push(i);
+      if (endPage < totalPages - 1) pages.push("...");
+      if (totalPages > 1) pages.push(totalPages);
+    }
+
+    return pages.filter((value, index, self) => self.indexOf(value) === index);
+  };
+
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Define columns configuration
+  const pengeluaranColumns = [
+    { 
+      key: 'transaction', 
+      header: 'Transaksi',
+      render: (item) => (
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <DollarSign className="h-4 w-4 text-gray-600" />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {item.jenis_pengeluaran?.jenis_pengeluaran || "N/A"}
+            </p>
+            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+              {item.keterangan}
+            </p>
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 lg:hidden">
+              <span className="flex items-center gap-1">
+                <Calendar size={12} />
+                {format(new Date(item.tanggal), 'd MMM yyyy', { locale: id })}
+              </span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    ...(role === "super admin" ? [{
+      key: 'cabang',
+      header: 'Cabang',
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-gray-100 rounded">
+            <Tag className="h-3 w-3 text-gray-600" />
+          </div>
+          <span className="text-sm text-gray-700 font-medium">
+            {item.cabang?.nama_cabang || "-"}
+          </span>
+        </div>
+      )
+    }] : []),
+    {
+      key: 'tanggal',
+      header: 'Tanggal',
+      render: (item) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Calendar size={14} />
+          {format(new Date(item.tanggal), 'EEEE, d MMM yyyy', { locale: id })}
+        </div>
+      )
+    },
+    {
+      key: 'jumlah',
+      header: 'Jumlah',
+      align: 'right',
+      render: (item) => (
+        <span className="text-sm font-bold text-gray-900">
+          {formatRupiah(item.jumlah)}
+        </span>
+      )
+    }
+  ];
+
+  // Define action buttons
+  const renderAction = (item) => (
+    <div className="flex gap-2 justify-center">
+      <button
+        onClick={() => openModal('view', item)}
+        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Lihat Detail"
+      >
+        <Eye size={16} />
+      </button>
+      
+      <button
+        onClick={() => openModal('edit', item)}
+        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Edit"
+      >
+        <Edit size={16} />
+      </button>
+      
+      <button
+        onClick={() => openModal('delete', item)}
+        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+        title="Hapus"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+
   return (
     <>
       <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -217,7 +369,75 @@ const PengeluaranPage = () => {
           </motion.div>
         )}
 
-        {/* Main Content */}
+        {/* Search and Pagination */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-gray-100">
+          {/* Search */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari pengeluaran..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition text-gray-900 placeholder:text-gray-400 text-sm"
+            />
+          </div>
+
+          {/* Data Info */}
+          <div className="text-sm text-gray-600">
+            Menampilkan {indexOfFirst + 1}-{Math.min(indexOfLast, filteredData.length)} dari {filteredData.length} transaksi
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, i) => (
+                  <button
+                    key={i}
+                    onClick={() => typeof page === "number" && changePage(page)}
+                    disabled={page === "..."}
+                    className={`min-w-[36px] px-3 py-2 text-sm font-medium rounded-lg transition ${
+                      currentPage === page
+                        ? "bg-gray-700 text-white"
+                        : page === "..."
+                        ? "text-gray-400 cursor-default"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Main Content - Using Reusable DataTable */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64 bg-white rounded-2xl">
@@ -227,11 +447,15 @@ const PengeluaranPage = () => {
               </div>
             </div>
           ) : (
-            <PengeluaranTable 
-              pengeluaranList={pengeluaranList} 
-              onEdit={(d) => openModal('edit', d)} 
-              onDelete={(d) => openModal('delete', d)} 
-              onView={(d) => openModal('view', d)} 
+            <DataTable
+              data={currentData}
+              columns={pengeluaranColumns}
+              loading={loading}
+              emptyMessage="Tidak ada data pengeluaran"
+              emptyDescription={searchTerm ? 'Coba ubah kata kunci pencarian' : 'Mulai dengan menambahkan pengeluaran baru'}
+              onRowAction={renderAction}
+              showActions={true}
+              actionLabel="Aksi"
             />
           )}
         </div>

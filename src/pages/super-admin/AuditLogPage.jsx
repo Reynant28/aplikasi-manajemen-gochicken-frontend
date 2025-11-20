@@ -248,7 +248,6 @@ const AuditLogPage = () => {
 
       {/* Table Section */}
       <motion.div 
-        className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}

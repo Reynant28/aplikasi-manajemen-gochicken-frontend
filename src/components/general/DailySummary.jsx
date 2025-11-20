@@ -71,7 +71,7 @@ const DailySummary = ({ loading, error, data }) => {
             </div>
             <p className="text-sm text-gray-500 mb-2">Total Penjualan</p>
             <p className="text-2xl font-bold text-gray-800 mb-4">
-              {formatRupiah(data.total_penjualan || 0)}
+              {formatRupiah(data.penjualan_harian || 0)}
             </p>
             <div className="pt-3 border-t border-gray-100">
               <p className="text-xs text-gray-500">Modal Bahan Baku</p>

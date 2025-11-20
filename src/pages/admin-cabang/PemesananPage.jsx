@@ -5,7 +5,7 @@ import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Edit, Trash2 } f
 import axios from 'axios';
 
 import { SuccessPopup, ConfirmDeletePopup } from "../../components/ui";
-import PemesananTable from "../../components/pemesanan/PemesananTable";
+import DataTable from "../../components/ui/DataTable"; // Import the DataTable
 import PemesananFilter from "../../components/pemesanan/PemesananFilter";
 import PemesananForm from "../../components/pemesanan/PemesananForm";
 import PemesananChangeStatus from "../../components/pemesanan/PemesananChangeStatus";
@@ -21,6 +21,24 @@ const formatRupiah = (value) => new Intl.NumberFormat("id-ID", {
   currency: "IDR", 
   maximumFractionDigits: 0 
 }).format(value);
+
+const getStatusBadge = (status) => {
+  const statusConfig = {
+    'pending': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' },
+    'diproses': { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Diproses' },
+    'dikirim': { color: 'bg-purple-100 text-purple-800 border-purple-200', label: 'Dikirim' },
+    'selesai': { color: 'bg-green-100 text-green-800 border-green-200', label: 'Selesai' },
+    'dibatalkan': { color: 'bg-red-100 text-red-800 border-red-200', label: 'Dibatalkan' }
+  };
+  
+  const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800 border-gray-200', label: status };
+  
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${config.color}`}>
+      {config.label}
+    </span>
+  );
+};
 
 const PemesananPage = () => {
   const [pemesananData, setPemesananData] = useState(null);
@@ -181,12 +199,84 @@ const PemesananPage = () => {
     }
   };
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: 'kode_transaksi',
+      header: 'Kode Transaksi',
+      bold: true,
+      width: '15%'
+    },
+    {
+      key: 'nama_pelanggan',
+      header: 'Pelanggan',
+      width: '20%'
+    },
+    {
+      key: 'total_harga',
+      header: 'Total Harga',
+      align: 'right',
+      width: '15%',
+      render: (item) => formatRupiah(item.total_harga)
+    },
+    {
+      key: 'tanggal_waktu',
+      header: 'Tanggal',
+      width: '15%',
+      render: (item) => new Date(item.tanggal_waktu).toLocaleDateString('id-ID')
+    },
+    {
+      key: 'status_transaksi',
+      header: 'Status',
+      align: 'center',
+      width: '15%',
+      render: (item) => getStatusBadge(item.status_transaksi)
+    }
+  ];
+
+  // Action buttons for each row
+  const renderRowActions = (item) => (
+    <div className="flex items-center justify-center gap-2">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => handleViewDetail(item)}
+        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+        title="Lihat Detail"
+      >
+        <Eye size={16} />
+      </motion.button>
+      
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => handleEditStatus(item)}
+        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+        title="Ubah Status"
+      >
+        <Edit size={16} />
+      </motion.button>
+      
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => confirmDelete(item)}
+        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        title="Hapus Pesanan"
+      >
+        <Trash2 size={16} />
+      </motion.button>
+    </div>
+  );
+
   const renderContent = () => {
     if (loading) return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        <RefreshCw className="animate-spin h-6 w-6 mr-3" /> 
-        Memuat...
-      </div>
+      <DataTable 
+        loading={true}
+        columns={columns}
+        showActions={true}
+        onRowAction={renderRowActions}
+      />
     );
     
     if (error) return (
@@ -197,11 +287,13 @@ const PemesananPage = () => {
     );
     
     return (
-      <PemesananTable 
-        data={pemesananData} 
-        onView={handleViewDetail}
-        onEdit={handleEditStatus}
-        onDelete={confirmDelete}
+      <DataTable 
+        data={pemesananData?.data || []}
+        columns={columns}
+        showActions={true}
+        onRowAction={renderRowActions}
+        emptyMessage="Belum ada pemesanan"
+        emptyDescription="Tidak ada data pemesanan untuk ditampilkan"
       />
     );
   };
@@ -252,9 +344,8 @@ const PemesananPage = () => {
         />
 
         {/* Table Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-          {renderContent()}
-        </div>
+        {renderContent()}
+
 
         {/* Pagination */}
         {pemesananData && pemesananData.total > pemesananData.per_page && (

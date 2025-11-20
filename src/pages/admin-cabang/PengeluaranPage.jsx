@@ -1,11 +1,17 @@
+// src/pages/PengeluaranPage.jsx (Admin Cabang)
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Tag, Calendar, FileText, Plus, DollarSign } from "lucide-react";
+import { PlusCircle, Loader2, Tag, Calendar, FileText, DollarSign, AlertTriangle, Search, ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
 import axios from 'axios';
-import PengeluaranTable from '../../components/pengeluaran/PengeluaranTable'; // Reuse super admin table
-import PengeluaranForm from '../../components/pengeluaran/PengeluaranForm'; // Reuse super admin form
+import {
+  ConfirmDeletePopup,
+  SuccessPopup,
+  DataTable
+} from "../../components/ui";
+import PengeluaranForm from '../../components/pengeluaran/PengeluaranForm.jsx';
+import DetailModal from '../../components/pengeluaran/PengeluaranDetail.jsx';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id } from 'date-fns/locale'; 
 
 const API_URL = "http://localhost:8000/api";
 
@@ -15,7 +21,6 @@ const PengeluaranPage = () => {
   const [pengeluaranList, setPengeluaranList] = useState([]);
   const [jenisList, setJenisList] = useState([]);
   const [bahanBakuList, setBahanBakuList] = useState([]);
-  const [cabangList, setCabangList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -24,13 +29,17 @@ const PengeluaranPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ details: [] });
   
+  // pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const itemsPerPage = 10;
+
   const token = localStorage.getItem("token");
   const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
   const cabangId = cabang?.id_cabang;
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 4000);
   };
 
   const fetchData = useCallback(async () => {
@@ -40,25 +49,26 @@ const PengeluaranPage = () => {
       return; 
     }
     
-    setLoading(true); 
+    setLoading(true);
     setError(null);
     try {
-      const [resPengeluaran, resJenis, resBahan, resCabang] = await Promise.all([
+      const [resPengeluaran, resJenis, resBahan] = await Promise.all([
         axios.get(`${API_URL}/cabang/${cabangId}/pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_URL}/jenis-pengeluaran`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_URL}/bahan-baku`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/cabang`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      
+
       setPengeluaranList(resPengeluaran.data.data || []);
       setJenisList(resJenis.data.data || []);
       setBahanBakuList(resBahan.data.data || []);
-      setCabangList(resCabang.data.data || []);
-    } catch (err) { 
-      console.error("Fetch error:", err);
-      setError("Gagal mengambil data esensial."); 
-    } finally { 
-      setLoading(false); 
+    } catch (err) {
+      if (err.code === 'ECONNABORTED') {
+        setError("Request timeout. Silakan coba lagi.");
+      } else {
+        setError("Gagal mengambil data esensial.");
+      }
+    } finally {
+      setLoading(false);
     }
   }, [token, cabangId]);
 
@@ -103,10 +113,10 @@ const PengeluaranPage = () => {
   const handleSubmit = async (payload) => {
     setIsSubmitting(true);
     try {
-      
+      // Pastikan cabang ID selalu sesuai dengan cabang admin yang login
       const finalPayload = {
         ...payload,
-        id_cabang: cabangId // Ensure cabang ID is always set to current admin's cabang
+        id_cabang: cabangId
       };
 
       const res = modalState.type === 'edit'
@@ -152,41 +162,135 @@ const PengeluaranPage = () => {
     }, 0);
   }, [pengeluaranList]);
 
-  const renderContent = () => {
-    if (loading) return (
-      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
-        <RefreshCw className="animate-spin text-gray-400 mb-4" size={32} />
-        <p className="text-gray-500">Memuat data pengeluaran...</p>
-      </div>
+  // Filter data based on search
+  const filteredData = useMemo(() => {
+    if (!pengeluaranList) return [];
+    
+    const filtered = pengeluaranList.filter(p =>
+      p.keterangan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.jenis_pengeluaran?.jenis_pengeluaran?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    if (error) return (
-      <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg border border-red-200">
-        <AlertTriangle className="h-8 w-8 mb-2" />
-        {error}
-      </div>
-    );
-    
-    return (
-      <PengeluaranTable 
-        pengeluaranList={pengeluaranList} 
-        onEdit={(d) => openModal('edit', d)} 
-        onDelete={(d) => openModal('delete', d)} 
-        onView={(d) => openModal('view', d)} 
-      />
-    );
+    // Sorting: tanggal terbaru di atas
+    return filtered.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  }, [pengeluaranList, searchTerm]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentData = filteredData.slice(indexOfFirst, indexOfLast);
+
+  const getPageNumbers = () => {
+    const maxPagesToShow = 5;
+    const pages = [];
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(2, currentPage - Math.floor((maxPagesToShow - 3) / 2));
+      const endPage = Math.min(totalPages - 1, currentPage + Math.ceil((maxPagesToShow - 3) / 2));
+
+      pages.push(1);
+      if (startPage > 2) pages.push("...");
+      for (let i = startPage; i <= endPage; i++) pages.push(i);
+      if (endPage < totalPages - 1) pages.push("...");
+      if (totalPages > 1) pages.push(totalPages);
+    }
+
+    return pages.filter((value, index, self) => self.indexOf(value) === index);
   };
+
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Define columns configuration (tanpa kolom cabang)
+  const pengeluaranColumns = [
+    { 
+      key: 'transaction', 
+      header: 'Transaksi',
+      render: (item) => (
+        <div className="flex items-start space-x-3">
+          <div className="flex-shrink-0">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <DollarSign className="h-4 w-4 text-gray-600" />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 truncate">
+              {item.jenis_pengeluaran?.jenis_pengeluaran || "N/A"}
+            </p>
+            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+              {item.keterangan}
+            </p>
+            <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 lg:hidden">
+              <span className="flex items-center gap-1">
+                <Calendar size={12} />
+                {format(new Date(item.tanggal), 'd MMM yyyy', { locale: id })}
+              </span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'tanggal',
+      header: 'Tanggal',
+      render: (item) => (
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Calendar size={14} />
+          {format(new Date(item.tanggal), 'EEEE, d MMM yyyy', { locale: id })}
+        </div>
+      )
+    },
+    {
+      key: 'jumlah',
+      header: 'Jumlah',
+      align: 'right',
+      render: (item) => (
+        <span className="text-sm font-bold text-gray-900">
+          {formatRupiah(item.jumlah)}
+        </span>
+      )
+    }
+  ];
+
+  // Define action buttons
+  const renderAction = (item) => (
+    <div className="flex gap-2 justify-center">
+      <button
+        onClick={() => openModal('view', item)}
+        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Lihat Detail"
+      >
+        <Eye size={16} />
+      </button>
+      
+      <button
+        onClick={() => openModal('edit', item)}
+        className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Edit"
+      >
+        <Edit size={16} />
+      </button>
+      
+      <button
+        onClick={() => openModal('delete', item)}
+        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+        title="Hapus"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
 
   return (
     <>
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar{width:6px}
-        .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}
-        .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}
-        .date-input-container input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
-      `}</style>
-      
       <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
@@ -248,33 +352,116 @@ const PengeluaranPage = () => {
           </div>
         </div>
 
-        {/* Message Alert */}
-        <AnimatePresence>
-          {message.text && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20, scale: 0.9 }} 
-              animate={{ opacity: 1, y: 0, scale: 1 }} 
-              exit={{ opacity: 0, y: -20, scale: 0.9 }} 
-              className={`fixed top-6 left-1/2 -translate-x-1/2 p-4 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${
-                message.type === "success" 
-                  ? "bg-green-100 text-green-800 border border-green-200" 
-                  : "bg-red-100 text-red-800 border border-red-200"
-              }`}
-            >
-              {message.type === "success" ? "✓" : "✗"} {message.text}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Error State */}
+        {error && (
+          <motion.div 
+            className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="p-2 bg-red-100 rounded-lg">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </motion.div>
+        )}
 
-        {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          {renderContent()}
+        {/* Search and Pagination */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-md border border-gray-100">
+          {/* Search */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari pengeluaran..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition text-gray-900 placeholder:text-gray-400 text-sm"
+            />
+          </div>
+
+          {/* Data Info */}
+          <div className="text-sm text-gray-600">
+            Menampilkan {indexOfFirst + 1}-{Math.min(indexOfLast, filteredData.length)} dari {filteredData.length} transaksi
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, i) => (
+                  <button
+                    key={i}
+                    onClick={() => typeof page === "number" && changePage(page)}
+                    disabled={page === "..."}
+                    className={`min-w-[36px] px-3 py-2 text-sm font-medium rounded-lg transition ${
+                      currentPage === page
+                        ? "bg-gray-700 text-white"
+                        : page === "..."
+                        ? "text-gray-400 cursor-default"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-lg transition ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Main Content - Using Reusable DataTable */}
+        {loading ? (
+          <div className="flex items-center justify-center h-64 bg-white rounded-2xl">
+            <div className="flex items-center text-gray-500">
+              <Loader2 className="animate-spin h-6 w-6 mr-3" /> 
+              Memuat...
+            </div>
+          </div>
+        ) : (
+          <DataTable
+            data={currentData}
+            columns={pengeluaranColumns}
+            loading={loading}
+            emptyMessage="Tidak ada data pengeluaran"
+            emptyDescription={searchTerm ? 'Coba ubah kata kunci pencarian' : 'Mulai dengan menambahkan pengeluaran baru'}
+            onRowAction={renderAction}
+            showActions={true}
+            actionLabel="Aksi"
+          />
+        )}
       </motion.div>
 
-      {/* Form Modal - Using Reusable PengeluaranForm Component */}
+      {/* Form Modal */}
       <AnimatePresence>
-        {(modalState.type === 'add' || modalState.type === 'edit') && (
+        {modalState.type === 'add' || modalState.type === 'edit' ? (
           <motion.div 
             onMouseDown={closeModal}
             initial={{ opacity: 0 }} 
@@ -297,12 +484,15 @@ const PengeluaranPage = () => {
                 isEditing={modalState.type === 'edit'}
                 jenisList={jenisList}
                 bahanBakuList={bahanBakuList}
+                // Tidak perlu cabangList karena admin cabang hanya bisa mengelola cabangnya sendiri
                 onAddJenis={handleAddJenis}
                 onClose={closeModal}
+                isCabangAdmin={true} // Flag untuk menandai ini admin cabang
+                currentCabang={cabang} // Data cabang saat ini
               />
             </motion.div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
       {/* Detail Modal */}
@@ -313,147 +503,22 @@ const PengeluaranPage = () => {
       />
 
       {/* Delete Modal */}
-      <DeleteModal 
-        isOpen={modalState.type === 'delete'} 
-        onClose={closeModal} 
-        onConfirm={handleDelete} 
-        data={modalState.data} 
-        isSubmitting={isSubmitting} 
+      <ConfirmDeletePopup
+        isOpen={modalState.type === 'delete'}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        title="Hapus Pengeluaran?"
+        message={`Yakin ingin menghapus pengeluaran "${modalState.data?.keterangan}" senilai ${formatRupiah(modalState.data?.jumlah)}?`}
+      />
+
+      {/* Success Popup */}
+      <SuccessPopup
+        isOpen={!!message.text && message.type === 'success'}
+        onClose={() => setMessage({ type: "", text: "" })}
+        message={message.text}
       />
     </>
   );
 };
-
-// Keep the existing DetailModal and DeleteModal components
-const DetailModal = ({ isOpen, onClose, data }) => (
-    <AnimatePresence>
-        {isOpen && (
-            <motion.div 
-                onMouseDown={onClose} 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }} 
-                className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-                <motion.div 
-                    onMouseDown={e => e.stopPropagation()} 
-                    initial={{ scale: 0.9, y: 20 }} 
-                    animate={{ scale: 1, y: 0 }} 
-                    exit={{ scale: 0.9, y: 20 }} 
-                    className="bg-white rounded-xl shadow-2xl w-full max-w-2xl"
-                >
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-bold text-gray-800">Detail Pengeluaran</h2>
-                    </div>
-                    <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center gap-2 text-gray-500">
-                                <Tag size={14}/>
-                                Jenis: <strong className="text-gray-800">{data?.jenis_pengeluaran?.jenis_pengeluaran}</strong>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-500">
-                                <Calendar size={14}/>
-                                Tanggal: <strong className="text-gray-800">
-                                    {data?.tanggal ? format(new Date(data.tanggal), 'd MMMM yyyy', { locale: id }) : 'N/A'}
-                                </strong>
-                            </div>
-                        </div>
-                        <div>
-                            <p className="flex items-center gap-2 text-sm text-gray-500">
-                                <FileText size={14}/> Keterangan:
-                            </p>
-                            <p className="p-3 bg-gray-50 rounded-lg mt-1 text-gray-800">{data?.keterangan}</p>
-                        </div>
-                        
-                        {data?.details && data.details.length > 0 && (
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <h3 className="text-md font-semibold mb-3 text-gray-800">Rincian Pembelian Bahan Baku</h3>
-                                <div className="border rounded-lg overflow-hidden bg-white">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-gray-100">
-                                            <tr>
-                                                <th className="px-4 py-2 text-left font-semibold text-gray-600">Bahan</th>
-                                                <th className="px-4 py-2 text-center font-semibold text-gray-600">Jumlah</th>
-                                                <th className="px-4 py-2 text-right font-semibold text-gray-600">Harga Satuan</th>
-                                                <th className="px-4 py-2 text-right font-semibold text-gray-600">Subtotal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {data.details.map(d => (
-                                                <tr key={d.id_detail_pengeluaran} className="border-t border-gray-200">
-                                                    <td className="px-4 py-2 text-gray-700">{d.bahan_baku?.nama_bahan || 'N/A'}</td>
-                                                    <td className="px-4 py-2 text-center text-gray-700">{d.jumlah_item}</td>
-                                                    <td className="px-4 py-2 text-right text-gray-700">{formatRupiah(d.harga_satuan)}</td>
-                                                    <td className="px-4 py-2 text-right font-semibold text-gray-800">{formatRupiah(d.total_harga)}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div className="pt-4 text-right border-t border-gray-200">
-                            <p className="text-gray-600">Total Pengeluaran</p>
-                            <p className="text-3xl font-bold text-gray-700">{formatRupiah(data?.jumlah)}</p>
-                        </div>
-                    </div>
-                    <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end">
-                        <button 
-                            onClick={onClose}
-                            className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-                        >
-                            Tutup
-                        </button>
-                    </div>
-                </motion.div>
-            </motion.div>
-        )}
-    </AnimatePresence>
-);
-
-const DeleteModal = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => (
-    <AnimatePresence>
-        {isOpen && (
-            <motion.div 
-                onMouseDown={onClose} 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }} 
-                className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-                <motion.div 
-                    onMouseDown={e => e.stopPropagation()} 
-                    initial={{ scale: 0.9, y: 20 }} 
-                    animate={{ scale: 1, y: 0 }} 
-                    exit={{ scale: 0.9, y: 20 }} 
-                    className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
-                >
-                    <AlertTriangle className="mx-auto text-red-500 h-12 w-12 mb-4" />
-                    <h2 className="text-lg font-bold text-gray-800">Konfirmasi Hapus</h2>
-                    <p className="text-sm text-gray-500 mt-2 mb-6">
-                        Yakin ingin menghapus pengeluaran <strong>"{data?.keterangan}"</strong> senilai <strong>{formatRupiah(data?.jumlah)}</strong>? Tindakan ini tidak dapat dibatalkan.
-                    </p>
-                    <div className="flex justify-center gap-3">
-                        <button 
-                            onClick={onClose}
-                            className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-                            disabled={isSubmitting}
-                        >
-                            Batal
-                        </button>
-                        <button 
-                            onClick={onConfirm}
-                            className="flex items-center justify-center min-w-[100px] px-6 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-not-allowed"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : "Hapus"}
-                        </button>
-                    </div>
-                </motion.div>
-            </motion.div>
-        )}
-    </AnimatePresence>
-);
 
 export default PengeluaranPage;

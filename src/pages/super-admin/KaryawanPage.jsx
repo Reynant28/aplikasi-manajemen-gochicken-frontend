@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Users, LoaderCircle, AlertTriangle } from "lucide-react";
+import { Plus, Users, LoaderCircle, AlertTriangle, User, MapPin, Phone, DollarSign } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
-import KaryawanCard from "../../components/karyawan/KaryawanCard";
+import CardInfo from "../../components/ui/CardInfo";
 import KaryawanForm from "../../components/karyawan/KaryawanForm";
 
 const API_URL = "http://localhost:8000/api";
@@ -27,6 +27,18 @@ const KaryawanPage = () => {
     const [successMessage, setSuccessMessage] = useState("");
 
     const token = localStorage.getItem("token");
+
+    const formatRupiah = (value = 0) => {
+        try {
+            return new Intl.NumberFormat("id-ID", {
+                style: "currency",
+                currency: "IDR",
+                maximumFractionDigits: 0,
+            }).format(value);
+        } catch {
+            return `Rp ${value}`;
+        }
+    };
 
     const fetchKaryawan = useCallback(async () => {
         try {
@@ -178,7 +190,7 @@ const KaryawanPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
-            {/* Header Section */}
+            {/* Header Section - Remove individual motions */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
@@ -188,17 +200,12 @@ const KaryawanPage = () => {
                     <p className="text-gray-500 mt-1">Manajemen data karyawan dan informasi pegawai</p>
                 </motion.div>
                 
-                <motion.button
+                <button
                     onClick={() => setShowAddForm(true)}
                     className="flex items-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-md"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
                 >
                     <Plus size={20} /> Tambah Karyawan
-                </motion.button>
+                </button>
             </div>
 
             {/* Loading State - Now shows first */}
@@ -231,31 +238,56 @@ const KaryawanPage = () => {
 
             {/* Karyawan Grid - Only shows when not loading and no error */}
             {!loading && !error && (
-              <>
+            <>
                 {karyawan.length === 0 ? (
-                    <motion.div 
-                        className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                    >
-                        <Users size={64} className="text-gray-300 mb-4" />
-                        <p className="text-gray-500 text-lg font-medium">Belum ada karyawan</p>
-                        <p className="text-gray-400 text-sm mt-1">Klik "Tambah Karyawan" untuk memulai</p>
-                    </motion.div>
+                <motion.div 
+                    className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <Users size={64} className="text-gray-300 mb-4" />
+                    <p className="text-gray-500 text-lg font-medium">Belum ada karyawan</p>
+                    <p className="text-gray-400 text-sm mt-1">Klik "Tambah Karyawan" untuk memulai</p>
+                </motion.div>
                 ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {karyawan.map((item, index) => (
-                            <KaryawanCard
-                                key={item.id_karyawan}
-                                karyawan={item}
-                                index={index}
-                                onEdit={setEditKaryawan}
-                                onDelete={confirmDelete}
-                            />
-                        ))}
-                    </div>
+                <motion.div 
+                    className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                >
+                    {karyawan.map((item, index) => (
+                        <CardInfo
+                            key={item.id_karyawan}
+                            avatarIcon={<User size={36} className="text-white" />}
+                            avatarBg="bg-gray-700"
+                            title={item.nama_karyawan}
+                            badge={item.cabang?.nama_cabang || "N/A"}
+                            items={[
+                            {
+                                icon: <MapPin size={16} />,
+                                content: item.alamat
+                            },
+                            {
+                                icon: <Phone size={16} />,
+                                content: item.telepon
+                            },
+                            {
+                                icon: <DollarSign size={16} />,
+                                content: formatRupiah(item.gaji),
+                                className: "pt-2 border-t border-gray-100",
+                                textClassName: "text-gray-700 font-bold"
+                            }
+                            ]}
+                            onEdit={() => setEditKaryawan(item)}
+                            onDelete={() => confirmDelete(item.id_karyawan)}
+                            animateOnMount={false} 
+                        />
+                    ))}
+                </motion.div>
                 )}
-              </>
+            </>
             )}
 
             {/* Rest of your components remain the same */}

@@ -185,25 +185,20 @@ const ProdukPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Header */}
+    <div className="p-6 space-y-6"> {/* Change from motion.div to regular div */}
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold text-gray-800">Kelola Produk</h1>
-          <p className="text-gray-500 mt-1">Manajemen produk dan katalog</p>
-        </motion.div>
+          <div>
+              <h1 className="text-3xl font-bold text-gray-800">Kelola Produk</h1>
+              <p className="text-gray-500 mt-1">Manajemen produk dan katalog</p>
+          </div>
 
-        <motion.button
-          onClick={handleAddProduk}
-          className="flex items-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-md"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Plus size={20} /> Tambah Produk
-        </motion.button>
+          <button
+              onClick={handleAddProduk}
+              className="flex items-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-md"
+          >
+              <Plus size={20} /> Tambah Produk
+          </button>
       </div>
 
       {/* Loading State */}
@@ -237,30 +232,41 @@ const ProdukPage = () => {
       {/* Product Grid */}
       {!loading && !error && (
         <>
-          {produk.length === 0 ? (
-            <motion.div
-              className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl shadow-md border border-gray-100"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <ShoppingBag size={64} className="text-gray-300 mb-4" />
-              <p className="text-gray-500 text-lg font-medium">Belum ada produk</p>
-              <p className="text-gray-400 text-sm mt-1">Klik "Tambah Produk" untuk memulai</p>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {produk.map((prod, index) => (
+          {produk.length > 0 && (
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            {produk.map((prod, index) => (
+              <motion.div 
+                key={prod.id_produk}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+              >
                 <ProductCard
-                  key={prod.id_produk}
                   product={prod}
                   index={index}
                   onDetail={handleDetail}
                   onEdit={handleEdit}
                   onDelete={confirmDelete}
+                  animateOnMount={false}
                 />
-              ))}
-            </div>
-          )}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
         </>
       )}
 

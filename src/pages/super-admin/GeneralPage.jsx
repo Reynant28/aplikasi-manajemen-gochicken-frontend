@@ -135,6 +135,8 @@ const GeneralPage = () => {
           params: { tanggal: today },
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        console.log('Daily Summary API Response:', res.data);
 
         if (res?.data && !cancelled) {
           setDailySummary(res.data);

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Plus, Shield, LoaderCircle } from "lucide-react";
+import { Plus, Shield, LoaderCircle, AlertTriangle, User, Mail } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import Modal from "../../components/ui/Modal.jsx";
 import AdminCabangForm from "../../components/branch-admin/BranchAdminForm.jsx";
-import AdminCabangCard from "../../components/branch-admin/BranchAdminCard.jsx";
+import CardInfo from "../../components/ui/CardInfo.jsx";
 import { set } from "date-fns";
 
 const API_URL = "http://localhost:8000/api";
@@ -128,7 +128,9 @@ const BranchAdminPage = () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                }),
             });
             const data = await res.json();
             if (res.ok) {
@@ -193,17 +195,12 @@ const BranchAdminPage = () => {
                     <p className="text-gray-500 mt-1">Manajemen akun administrator cabang</p>
                 </motion.div>
                 
-                <motion.button
+                <button
                     onClick={() => setShowAddForm(true)}
                     className="flex items-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-md"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
                 >
                     <Plus size={20} /> Tambah Admin
-                </motion.button>
+                </button>
             </div>
 
             {/* Loading State */}
@@ -248,17 +245,30 @@ const BranchAdminPage = () => {
                         <p className="text-gray-400 text-sm mt-1">Klik "Tambah Admin" untuk memulai</p>
                     </motion.div>
                 ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <motion.div
+                    className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}>
                         {admins.map((admin, index) => (
-                            <AdminCabangCard
-                                key={admin.id_user}
-                                admin={admin}
-                                index={index}
-                                onEdit={handleEdit}
-                                onDelete={confirmDelete}
-                            />
+                            <CardInfo
+                            key={admin.id_user}
+                            avatarIcon={<User size={36} className="text-white" />}
+                            avatarBg="bg-gray-700"
+                            title={admin.nama}
+                            badge={admin.cabang ? admin.cabang.nama_cabang : "N/A"}
+                            items={[
+                            {
+                                icon: <Mail size={16} />,
+                                content: admin.email
+                            },
+                            ]}
+                            onEdit={() => handleEdit(admin)}
+                            onDelete={() => confirmDelete(admin.id_user)}
+                            animateOnMount={false} 
+                        />
                         ))}
-                    </div>
+                    </motion.div>
                 )}
                 </>
             )}

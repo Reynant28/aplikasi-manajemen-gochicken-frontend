@@ -57,14 +57,6 @@ const AuditLogTable = ({ data, loading, error, pagination, onPageChange, onViewD
 
   return (
     <div className="space-y-4">
-      {/* Table Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">Riwayat Aktivitas</h3>
-          <p className="text-sm text-gray-600">{pagination.total.toLocaleString()} log ditemukan</p>
-        </div>
-      </div>
-
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

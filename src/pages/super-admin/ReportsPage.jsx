@@ -109,188 +109,241 @@ const ReportsPage = () => {
     </button>
   );
 
+  const exportRef = React.useRef(null);
+
+  const exportPDF = async () => {
+    const element = exportRef.current;
+    if (!element) return;
+
+    const html2canvas = (await import("html2canvas")).default;
+    const jsPDF = (await import("jspdf")).default;
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      logging: false,
+      useCORS: true
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "p",
+      unit: "px",
+      format: "a4"
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save("Laporan.pdf");
+  };
+
+
   return (
-    <motion.div 
-      className="p-6 space-y-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      {/* --- HEADER SECTION --- */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
-          <p className="text-gray-500 mt-1">Analisis performa penjualan untuk cabang Anda.</p>
-        </motion.div>
+    <div id="report-export-wrapper" ref={exportRef}>
+      <motion.div 
+        className="p-6 space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* --- HEADER SECTION --- */}
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
+            <p className="text-gray-500 mt-1">Analisis performa penjualan untuk cabang Anda.</p>
+          </motion.div>
+          
+          <motion.div 
+            className="flex gap-2 bg-gray-100 p-1.5 rounded-xl"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <FilterButton active={filter === 'minggu'} onClick={() => setFilter('minggu')}>
+              Minggu Ini
+            </FilterButton>
+            <FilterButton active={filter === 'bulan'} onClick={() => setFilter('bulan')}>
+              Bulan Ini
+            </FilterButton>
+            <FilterButton active={filter === 'tahun'} onClick={() => setFilter('tahun')}>
+              Tahun Ini
+            </FilterButton>
+          </motion.div>
+          <button 
+            onClick={exportPDF}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg"
+          >
+            Export PDF
+          </button>
+        </div>
         
-        <motion.div 
-          className="flex gap-2 bg-gray-100 p-1.5 rounded-xl"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <FilterButton active={filter === 'minggu'} onClick={() => setFilter('minggu')}>
-            Minggu Ini
-          </FilterButton>
-          <FilterButton active={filter === 'bulan'} onClick={() => setFilter('bulan')}>
-            Bulan Ini
-          </FilterButton>
-          <FilterButton active={filter === 'tahun'} onClick={() => setFilter('tahun')}>
-            Tahun Ini
-          </FilterButton>
-        </motion.div>
-      </div>
-      
-      {/* --- ERROR STATE --- */}
-      {error && (
-        <motion.div 
-          className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-center"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          {error}
-        </motion.div>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
-          <div className="text-center">
-              <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
-          </div>
-        </div>
-      )}
-
-      {/* === ERROR === */}
-      {error && !loading && (
-        <motion.div 
-          className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="p-2 bg-red-100 rounded-lg">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* --- MAIN CONTENT --- */}
-      {!loading && !error && reportData && (
-        <div className="space-y-6">
-          {/* --- CHARTS SECTION --- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Sales Trend Chart */}
-            <motion.div 
-              className="lg:col-span-2"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <SalesTrendChart data={reportData.salesTrend} />
-            </motion.div>
-            
-            {/* Top Products Chart */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <TopProductsChart data={reportData.topProducts} filter={filter}/>
-            </motion.div>
-          </div>
-
-          {/* --- SUMMARY CARDS --- */}
+        {/* --- ERROR STATE --- */}
+        {error && (
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
           >
-            <DashboardCard 
-              title="Total Pendapatan" 
-              value={formatRupiah(reportData.summary.totalPendapatan)}
-              icon={<DollarSign className="text-gray-600" size={20} />}
-            />
-            <DashboardCard 
-              title="Total Transaksi" 
-              value={reportData.summary.totalTransaksi.toLocaleString('id-ID')}
-              icon={<TrendingUp className="text-gray-600" size={20} />}
-            />
-            <DashboardCard 
-              title="Rata-rata Transaksi" 
-              value={formatRupiah(reportData.summary.avgTransaksi)}
-              icon={<DollarSign className="text-gray-600" size={20} />}
-            />
-            <DashboardCard 
-              title="Produk Terlaris" 
-              value={reportData.summary.produkTerlaris}
-              icon={<Package className="text-gray-600" size={20} />}
-            />
-            <DashboardCard 
-              title="Hari Paling Ramai" 
-              value={reportData.summary.hariTersibuk}
-              icon={<Calendar className="text-gray-600" size={20} />}
-            />
+            {error}
           </motion.div>
+        )}
 
-          {/* --- DETAILED REPORTS SECTION --- */}
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+            <div className="text-center">
+                <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+            </div>
+          </div>
+        )}
+
+        {/* === ERROR === */}
+        {error && !loading && (
           <motion.div 
-            className="pt-8"
-            initial={{ opacity: 0, y: 20 }}
+            className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
           >
-            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
-              <h2 className="text-2xl font-bold text-gray-800">Laporan Rinci</h2>
+            <div className="p-2 bg-red-100 rounded-lg">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-lg mb-1">Terjadi Kesalahan</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* --- MAIN CONTENT --- */}
+        {!loading && !error && reportData && (
+          <div className="space-y-6">
+            {/* --- CHARTS SECTION --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Sales Trend Chart */}
+              <motion.div 
+                className="lg:col-span-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <SalesTrendChart data={reportData.salesTrend} />
+              </motion.div>
               
-              <div className="border-b border-gray-200">
-                <nav className="flex space-x-2">
-                  <TabButton 
-                    active={activeTab === 'products'} 
-                    onClick={() => setActiveTab('products')}
-                  >
-                    Laporan Produk
-                  </TabButton>
-                  <TabButton 
-                    active={activeTab === 'sales'} 
-                    onClick={() => setActiveTab('sales')}
-                  >
-                    Laporan Penjualan
-                  </TabButton>
-                  <TabButton 
-                    active={activeTab === 'employees'} 
-                    onClick={() => setActiveTab('employees')}
-                  >
-                    Laporan Karyawan
-                  </TabButton>
-                </nav>
+              {/* Top Products Chart */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <TopProductsChart data={reportData.topProducts} filter={filter}/>
+              </motion.div>
+            </div>
+
+            {/* --- SUMMARY CARDS --- */}
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <DashboardCard 
+                title="Total Pendapatan" 
+                value={formatRupiah(reportData.summary.totalPendapatan)}
+                icon={<DollarSign className="text-gray-600" size={20} />}
+              />
+              <DashboardCard 
+                title="Total Transaksi" 
+                value={reportData.summary.totalTransaksi.toLocaleString('id-ID')}
+                icon={<TrendingUp className="text-gray-600" size={20} />}
+              />
+              <DashboardCard 
+                title="Rata-rata Transaksi" 
+                value={formatRupiah(reportData.summary.avgTransaksi)}
+                icon={<DollarSign className="text-gray-600" size={20} />}
+              />
+              <DashboardCard 
+                title="Produk Terlaris" 
+                value={reportData.summary.produkTerlaris}
+                icon={<Package className="text-gray-600" size={20} />}
+              />
+              <DashboardCard 
+                title="Hari Paling Ramai" 
+                value={reportData.summary.hariTersibuk}
+                icon={<Calendar className="text-gray-600" size={20} />}
+              />
+            </motion.div>
+
+            {/* --- DETAILED REPORTS SECTION --- */}
+            <motion.div 
+              className="pt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+                <h2 className="text-2xl font-bold text-gray-800">Laporan Rinci</h2>
+                
+                <div className="border-b border-gray-200">
+                  <nav className="flex space-x-2">
+                    <TabButton 
+                      active={activeTab === 'products'} 
+                      onClick={() => setActiveTab('products')}
+                    >
+                      Laporan Produk
+                    </TabButton>
+                    <TabButton 
+                      active={activeTab === 'sales'} 
+                      onClick={() => setActiveTab('sales')}
+                    >
+                      Laporan Penjualan
+                    </TabButton>
+                    <TabButton 
+                      active={activeTab === 'employees'} 
+                      onClick={() => setActiveTab('employees')}
+                    >
+                      Laporan Karyawan
+                    </TabButton>
+                  </nav>
+                </div>
               </div>
-            </div>
-            
-            <div className="mt-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {renderActiveTabComponent()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </motion.div>
+              
+              <div className="mt-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {renderActiveTabComponent()}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 };
 

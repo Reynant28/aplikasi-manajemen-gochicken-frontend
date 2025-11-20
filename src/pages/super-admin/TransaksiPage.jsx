@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Download, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import * as XLSX from "xlsx";
-import TransaksiTable from "../../components/transaksi/TransaksiTable.jsx";
+import DataTable from "../../components/ui/DataTable.jsx";
 import TransaksiDetailModal from "../../components/transaksi/TransaksiDetailModal.jsx";
 
 const API_URL = "http://localhost:8000/api";
@@ -20,6 +20,12 @@ const TransaksiPage = () => {
     const itemsPerPage = 10;
 
     const token = localStorage.getItem("token");
+
+    const formatRupiah = (value) => new Intl.NumberFormat("id-ID", { 
+        style: "currency", 
+        currency: "IDR", 
+        maximumFractionDigits: 0 
+    }).format(value);
 
     const fetchTransaksi = useCallback(async () => {
         try {
@@ -148,6 +154,49 @@ const TransaksiPage = () => {
         return pages.filter((value, index, self) => self.indexOf(value) === index);
     };
 
+    // Define columns configuration
+    const transaksiColumns = [
+        { 
+            key: 'kode_transaksi', 
+            header: 'Kode Transaksi',
+            bold: true
+        },
+        { 
+            key: 'tanggal_waktu', 
+            header: 'Tanggal & Waktu' 
+        },
+        { 
+            key: 'nama_pelanggan', 
+            header: 'Pelanggan',
+            render: (item) => item.nama_pelanggan || "-"
+        },
+        { 
+            key: 'metode_pembayaran', 
+            header: 'Metode',
+            render: (item) => (
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium">
+                    {item.metode_pembayaran}
+                </span>
+            )
+        },
+        { 
+            key: 'total_harga', 
+            header: 'Total',
+            align: 'right',
+            render: (item) => formatRupiah(item.total_harga || 0)
+        }
+    ];
+
+    // Define action button
+    const renderAction = (item) => (
+        <button
+            onClick={() => handleDetailClick(item.id_transaksi)}
+            className="inline-flex items-center gap-1 px-4 py-2 bg-gray-600 text-white text-xs font-medium rounded-lg hover:bg-gray-700 transition"
+        >
+            <Eye size={14} /> Detail
+        </button>
+    );
+
     return (
         <motion.div
             className="p-6 space-y-6"
@@ -254,10 +303,15 @@ const TransaksiPage = () => {
             </div>
 
             {/* Table */}
-            <TransaksiTable
-                transaksi={currentData}
+            <DataTable
+                data={currentData}
+                columns={transaksiColumns}
                 loading={loading}
-                onDetail={handleDetailClick}
+                emptyMessage="Tidak ada transaksi"
+                emptyDescription="Belum ada data transaksi untuk ditampilkan"
+                onRowAction={renderAction}
+                showActions={true}
+                actionLabel="Aksi"
             />
 
             {/* Detail Modal */}

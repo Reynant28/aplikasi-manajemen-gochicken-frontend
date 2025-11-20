@@ -119,6 +119,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         { to: "/karyawan", label: "Karyawan", icon: <Users size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/branch", label: "Admin Cabang", icon: <UserCog size={18} />, roles: ["super admin"] },
         { to: "/kelola-cabang", label: "Kelola Cabang", icon: <Building2 size={18} />, roles: ["super admin"] },
+        { to: "/kasir", label: "Kasir", icon: <Users size={18} />, roles: ["admin cabang"] },
       ],
     },
     {

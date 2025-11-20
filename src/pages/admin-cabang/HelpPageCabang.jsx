@@ -6,39 +6,59 @@ import {
   Package,
   Users,
   Wallet,
+  PackagePlus,
+  DollarSign
 } from "lucide-react";
 
 const HelpPageCabang = () => {
   const guides = [
     {
-      icon: <BookOpen className="text-green-600" size={22} />,
+      icon: <BookOpen className="text-gray-600" size={22} />,
       title: "General Page",
       desc:
-        "Menampilkan dashboard utama untuk setiap cabang. Semua data yang muncul di sini berdasarkan cabang yang sedang login, sehingga setiap cabang memiliki tampilan dan statistik yang berbeda. Admin Cabang dapat melihat performa penjualan, aktivitas terbaru, serta ringkasan laporan operasional secara real-time.",
+        "Menampilkan dashboard utama untuk cabang. Semua data yang muncul di sini berdasarkan cabang yang sedang login, sehingga setiap cabang memiliki tampilan dan statistik yang berbeda. Admin Cabang dapat melihat performa penjualan, aktivitas terbaru, serta ringkasan laporan operasional secara real-time.",
     },
     {
-      icon: <ClipboardList className="text-green-600" size={22} />,
-      title: "Reports Page",
+      icon: <ClipboardList className="text-gray-600" size={22} />,
+      title: "Laporan Master",
       desc:
-        "Berisi laporan rinci dari aktivitas operasional cabang. Admin dapat melihat data penjualan, pengeluaran, serta performa karyawan secara spesifik untuk cabang masing-masing. Halaman ini membantu dalam evaluasi keuangan dan operasional harian dengan tampilan grafik dan tabel yang mudah dibaca.",
+        "Menampilkan laporan data secara mendetail dengan diagram dan visualisasi untuk memudahkan analisis. Pengguna dapat melihat laporan penjualan, pengeluaran, dan performa karyawan yang dapat difilter atau diunduh.",
     },
     {
-      icon: <Package className="text-green-600" size={22} />,
-      title: "Manajemen Stok",
+      icon: <Package className="text-gray-600" size={22} />,
+      title: "Produk",
       desc:
         "Digunakan untuk memantau dan mengelola stok produk di cabang. Admin dapat menambahkan stok baru, mengurangi stok yang sudah terpakai, serta memastikan data persediaan selalu akurat. Dengan fitur ini, kontrol bahan dan ketersediaan produk dapat dilakukan lebih cepat dan efisien.",
     },
     {
-      icon: <Users className="text-green-600" size={22} />,
+      icon: <Users className="text-gray-600" size={22} />,
       title: "Manajemen Karyawan",
       desc:
         "Digunakan untuk mengelola data karyawan di cabang, termasuk informasi personal dan rincian gaji. Admin Cabang dapat menambah karyawan baru sesuai kebutuhan operasional, namun setiap penambahan akan melalui persetujuan dari Super Admin agar tetap transparan dan terkontrol.",
     },
     {
-      icon: <Wallet className="text-green-600" size={22} />,
+      icon: <Users className="text-gray-600" size={22} />,
+      title: "Manajemen Kasir",
+      desc:
+        "Digunakan untuk mengelola data kasir di cabang, pengguna bisa menambah, memperbarui, atau menghapus data kasir sesuai kebutuhan operasional cabang.",
+    },
+    {
+      icon: <PackagePlus className="text-gray-600" size={22} />,
+      title: "Pemesanan",
+      desc:
+        "Digunakan untuk mencatat dan mengelola setiap pesanan yang masuk di cabang. Admin Cabang dapat melihat detail pesanan, dan status pemesanan. Fitur ini membantu Admin Cabang dalam memantau dan mengelola pesanan dengan lebih baik.",
+    },
+    {
+      icon: <Wallet className="text-gray-600" size={22} />,
       title: "Pengeluaran",
       desc:
         "Menampilkan seluruh data pengeluaran yang tercatat di cabang. Setiap transaksi pengeluaran berisi informasi rinci seperti tanggal, jumlah, dan deskripsi penggunaan dana. Fitur ini membantu Admin Cabang dalam mencatat dan mengontrol keuangan operasional harian dengan lebih akurat.",
+    },
+    {
+      icon: <DollarSign className="text-gray-600" size={22} />,
+      title: "Transaksi",
+      desc:
+        "Riwayat dan detail semua transaksi penjualan yang terjadi di cabang. Admin Cabang dapat melihat informasi lengkap setiap transaksi, termasuk metode pembayaran, item yang dibeli, dan total penjualan. Fitur ini memudahkan pemantauan performa penjualan harian dan analisis tren pembelian pelanggan.",
     },
   ];
 
@@ -73,7 +93,7 @@ const HelpPageCabang = () => {
             className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-all"
           >
             <div className="flex items-start gap-4">
-              <div className="bg-green-100 p-3 rounded-full">{item.icon}</div>
+              <div className="bg-gray-100 p-3 rounded-full">{item.icon}</div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   {item.title}

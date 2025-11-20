@@ -39,13 +39,13 @@ const PemesananChangeStatus = ({ isOpen, onClose, onConfirm, data, isSubmitting 
             <div className="p-6 text-center">
               <p className="text-sm text-gray-600 mb-6">
                 Ubah status untuk pesanan <strong className="text-gray-800">{data?.kode_transaksi}</strong> 
-                atas nama <strong className="text-gray-800">{data?.nama_pelanggan}</strong>.
+                {' '}atas nama <strong className="text-gray-800">{data?.nama_pelanggan}</strong>.
               </p>
               
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => onConfirm('OnLoan')}
-                  className="px-4 py-3 text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-yellow-600"
+                  className="px-4 py-3 text-sm font-semibold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-yellow-600"
                   disabled={isSubmitting || data?.status_transaksi === 'OnLoan'}
                 >
                   Ubah ke<br />On Loan

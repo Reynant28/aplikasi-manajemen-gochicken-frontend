@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Users, AlertTriangle, RefreshCw } from "lucide-react";
+import { Plus, Users, AlertTriangle, RefreshCw, MapPin, Phone, DollarSign, Building2 } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import KaryawanForm from "../../components/karyawan/KaryawanForm";
-import KaryawanCard from "../../components/karyawan/KaryawanCard";
+import CardInfo from "../../components/ui/CardInfo";
 import axios from 'axios';
 
 const API_URL = "http://localhost:8000/api";
@@ -73,13 +73,12 @@ const KaryawanPage = () => {
         }
     }, [token, fetchKaryawan]);
 
-    const handleAdd = async (e) => {
-        e.preventDefault();
+    const handleAdd = async (formData) => {
         setLoading(true);
 
         try {
             const karyawanData = {
-                ...newKaryawan,
+                ...formData,
                 id_cabang: cabangId
             };
 
@@ -111,6 +110,33 @@ const KaryawanPage = () => {
         }
     };
 
+    const handleUpdate = async (formData) => {
+        try {
+            const karyawanData = {
+                ...formData,
+                id_cabang: cabangId
+            };
+
+            const res = await axios.put(`${API_URL}/karyawan/${formData.id_karyawan}`, karyawanData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.data.status === 'success') {
+                setSuccessMessage(`Karyawan ${formData.nama_karyawan} berhasil diupdate!`);
+                setShowSuccess(true);
+                await fetchKaryawan();
+                setEditKaryawan(null);
+            }
+        } catch (err) {
+            console.error("Update karyawan error:", err);
+            const errorMsg = err.response?.data?.message || "Gagal mengupdate karyawan.";
+            setError(errorMsg);
+        }
+    };
+
     const confirmDelete = (karyawan) => {
         setDeleteId(karyawan.id_karyawan);
         setShowConfirm(true);
@@ -136,33 +162,6 @@ const KaryawanPage = () => {
         setDeleteId(null);
     };
 
-    const handleUpdate = async () => {
-        try {
-            const karyawanData = {
-                ...editKaryawan,
-                id_cabang: cabangId
-            };
-
-            const res = await axios.put(`${API_URL}/karyawan/${editKaryawan.id_karyawan}`, karyawanData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (res.data.status === 'success') {
-                setSuccessMessage(`Karyawan ${editKaryawan.nama_karyawan} berhasil diupdate!`);
-                setShowSuccess(true);
-                await fetchKaryawan();
-                setEditKaryawan(null);
-            }
-        } catch (err) {
-            console.error("Update karyawan error:", err);
-            const errorMsg = err.response?.data?.message || "Gagal mengupdate karyawan.";
-            setError(errorMsg);
-        }
-    };
-
     // Clear error when modal opens/closes
     useEffect(() => {
         if (showAddForm || editKaryawan) {
@@ -184,17 +183,11 @@ const KaryawanPage = () => {
                     </p>
                 </motion.div>
                 
-                <motion.button
+                <button
                     onClick={() => setShowAddForm(true)}
-                    className="flex items-center gap-2 bg-gray-600 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition-all shadow-md"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                >
+                    className="flex items-center gap-2 bg-gray-600 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 transition-all shadow-md">
                     <Plus size={20} /> Tambah Karyawan
-                </motion.button>
+                </button>
             </div>
 
             {/* Error Message */}
@@ -210,7 +203,7 @@ const KaryawanPage = () => {
                         onClick={() => setError(null)}
                         className="ml-auto text-red-500 hover:text-red-700"
                     >
-                        <X size={16} />
+                        ✕
                     </button>
                 </motion.div>
             )}
@@ -235,17 +228,43 @@ const KaryawanPage = () => {
                             <p className="text-gray-400 text-sm mt-1">Klik "Tambah Karyawan" untuk memulai</p>
                         </motion.div>
                     ) : (
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <motion.div 
+                            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.4 }}
+                        >
                             {karyawan.map((item, index) => (
-                                <KaryawanCard
+                                <CardInfo
                                     key={item.id_karyawan}
-                                    karyawan={item}
+                                    title={item.nama_karyawan}
+                                    avatarIcon={<Users size={36} className="text-white" />}
+                                    avatarBg="bg-gray-700"
+                                    badge={item.cabang?.nama_cabang || "N/A"}
+                                    badgeIcon={<Building2 size={12} />}
+                                    items={[
+                                        {
+                                            icon: <MapPin size={16} />,
+                                            content: item.alamat
+                                        },
+                                        {
+                                            icon: <Phone size={16} />,
+                                            content: item.telepon
+                                        },
+                                        {
+                                            icon: <DollarSign size={16} />,
+                                            content: formatRupiah(item.gaji),
+                                            className: "pt-2 border-t border-gray-100",
+                                            textClassName: "text-gray-700 font-bold"
+                                        }
+                                    ]}
+                                    onEdit={() => setEditKaryawan(item)}
+                                    onDelete={() => confirmDelete(item)}
                                     index={index}
-                                    onEdit={setEditKaryawan}
-                                    onDelete={confirmDelete}
+                                    animateOnMount={false}
                                 />
                             ))}
-                        </div>
+                        </motion.div>
                     )}
                 </>
             )}
@@ -256,11 +275,12 @@ const KaryawanPage = () => {
                     <KaryawanForm
                         isOpen={showAddForm}
                         onClose={() => setShowAddForm(false)}
-                        karyawanData={newKaryawan}
-                        onChange={setNewKaryawan}
+                        formData={newKaryawan}
+                        onFormChange={setNewKaryawan}
                         onSubmit={handleAdd}
                         loading={loading}
-                        isEdit={false}
+                        mode="add"
+                        cabang={cabang ? [cabang] : []}
                     />
                 )}
             </AnimatePresence>
@@ -271,14 +291,12 @@ const KaryawanPage = () => {
                     <KaryawanForm
                         isOpen={!!editKaryawan}
                         onClose={() => setEditKaryawan(null)}
-                        karyawanData={editKaryawan}
-                        onChange={setEditKaryawan}
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleUpdate();
-                        }}
+                        formData={editKaryawan}
+                        onFormChange={setEditKaryawan}
+                        onSubmit={handleUpdate}
                         loading={loading}
-                        isEdit={true}
+                        mode="edit"
+                        cabang={cabang ? [cabang] : []}
                     />
                 )}
             </AnimatePresence>

@@ -42,6 +42,9 @@ const BahanBakuPakaiTable = ({ data, loading, onDelete }) => {
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Total Modal
                 </th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Cabang
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Catatan
                 </th>
@@ -114,6 +117,12 @@ const BahanBakuPakaiTable = ({ data, loading, onDelete }) => {
                       <td className="px-6 py-4 text-right">
                         <span className="text-sm font-bold text-gray-900">
                           {formatRupiah(item.total_modal)}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-right">
+                        <span className="text-sm text-gray-600">
+                          Cabang {item.nama_cabang || "-"}
                         </span>
                       </td>
 
