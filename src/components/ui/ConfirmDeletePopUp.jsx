@@ -27,7 +27,8 @@ const ConfirmDeletePopup = ({ isOpen, onClose, onConfirm }) => {
               </h2>
             </div>
             <p className="text-gray-600 mb-6">
-              Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak
+              dapat dibatalkan.
             </p>
             <div className="flex justify-end gap-3">
               <button

@@ -4,9 +4,14 @@ import { useNavigate } from "react-router-dom";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
-// Custom icon components (using the existing ones)
+// eye component
 const Eye = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -25,7 +30,12 @@ const Eye = ({ className }) => (
 );
 
 const EyeOff = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -41,13 +51,28 @@ const EyeOff = ({ className }) => (
 );
 
 const ChevronDown = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 9l-7 7-7-7"
+    />
   </svg>
 );
 
 const User = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -58,7 +83,12 @@ const User = ({ className }) => (
 );
 
 const Shield = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -74,7 +104,12 @@ const Shield = ({ className }) => (
 );
 
 const XCircle = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -94,9 +129,9 @@ const Notification = ({ isOpen, onClose, message, type = "error" }) => {
       const duration = 4000; // 4 seconds total
       const interval = 50; // update every 50ms
       const decrement = (100 / duration) * interval;
-      
+
       const timer = setInterval(() => {
-        setProgress(prev => {
+        setProgress((prev) => {
           const newProgress = prev - decrement;
           if (newProgress <= 0) {
             clearInterval(timer);
@@ -133,28 +168,38 @@ const Notification = ({ isOpen, onClose, message, type = "error" }) => {
             transition={{ duration: 0.05, ease: "linear" }}
           />
         </div>
-        
+
         {/* Notification Content */}
         <div className="p-4 flex items-start space-x-3">
-          <div className={`flex-shrink-0 ${
-            type === "error" ? "text-red-500" : "text-gray-600"
-          }`}>
+          <div
+            className={`flex-shrink-0 ${
+              type === "error" ? "text-red-500" : "text-gray-600"
+            }`}
+          >
             <XCircle className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900">
               {type === "error" ? "Login Failed" : "Notice"}
             </p>
-            <p className="text-sm text-gray-600 mt-1">
-              {message}
-            </p>
+            <p className="text-sm text-gray-600 mt-1">{message}</p>
           </div>
           <button
             onClick={onClose}
             className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -214,7 +259,7 @@ const Login = () => {
 
   const handleCabangLogin = async () => {
     const { cabang, passwordCabang, personalPassword } = formData;
-    
+
     // Validation
     if (!cabang) {
       showNotification("Please select a branch");
@@ -239,11 +284,14 @@ const Login = () => {
         return;
       }
 
-      const res = await axios.post("http://localhost:8000/api/admin-cabang/login", {
-        id_cabang,
-        password_cabang: passwordCabang,
-        password_pribadi: personalPassword,
-      });
+      const res = await axios.post(
+        "http://localhost:8000/api/admin-cabang/login",
+        {
+          id_cabang,
+          password_cabang: passwordCabang,
+          password_pribadi: personalPassword,
+        }
+      );
 
       if (res.data.status === "success") {
         // Store data and navigate without showing success notification
@@ -266,7 +314,7 @@ const Login = () => {
 
   const handleSuperAdminLogin = async () => {
     const { username, password } = superAdminData;
-    
+
     // Validation
     if (!username) {
       showNotification("Please enter email");
@@ -279,10 +327,13 @@ const Login = () => {
 
     try {
       setIsLoading(true);
-      const res = await axios.post("http://localhost:8000/api/super-admin/login", {
-        email: username,
-        password: password,
-      });
+      const res = await axios.post(
+        "http://localhost:8000/api/super-admin/login",
+        {
+          email: username,
+          password: password,
+        }
+      );
 
       if (res.data.status === "success") {
         // Store data and navigate without showing success notification
@@ -407,7 +458,10 @@ const Login = () => {
                   <motion.span
                     initial={false}
                     animate={{
-                      color: activePanel === "cabang" ? "var(--themered)" : "var(--themeorange)",
+                      color:
+                        activePanel === "cabang"
+                          ? "var(--themered)"
+                          : "var(--themeorange)",
                     }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                   >
@@ -431,7 +485,8 @@ const Login = () => {
                   className="absolute top-1 bottom-1 w-1/2 rounded-md shadow-sm"
                   animate={{
                     x: activePanel === "cabang" ? "0%" : "100%",
-                    backgroundColor: activePanel === "cabang" ? "#ef4444" : "#f97316",
+                    backgroundColor:
+                      activePanel === "cabang" ? "#ef4444" : "#f97316",
                   }}
                   transition={{ duration: 0.35, ease: "easeInOut" }}
                 />
@@ -480,12 +535,16 @@ const Login = () => {
                             <div className="relative">
                               <button
                                 type="button"
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                onClick={() =>
+                                  setIsDropdownOpen(!isDropdownOpen)
+                                }
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-left flex items-center justify-between hover:border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors"
                               >
                                 <span
                                   className={
-                                    formData.cabang ? "text-gray-800" : "text-gray-500"
+                                    formData.cabang
+                                      ? "text-gray-800"
+                                      : "text-gray-500"
                                   }
                                 >
                                   {formData.cabang || "Pilih cabang..."}
@@ -526,7 +585,10 @@ const Login = () => {
                                 type={showPassword ? "text" : "password"}
                                 value={formData.passwordCabang}
                                 onChange={(e) =>
-                                  handleCabangChange("passwordCabang", e.target.value)
+                                  handleCabangChange(
+                                    "passwordCabang",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
                                 placeholder="Masukkan password cabang"
@@ -552,10 +614,15 @@ const Login = () => {
                             </label>
                             <div className="relative">
                               <input
-                                type={showPersonalPassword ? "text" : "password"}
+                                type={
+                                  showPersonalPassword ? "text" : "password"
+                                }
                                 value={formData.personalPassword}
                                 onChange={(e) =>
-                                  handleCabangChange("personalPassword", e.target.value)
+                                  handleCabangChange(
+                                    "personalPassword",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors pr-12 text-gray-800"
                                 placeholder="Masukkan password personal"
@@ -601,7 +668,10 @@ const Login = () => {
                               type="text"
                               value={superAdminData.username}
                               onChange={(e) =>
-                                handleSuperAdminChange("username", e.target.value)
+                                handleSuperAdminChange(
+                                  "username",
+                                  e.target.value
+                                )
                               }
                               className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors text-gray-800"
                               placeholder="Masukkan email"
@@ -618,7 +688,10 @@ const Login = () => {
                                 type={showPassword ? "text" : "password"}
                                 value={superAdminData.password}
                                 onChange={(e) =>
-                                  handleSuperAdminChange("password", e.target.value)
+                                  handleSuperAdminChange(
+                                    "password",
+                                    e.target.value
+                                  )
                                 }
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-colors pr-12 text-gray-800"
                                 placeholder="Masukkan password"

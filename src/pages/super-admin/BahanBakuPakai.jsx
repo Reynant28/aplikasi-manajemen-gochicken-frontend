@@ -2,7 +2,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Package, Loader2, Calendar, XCircle, Box, X } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Package,
+  Loader2,
+  Calendar,
+  XCircle,
+  Box,
+  X,
+} from "lucide-react";
 import axios from "axios";
 
 const API_URL = "http://localhost:8000/api";
@@ -16,7 +25,9 @@ const formatRupiah = (value) => {
 };
 
 export default function BahanBakuPakai() {
-  const [tanggal, setTanggal] = useState(() => new Date().toISOString().split("T")[0]);
+  const [tanggal, setTanggal] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [pemakaianList, setPemakaianList] = useState([]);
   const [bahanList, setBahanList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +37,7 @@ export default function BahanBakuPakai() {
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Data states
   const [deletePemakaian, setDeletePemakaian] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -44,7 +55,7 @@ export default function BahanBakuPakai() {
   const fetchBahanList = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/bahan-baku`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setBahanList(res.data.data || []);
     } catch (err) {
@@ -57,9 +68,12 @@ export default function BahanBakuPakai() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_URL}/bahan-baku-pakai?tanggal=${tanggal}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get(
+        `${API_URL}/bahan-baku-pakai?tanggal=${tanggal}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setPemakaianList(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch pemakaian:", err);
@@ -96,7 +110,10 @@ export default function BahanBakuPakai() {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!formData.id_bahan_baku || !formData.jumlah_pakai) {
-      setMessage({ type: "error", text: "Pilih bahan baku dan isi jumlah pakai!" });
+      setMessage({
+        type: "error",
+        text: "Pilih bahan baku dan isi jumlah pakai!",
+      });
       return;
     }
 
@@ -115,7 +132,10 @@ export default function BahanBakuPakai() {
           },
         }
       );
-      setMessage({ type: "success", text: "Data pemakaian berhasil ditambahkan!" });
+      setMessage({
+        type: "success",
+        text: "Data pemakaian berhasil ditambahkan!",
+      });
       closeAddModal();
       await fetchPemakaian();
     } catch (err) {
@@ -134,12 +154,15 @@ export default function BahanBakuPakai() {
 
   const handleDelete = async () => {
     if (!deletePemakaian) return;
-    
+
     setActionLoading("deleting");
     try {
-      await axios.delete(`${API_URL}/bahan-baku-pakai/${deletePemakaian.id_pemakaian}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(
+        `${API_URL}/bahan-baku-pakai/${deletePemakaian.id_pemakaian}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setMessage({ type: "success", text: "Data pemakaian berhasil dihapus!" });
       await fetchPemakaian();
       setIsDeleteModalOpen(false);
@@ -152,23 +175,28 @@ export default function BahanBakuPakai() {
     }
   };
 
-  const totalModal = pemakaianList.reduce((sum, item) => sum + (item.total_modal || 0), 0);
+  const totalModal = pemakaianList.reduce(
+    (sum, item) => sum + (item.total_modal || 0),
+    0
+  );
 
   const renderContent = () => {
-    if (loading) return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
-        <p>Memuat data pemakaian...</p>
-      </div>
-    );
-    
-    if (error) return (
-      <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
-        <XCircle className="h-10 w-10 mb-4" />
-        <p className="font-semibold">Terjadi Kesalahan</p>
-        <p>{error}</p>
-      </div>
-    );
+    if (loading)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+          <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
+          <p>Memuat data pemakaian...</p>
+        </div>
+      );
+
+    if (error)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
+          <XCircle className="h-10 w-10 mb-4" />
+          <p className="font-semibold">Terjadi Kesalahan</p>
+          <p>{error}</p>
+        </div>
+      );
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -217,16 +245,18 @@ export default function BahanBakuPakai() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {Number(item.satuan) % 1 === 0
-                      ? Number(item.satuan) 
-                      : Number(item.satuan).toFixed(1)} kg
+                      ? Number(item.satuan)
+                      : Number(item.satuan).toFixed(1)}{" "}
+                    kg
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {formatRupiah(item.harga_satuan)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                     {Number(item.jumlah_pakai) % 1 === 0
-                      ? Number(item.jumlah_pakai) 
-                      : Number(item.jumlah_pakai).toFixed(1)} pcs
+                      ? Number(item.jumlah_pakai)
+                      : Number(item.jumlah_pakai).toFixed(1)}{" "}
+                    pcs
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                     {formatRupiah(item.total_modal)}
@@ -251,7 +281,9 @@ export default function BahanBakuPakai() {
                   <div className="flex flex-col items-center gap-3 text-gray-500">
                     <Box size={32} />
                     <p className="font-semibold">Tidak ada data pemakaian</p>
-                    <p className="text-sm">Belum ada data pemakaian untuk tanggal ini</p>
+                    <p className="text-sm">
+                      Belum ada data pemakaian untuk tanggal ini
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -263,8 +295,12 @@ export default function BahanBakuPakai() {
         {pemakaianList.length > 0 && (
           <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Total Modal Harian:</span>
-              <span className="text-lg font-bold text-gray-900">{formatRupiah(totalModal)}</span>
+              <span className="text-sm font-medium text-gray-700">
+                Total Modal Harian:
+              </span>
+              <span className="text-lg font-bold text-gray-900">
+                {formatRupiah(totalModal)}
+              </span>
             </div>
           </div>
         )}
@@ -281,12 +317,20 @@ export default function BahanBakuPakai() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
 
-      <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Pemakaian Bahan Baku Harian</h1>
-            <p className="text-gray-500 text-sm sm:text-base">Kelola dan pantau penggunaan bahan baku setiap hari</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Pemakaian Bahan Baku Harian
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Kelola dan pantau penggunaan bahan baku setiap hari
+            </p>
           </div>
           <button
             onClick={openAddModal}
@@ -298,12 +342,12 @@ export default function BahanBakuPakai() {
 
         {/* Message Display */}
         {message.text && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className={`p-3 rounded-lg flex items-center gap-3 text-sm font-semibold ${
-              message.type === "success" 
-                ? "bg-green-100 text-green-800" 
+              message.type === "success"
+                ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800"
             }`}
           >
@@ -319,7 +363,10 @@ export default function BahanBakuPakai() {
                 Pilih Tanggal
               </label>
               <div className="relative max-w-xs">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Calendar
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="date"
                   value={tanggal}
@@ -329,53 +376,55 @@ export default function BahanBakuPakai() {
               </div>
             </div>
             <div className="text-sm text-gray-500">
-              Menampilkan data untuk tanggal: <span className="font-semibold text-gray-700">{tanggal}</span>
+              Menampilkan data untuk tanggal:{" "}
+              <span className="font-semibold text-gray-700">{tanggal}</span>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div>
-          {renderContent()}
-        </div>
+        <div>{renderContent()}</div>
       </motion.div>
 
       {/* Add Pemakaian Modal */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <motion.div 
+          <motion.div
             onMouseDown={closeAddModal}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
-              onMouseDown={e => e.stopPropagation()}
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-xl shadow-2xl w-full max-w-md"
             >
               <div className="p-6 border-b flex justify-between items-center">
                 <h2 className="text-xl font-bold text-gray-800">
                   Tambah Pemakaian Bahan Baku
                 </h2>
-                <button 
+                <button
                   onClick={closeAddModal}
                   className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <form onSubmit={handleAdd} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tanggal
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <Calendar
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
                     <input
                       type="date"
                       value={tanggal}
@@ -468,26 +517,30 @@ export default function BahanBakuPakai() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {isDeleteModalOpen && deletePemakaian && (
-          <motion.div 
+          <motion.div
             onMouseDown={() => setIsDeleteModalOpen(false)}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
-              onMouseDown={e => e.stopPropagation()}
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
             >
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="text-red-600" size={24} />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Hapus Data Pemakaian</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                Hapus Data Pemakaian
+              </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Apakah Anda yakin ingin menghapus data pemakaian <strong>"{deletePemakaian.nama_bahan}"</strong>? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus data pemakaian{" "}
+                <strong>"{deletePemakaian.nama_bahan}"</strong>? Tindakan ini
+                tidak dapat dibatalkan.
               </p>
               <div className="flex justify-center gap-3">
                 <button

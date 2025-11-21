@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw } from "lucide-react";
-import axios from 'axios';
-import KaryawanTable from '../../components/karyawan/KaryawanTable';
+import axios from "axios";
+import KaryawanTable from "../../components/karyawan/KaryawanTable";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -17,14 +17,14 @@ const KaryawanPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedKaryawan, setSelectedKaryawan] = useState(null);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     nama_karyawan: "",
     alamat: "",
     telepon: "",
-    gaji: ""
+    gaji: "",
   });
 
   const token = localStorage.getItem("token");
@@ -37,11 +37,18 @@ const KaryawanPage = () => {
   };
 
   const fetchKaryawan = useCallback(async () => {
-    if (!cabangId) { setError("Data cabang tidak ditemukan."); setLoading(false); return; }
-    setLoading(true); setError(null);
+    if (!cabangId) {
+      setError("Data cabang tidak ditemukan.");
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
     try {
-      const res = await axios.get(`${API_URL}/cabang/${cabangId}/karyawan`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data.status === 'success') {
+      const res = await axios.get(`${API_URL}/cabang/${cabangId}/karyawan`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.data.status === "success") {
         setKaryawanList(res.data.data || []);
       }
       //eslint-disable-next-line no-unused-vars
@@ -55,15 +62,19 @@ const KaryawanPage = () => {
   useEffect(() => {
     fetchKaryawan();
   }, [fetchKaryawan]);
-  
+
   const openModal = (karyawan = null) => {
     setSelectedKaryawan(karyawan);
-    setFormData(karyawan ? {
-      nama_karyawan: karyawan.nama_karyawan,
-      alamat: karyawan.alamat,
-      telepon: karyawan.telepon,
-      gaji: karyawan.gaji,
-    } : { nama_karyawan: "", alamat: "", telepon: "", gaji: "" });
+    setFormData(
+      karyawan
+        ? {
+            nama_karyawan: karyawan.nama_karyawan,
+            alamat: karyawan.alamat,
+            telepon: karyawan.telepon,
+            gaji: karyawan.gaji,
+          }
+        : { nama_karyawan: "", alamat: "", telepon: "", gaji: "" }
+    );
     setIsModalOpen(true);
   };
 
@@ -72,28 +83,37 @@ const KaryawanPage = () => {
     setSelectedKaryawan(null);
   };
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true); 
+    setIsSubmitting(true);
     const apiData = { ...formData, id_cabang: cabangId };
 
     try {
       let res;
       if (selectedKaryawan) {
-        res = await axios.put(`${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`, apiData, { headers: { Authorization: `Bearer ${token}` } });
+        res = await axios.put(
+          `${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`,
+          apiData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
       } else {
-        res = await axios.post(`${API_URL}/karyawan`, apiData, { headers: { Authorization: `Bearer ${token}` } });
+        res = await axios.post(`${API_URL}/karyawan`, apiData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
       }
-      if (res.data.status === 'success') {
-        showMessage('success', res.data.message);
+      if (res.data.status === "success") {
+        showMessage("success", res.data.message);
         fetchKaryawan();
         closeModal();
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || `Gagal ${selectedKaryawan ? 'memperbarui' : 'menambah'} karyawan.`;
-      showMessage('error', errorMsg);
+      const errorMsg =
+        err.response?.data?.message ||
+        `Gagal ${selectedKaryawan ? "memperbarui" : "menambah"} karyawan.`;
+      showMessage("error", errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,24 +133,44 @@ const KaryawanPage = () => {
     if (!selectedKaryawan) return;
     setIsSubmitting(true);
     try {
-      const res = await axios.delete(`${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.data.status === 'success') {
-        showMessage('success', res.data.message);
+      const res = await axios.delete(
+        `${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (res.data.status === "success") {
+        showMessage("success", res.data.message);
         fetchKaryawan();
         closeConfirmDelete();
       }
       //eslint-disable-next-line no-unused-vars
     } catch (err) {
-      showMessage('error', 'Gagal menghapus karyawan.');
+      showMessage("error", "Gagal menghapus karyawan.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const renderContent = () => {
-    if (loading) return <div className="flex items-center justify-center h-64 text-gray-500"><RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>;
-    if (error) return <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg"><AlertTriangle className="h-8 w-8 mb-2" />{error}</div>;
-    return <KaryawanTable karyawanList={karyawanList} onEdit={openModal} onDelete={openConfirmDelete} />;
+    if (loading)
+      return (
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          <RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...
+        </div>
+      );
+    if (error)
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg">
+          <AlertTriangle className="h-8 w-8 mb-2" />
+          {error}
+        </div>
+      );
+    return (
+      <KaryawanTable
+        karyawanList={karyawanList}
+        onEdit={openModal}
+        onDelete={openConfirmDelete}
+      />
+    );
   };
 
   return (
@@ -141,14 +181,23 @@ const KaryawanPage = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
-      <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manajemen Karyawan</h1>
-            <p className="text-gray-500 text-sm sm:text-base">Kelola daftar karyawan untuk cabang <strong>{cabang?.nama_cabang || 'N/A'}</strong></p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Manajemen Karyawan
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Kelola daftar karyawan untuk cabang{" "}
+              <strong>{cabang?.nama_cabang || "N/A"}</strong>
+            </p>
           </div>
-          <motion.button 
-            onClick={() => openModal()} 
+          <motion.button
+            onClick={() => openModal()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold self-start sm:self-center"
@@ -159,55 +208,136 @@ const KaryawanPage = () => {
 
         <AnimatePresence>
           {message.text && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20, scale: 0.9 }} 
-              animate={{ opacity: 1, y: 0, scale: 1 }} 
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className={`fixed top-20 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${ message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" }`}
+              className={`fixed top-20 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${
+                message.type === "success"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
             >
               {message.type === "success" ? "✓" : "✗"} {message.text}
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">{renderContent()}</div>
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
+          {renderContent()}
+        </div>
       </motion.div>
 
       {/* Add/Edit Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div onMouseDown={closeModal} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div onMouseDown={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative">
+          <motion.div
+            onMouseDown={closeModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative"
+            >
               <div className="p-6 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">{selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan Baru"}</h2>
-                <button onClick={closeModal} className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"><X size={20} /></button>
+                <h2 className="text-xl font-bold text-gray-800">
+                  {selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan Baru"}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
+                >
+                  <X size={20} />
+                </button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nama Karyawan</label>
-                      <input type="text" name="nama_karyawan" value={formData.nama_karyawan} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting} />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nama Karyawan
+                    </label>
+                    <input
+                      type="text"
+                      name="nama_karyawan"
+                      value={formData.nama_karyawan}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Telepon</label>
-                      <input type="text" name="telepon" value={formData.telepon} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting} />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Telepon
+                    </label>
+                    <input
+                      type="text"
+                      name="telepon"
+                      value={formData.telepon}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                      required
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-                    <textarea name="alamat" value={formData.alamat} onChange={handleChange} rows="2" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting}></textarea>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Alamat
+                  </label>
+                  <textarea
+                    name="alamat"
+                    value={formData.alamat}
+                    onChange={handleChange}
+                    rows="2"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                    required
+                    disabled={isSubmitting}
+                  ></textarea>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Gaji (Rp)</label>
-                    <input type="number" name="gaji" value={formData.gaji} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting} />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gaji (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    name="gaji"
+                    value={formData.gaji}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                    required
+                    disabled={isSubmitting}
+                  />
                 </div>
                 <div className="pt-2 flex justify-end gap-3">
-                  <button type="button" onClick={closeModal} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button>
-                  <button type="submit" className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait" disabled={isSubmitting}>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
+                    disabled={isSubmitting}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait"
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
-                        <><Loader2 className="animate-spin mr-2" size={16}/> {selectedKaryawan ? 'Menyimpan...' : 'Menambah...'}</>
+                      <>
+                        <Loader2 className="animate-spin mr-2" size={16} />{" "}
+                        {selectedKaryawan ? "Menyimpan..." : "Menambah..."}
+                      </>
+                    ) : selectedKaryawan ? (
+                      "Simpan"
                     ) : (
-                        selectedKaryawan ? "Simpan" : "Tambah"
+                      "Tambah"
                     )}
                   </button>
                 </div>
@@ -219,17 +349,47 @@ const KaryawanPage = () => {
 
       <AnimatePresence>
         {isConfirmOpen && (
-          <motion.div onMouseDown={closeConfirmDelete} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div onMouseDown={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center">
+          <motion.div
+            onMouseDown={closeConfirmDelete}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
+            >
               <AlertTriangle className="mx-auto text-red-500 h-12 w-12 mb-4" />
-              <h2 className="text-lg font-bold text-gray-800">Konfirmasi Hapus</h2>
+              <h2 className="text-lg font-bold text-gray-800">
+                Konfirmasi Hapus
+              </h2>
               <p className="text-sm text-gray-500 mt-2 mb-6">
-                Apakah Anda yakin ingin menghapus karyawan <br/><strong>{selectedKaryawan?.nama_karyawan}</strong>? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus karyawan <br />
+                <strong>{selectedKaryawan?.nama_karyawan}</strong>? Tindakan ini
+                tidak dapat dibatalkan.
               </p>
               <div className="flex justify-center gap-3">
-                <button onClick={closeConfirmDelete} className="px-6 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button>
-                <button onClick={handleDelete} className="flex items-center justify-center w-28 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="animate-spin" size={16}/> : "Hapus"}
+                <button
+                  onClick={closeConfirmDelete}
+                  className="px-6 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
+                  disabled={isSubmitting}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center justify-center w-28 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="animate-spin" size={16} />
+                  ) : (
+                    "Hapus"
+                  )}
                 </button>
               </div>
             </motion.div>

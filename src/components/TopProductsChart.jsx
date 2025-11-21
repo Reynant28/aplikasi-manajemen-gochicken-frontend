@@ -1,18 +1,21 @@
 // src/components/TopProductsChart.jsx
-import React from 'react';
+import React from "react";
 //eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
-import { Crown } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Crown } from "lucide-react";
 
 const TopProductsChart = ({ data }) => {
-
   // Helper to get podium colors for the rank badges
   const getRankStyle = (index) => {
     switch (index) {
-      case 0: return 'bg-amber-400 text-amber-900'; // Gold
-      case 1: return 'bg-slate-300 text-slate-700'; // Silver
-      case 2: return 'bg-orange-300 text-orange-800'; // Bronze
-      default: return 'bg-gray-200 text-gray-600';
+      case 0:
+        return "bg-amber-400 text-amber-900"; // Gold
+      case 1:
+        return "bg-slate-300 text-slate-700"; // Silver
+      case 2:
+        return "bg-orange-300 text-orange-800"; // Bronze
+      default:
+        return "bg-gray-200 text-gray-600";
     }
   };
 
@@ -39,13 +42,15 @@ const TopProductsChart = ({ data }) => {
             >
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <span 
-                    className={`flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-xs font-bold ${getRankStyle(index)}`}
+                  <span
+                    className={`flex-shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-xs font-bold ${getRankStyle(
+                      index
+                    )}`}
                   >
                     {index + 1}
                   </span>
-                  <p 
-                    className="font-semibold text-gray-700 truncate" 
+                  <p
+                    className="font-semibold text-gray-700 truncate"
                     title={product.nama_produk}
                   >
                     {product.nama_produk}

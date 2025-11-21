@@ -2,7 +2,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit, Trash2, Package, Loader2, Search, XCircle, Box } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Package,
+  Loader2,
+  Search,
+  XCircle,
+  Box,
+} from "lucide-react";
 import axios from "axios";
 
 const API_URL = "http://localhost:8000/api";
@@ -24,11 +33,11 @@ const BahanPage = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Data states
   const [editingBahan, setEditingBahan] = useState(null);
   const [deleteBahan, setDeleteBahan] = useState(null);
-  
+
   // Form and filter states
   const [formData, setFormData] = useState({
     nama_bahan: "",
@@ -49,7 +58,7 @@ const BahanPage = () => {
     setError(null);
     try {
       const res = await axios.get(`${API_URL}/bahan-baku`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setBahanList(res.data.data || []);
     } catch (err) {
@@ -65,9 +74,10 @@ const BahanPage = () => {
   }, [token, fetchBahan]);
 
   // Filter bahan based on search
-  const filteredBahan = bahanList.filter(bahan => 
-    bahan.nama_bahan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bahan.id_bahan_baku.toString().includes(searchTerm)
+  const filteredBahan = bahanList.filter(
+    (bahan) =>
+      bahan.nama_bahan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bahan.id_bahan_baku.toString().includes(searchTerm)
   );
 
   const handleChange = (e) => {
@@ -103,23 +113,34 @@ const BahanPage = () => {
 
     try {
       if (editingBahan) {
-        await axios.put(`${API_URL}/bahan-baku/${editingBahan.id_bahan_baku}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
+        await axios.put(
+          `${API_URL}/bahan-baku/${editingBahan.id_bahan_baku}`,
+          formData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setMessage({
+          type: "success",
+          text: "Bahan baku berhasil diperbarui!",
         });
-        setMessage({ type: "success", text: "Bahan baku berhasil diperbarui!" });
       } else {
         await axios.post(`${API_URL}/bahan-baku`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setMessage({ type: "success", text: "Bahan baku berhasil ditambahkan!" });
+        setMessage({
+          type: "success",
+          text: "Bahan baku berhasil ditambahkan!",
+        });
       }
-      
+
       await fetchBahan();
       setIsModalOpen(false);
       setEditingBahan(null);
     } catch (err) {
       console.error("Submit error:", err);
-      const errorMsg = err.response?.data?.message || "Gagal menyimpan bahan baku";
+      const errorMsg =
+        err.response?.data?.message || "Gagal menyimpan bahan baku";
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setActionLoading(null);
@@ -128,11 +149,11 @@ const BahanPage = () => {
 
   const handleDelete = async () => {
     if (!deleteBahan) return;
-    
+
     setActionLoading("deleting");
     try {
       await axios.delete(`${API_URL}/bahan-baku/${deleteBahan.id_bahan_baku}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setMessage({ type: "success", text: "Bahan baku berhasil dihapus!" });
       await fetchBahan();
@@ -158,20 +179,22 @@ const BahanPage = () => {
   };
 
   const renderContent = () => {
-    if (loading) return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
-        <p>Memuat data bahan baku...</p>
-      </div>
-    );
-    
-    if (error) return (
-      <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
-        <XCircle className="h-10 w-10 mb-4" />
-        <p className="font-semibold">Terjadi Kesalahan</p>
-        <p>{error}</p>
-      </div>
-    );
+    if (loading)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+          <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
+          <p>Memuat data bahan baku...</p>
+        </div>
+      );
+
+    if (error)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
+          <XCircle className="h-10 w-10 mb-4" />
+          <p className="font-semibold">Terjadi Kesalahan</p>
+          <p>{error}</p>
+        </div>
+      );
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -226,9 +249,10 @@ const BahanPage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {Number(bahan.satuan) % 1 === 0 
-                        ? Number(bahan.satuan) 
-                        : Number(bahan.satuan).toFixed(1)} kg
+                      {Number(bahan.satuan) % 1 === 0
+                        ? Number(bahan.satuan)
+                        : Number(bahan.satuan).toFixed(1)}{" "}
+                      kg
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                       {formatRupiah(bahan.harga_satuan)}
@@ -261,7 +285,9 @@ const BahanPage = () => {
                     <Box size={32} />
                     <p className="font-semibold">Tidak ada data bahan baku</p>
                     <p className="text-sm">
-                      {searchTerm ? "Coba ubah pencarian" : "Belum ada bahan baku yang tercatat"}
+                      {searchTerm
+                        ? "Coba ubah pencarian"
+                        : "Belum ada bahan baku yang tercatat"}
                     </p>
                   </div>
                 </td>
@@ -282,12 +308,20 @@ const BahanPage = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
 
-      <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Bahan Baku</h1>
-            <p className="text-gray-500 text-sm sm:text-base">Manajemen stok dan harga bahan baku</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Daftar Bahan Baku
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Manajemen stok dan harga bahan baku
+            </p>
           </div>
           <button
             onClick={handleAddBahan}
@@ -299,12 +333,12 @@ const BahanPage = () => {
 
         {/* Message Display */}
         {message.text && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             className={`p-3 rounded-lg flex items-center gap-3 text-sm font-semibold ${
-              message.type === "success" 
-                ? "bg-green-100 text-green-800" 
+              message.type === "success"
+                ? "bg-green-100 text-green-800"
                 : "bg-red-100 text-red-800"
             }`}
           >
@@ -315,7 +349,10 @@ const BahanPage = () => {
         {/* Search Section */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Cari bahan baku..."
@@ -327,26 +364,24 @@ const BahanPage = () => {
         </div>
 
         {/* Content */}
-        <div>
-          {renderContent()}
-        </div>
+        <div>{renderContent()}</div>
       </motion.div>
 
       {/* Add/Edit Bahan Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div 
+          <motion.div
             onMouseDown={() => setIsModalOpen(false)}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
-              onMouseDown={e => e.stopPropagation()}
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-xl shadow-2xl w-full max-w-md"
             >
               <div className="p-6 border-b">
@@ -354,7 +389,7 @@ const BahanPage = () => {
                   {editingBahan ? "Edit Bahan Baku" : "Tambah Bahan Baku Baru"}
                 </h2>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -440,8 +475,10 @@ const BahanPage = () => {
                         <Loader2 className="animate-spin" size={18} />
                         Menyimpan...
                       </>
+                    ) : editingBahan ? (
+                      "Simpan Perubahan"
                     ) : (
-                      editingBahan ? "Simpan Perubahan" : "Tambah Bahan"
+                      "Tambah Bahan"
                     )}
                   </button>
                 </div>
@@ -454,26 +491,30 @@ const BahanPage = () => {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {isDeleteModalOpen && deleteBahan && (
-          <motion.div 
+          <motion.div
             onMouseDown={() => setIsDeleteModalOpen(false)}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
-              onMouseDown={e => e.stopPropagation()}
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
             >
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="text-red-600" size={24} />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Hapus Bahan Baku</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                Hapus Bahan Baku
+              </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Apakah Anda yakin ingin menghapus bahan baku <strong>"{deleteBahan.nama_bahan}"</strong>? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin menghapus bahan baku{" "}
+                <strong>"{deleteBahan.nama_bahan}"</strong>? Tindakan ini tidak
+                dapat dibatalkan.
               </p>
               <div className="flex justify-center gap-3">
                 <button

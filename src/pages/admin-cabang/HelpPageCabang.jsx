@@ -1,44 +1,34 @@
 import React from "react";
+//eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import {
-  BookOpen,
-  ClipboardList,
-  Package,
-  Users,
-  Wallet,
-} from "lucide-react";
+import { BookOpen, ClipboardList, Package, Users, Wallet } from "lucide-react";
 
 const HelpPageCabang = () => {
   const guides = [
     {
       icon: <BookOpen className="text-green-600" size={22} />,
       title: "General Page",
-      desc:
-        "Menampilkan dashboard utama untuk setiap cabang. Semua data yang muncul di sini berdasarkan cabang yang sedang login, sehingga setiap cabang memiliki tampilan dan statistik yang berbeda. Admin Cabang dapat melihat performa penjualan, aktivitas terbaru, serta ringkasan laporan operasional secara real-time.",
+      desc: "Menampilkan dashboard utama untuk setiap cabang. Semua data yang muncul di sini berdasarkan cabang yang sedang login, sehingga setiap cabang memiliki tampilan dan statistik yang berbeda. Admin Cabang dapat melihat performa penjualan, aktivitas terbaru, serta ringkasan laporan operasional secara real-time.",
     },
     {
       icon: <ClipboardList className="text-green-600" size={22} />,
       title: "Reports Page",
-      desc:
-        "Berisi laporan rinci dari aktivitas operasional cabang. Admin dapat melihat data penjualan, pengeluaran, serta performa karyawan secara spesifik untuk cabang masing-masing. Halaman ini membantu dalam evaluasi keuangan dan operasional harian dengan tampilan grafik dan tabel yang mudah dibaca.",
+      desc: "Berisi laporan rinci dari aktivitas operasional cabang. Admin dapat melihat data penjualan, pengeluaran, serta performa karyawan secara spesifik untuk cabang masing-masing. Halaman ini membantu dalam evaluasi keuangan dan operasional harian dengan tampilan grafik dan tabel yang mudah dibaca.",
     },
     {
       icon: <Package className="text-green-600" size={22} />,
       title: "Manajemen Stok",
-      desc:
-        "Digunakan untuk memantau dan mengelola stok produk di cabang. Admin dapat menambahkan stok baru, mengurangi stok yang sudah terpakai, serta memastikan data persediaan selalu akurat. Dengan fitur ini, kontrol bahan dan ketersediaan produk dapat dilakukan lebih cepat dan efisien.",
+      desc: "Digunakan untuk memantau dan mengelola stok produk di cabang. Admin dapat menambahkan stok baru, mengurangi stok yang sudah terpakai, serta memastikan data persediaan selalu akurat. Dengan fitur ini, kontrol bahan dan ketersediaan produk dapat dilakukan lebih cepat dan efisien.",
     },
     {
       icon: <Users className="text-green-600" size={22} />,
       title: "Manajemen Karyawan",
-      desc:
-        "Digunakan untuk mengelola data karyawan di cabang, termasuk informasi personal dan rincian gaji. Admin Cabang dapat menambah karyawan baru sesuai kebutuhan operasional, namun setiap penambahan akan melalui persetujuan dari Super Admin agar tetap transparan dan terkontrol.",
+      desc: "Digunakan untuk mengelola data karyawan di cabang, termasuk informasi personal dan rincian gaji. Admin Cabang dapat menambah karyawan baru sesuai kebutuhan operasional, namun setiap penambahan akan melalui persetujuan dari Super Admin agar tetap transparan dan terkontrol.",
     },
     {
       icon: <Wallet className="text-green-600" size={22} />,
       title: "Pengeluaran",
-      desc:
-        "Menampilkan seluruh data pengeluaran yang tercatat di cabang. Setiap transaksi pengeluaran berisi informasi rinci seperti tanggal, jumlah, dan deskripsi penggunaan dana. Fitur ini membantu Admin Cabang dalam mencatat dan mengontrol keuangan operasional harian dengan lebih akurat.",
+      desc: "Menampilkan seluruh data pengeluaran yang tercatat di cabang. Setiap transaksi pengeluaran berisi informasi rinci seperti tanggal, jumlah, dan deskripsi penggunaan dana. Fitur ini membantu Admin Cabang dalam mencatat dan mengontrol keuangan operasional harian dengan lebih akurat.",
     },
   ];
 

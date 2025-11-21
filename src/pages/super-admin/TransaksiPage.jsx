@@ -2,10 +2,22 @@
 import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Eye, Calendar, Loader2, Search, XCircle, Receipt, X } from "lucide-react";
+import {
+  Download,
+  Eye,
+  Calendar,
+  Loader2,
+  Search,
+  XCircle,
+  Receipt,
+  X,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import { mapPaymentMethodToUI, getPaymentIcon } from "../../components/utils/paymentUtils";
+import {
+  mapPaymentMethodToUI,
+  getPaymentIcon,
+} from "../../components/utils/paymentUtils";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -36,7 +48,7 @@ const TransaksiPage = () => {
     setError(null);
     try {
       const res = await axios.get(`${API_URL}/transaksi`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setTransaksi(res.data.data || []);
     } catch (err) {
@@ -52,7 +64,7 @@ const TransaksiPage = () => {
       setLoadingDetail(true);
       setLoadingDetailId(id_transaksi);
       const res = await axios.get(`${API_URL}/transaksi/${id_transaksi}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setDetailTransaksi(res.data.data);
     } catch (error) {
@@ -68,13 +80,15 @@ const TransaksiPage = () => {
   }, [token, fetchTransaksi]);
 
   // Filter data based on date and search
-  const filteredData = transaksi.filter(t => {
-    const matchesDate = !selectedDate || t.tanggal_waktu.startsWith(selectedDate);
-    const matchesSearch = 
+  const filteredData = transaksi.filter((t) => {
+    const matchesDate =
+      !selectedDate || t.tanggal_waktu.startsWith(selectedDate);
+    const matchesSearch =
       t.kode_transaksi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (t.nama_pelanggan && t.nama_pelanggan.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (t.nama_pelanggan &&
+        t.nama_pelanggan.toLowerCase().includes(searchTerm.toLowerCase())) ||
       t.metode_pembayaran.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesDate && matchesSearch;
   });
 
@@ -103,7 +117,7 @@ const TransaksiPage = () => {
     const ws = XLSX.utils.json_to_sheet(dataForExport);
     XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
 
-    ws['!cols'] = [
+    ws["!cols"] = [
       { wch: 20 },
       { wch: 25 },
       { wch: 20 },
@@ -117,20 +131,22 @@ const TransaksiPage = () => {
   };
 
   const renderContent = () => {
-    if (loading) return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
-        <p>Memuat data transaksi...</p>
-      </div>
-    );
-    
-    if (error) return (
-      <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
-        <XCircle className="h-10 w-10 mb-4" />
-        <p className="font-semibold">Terjadi Kesalahan</p>
-        <p>{error}</p>
-      </div>
-    );
+    if (loading)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+          <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
+          <p>Memuat data transaksi...</p>
+        </div>
+      );
+
+    if (error)
+      return (
+        <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
+          <XCircle className="h-10 w-10 mb-4" />
+          <p className="font-semibold">Terjadi Kesalahan</p>
+          <p>{error}</p>
+        </div>
+      );
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -212,7 +228,9 @@ const TransaksiPage = () => {
                     <Receipt size={32} />
                     <p className="font-semibold">Tidak ada data transaksi</p>
                     <p className="text-sm">
-                      {selectedDate || searchTerm ? "Coba ubah filter pencarian" : "Belum ada transaksi yang tercatat"}
+                      {selectedDate || searchTerm
+                        ? "Coba ubah filter pencarian"
+                        : "Belum ada transaksi yang tercatat"}
                     </p>
                   </div>
                 </td>
@@ -233,12 +251,20 @@ const TransaksiPage = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
 
-      <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Kelola Transaksi</h1>
-            <p className="text-gray-500 text-sm sm:text-base">Lihat dan kelola semua transaksi penjualan</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+              Kelola Transaksi
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Lihat dan kelola semua transaksi penjualan
+            </p>
           </div>
           <button
             onClick={handleExportAllData}
@@ -251,7 +277,10 @@ const TransaksiPage = () => {
         {/* Search and Filter Section */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Cari transaksi..."
@@ -261,7 +290,10 @@ const TransaksiPage = () => {
             />
           </div>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Calendar
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="date"
               value={selectedDate}
@@ -272,36 +304,36 @@ const TransaksiPage = () => {
         </div>
 
         {/* Content */}
-        <div>
-          {renderContent()}
-        </div>
+        <div>{renderContent()}</div>
       </motion.div>
 
       {/* Detail Transaction Modal */}
       <AnimatePresence>
         {detailTransaksi && (
-          <motion.div 
+          <motion.div
             onMouseDown={() => setDetailTransaksi(null)}
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <motion.div 
-              onMouseDown={e => e.stopPropagation()}
-              initial={{ scale: 0.9, y: 20 }} 
-              animate={{ scale: 1, y: 0 }} 
-              exit={{ scale: 0.9, y: 20 }} 
+            <motion.div
+              onMouseDown={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
             >
               <div className="p-6 border-b flex justify-between items-center flex-shrink-0">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">Detail Transaksi</h2>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Detail Transaksi
+                  </h2>
                   <p className="text-sm text-gray-500 mt-1">
                     Kode: {detailTransaksi.kode_transaksi}
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setDetailTransaksi(null)}
                   className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
                 >
@@ -321,24 +353,38 @@ const TransaksiPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-700">Pelanggan:</span>
-                          <span className="text-gray-600">{detailTransaksi.nama_pelanggan || "-"}</span>
+                          <span className="font-semibold text-gray-700">
+                            Pelanggan:
+                          </span>
+                          <span className="text-gray-600">
+                            {detailTransaksi.nama_pelanggan || "-"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-700">Tanggal & Waktu:</span>
-                          <span className="text-gray-600">{detailTransaksi.tanggal_waktu}</span>
+                          <span className="font-semibold text-gray-700">
+                            Tanggal & Waktu:
+                          </span>
+                          <span className="text-gray-600">
+                            {detailTransaksi.tanggal_waktu}
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-700">Metode Pembayaran:</span>
+                          <span className="font-semibold text-gray-700">
+                            Metode Pembayaran:
+                          </span>
                           <div className="flex items-center text-gray-600">
                             {getPaymentIcon(detailTransaksi.metode_pembayaran)}
-                            {mapPaymentMethodToUI(detailTransaksi.metode_pembayaran)}
+                            {mapPaymentMethodToUI(
+                              detailTransaksi.metode_pembayaran
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-700">Status:</span>
+                          <span className="font-semibold text-gray-700">
+                            Status:
+                          </span>
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Selesai
                           </span>
@@ -348,7 +394,9 @@ const TransaksiPage = () => {
 
                     {/* Transaction Items */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Detail Produk</h3>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                        Detail Produk
+                      </h3>
                       <div className="border border-gray-200 rounded-lg overflow-hidden">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
@@ -392,7 +440,9 @@ const TransaksiPage = () => {
                     {/* Total */}
                     <div className="border-t border-gray-200 pt-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-gray-800">Total</span>
+                        <span className="text-lg font-semibold text-gray-800">
+                          Total
+                        </span>
                         <span className="text-2xl font-bold text-gray-900">
                           {formatRupiah(detailTransaksi.total_harga)}
                         </span>

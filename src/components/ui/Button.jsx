@@ -1,6 +1,11 @@
 // src/components/Button.jsx
-/* eslint-disable react/prop-types */
-const Button = ({ children, onClick, variant = "primary", type = "button", disabled }) => {
+const Button = ({
+  children,
+  onClick,
+  variant = "primary",
+  type = "button",
+  disabled,
+}) => {
   const base =
     "px-4 py-2 rounded-lg flex items-center gap-2 transition font-medium";
   const variants = {
@@ -15,7 +20,9 @@ const Button = ({ children, onClick, variant = "primary", type = "button", disab
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${base} ${variants[variant]} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      className={`${base} ${variants[variant]} ${
+        disabled ? "opacity-50 cursor-not-allowed" : ""
+      }`}
     >
       {children}
     </button>

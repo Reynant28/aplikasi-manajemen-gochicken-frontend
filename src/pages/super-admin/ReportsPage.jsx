@@ -1,19 +1,19 @@
 // src/pages/ReportsPage.jsx
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 //eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 // Import our main dashboard components
-import DashboardCard from '../../components/DashboardCard.jsx';
-import SalesTrendChart from '../../components/SalesTrendChart.jsx';
-import TopProductsChart from '../../components/TopProductsChart.jsx';
-import { Loader2 } from 'lucide-react';
+import DashboardCard from "../../components/DashboardCard.jsx";
+import SalesTrendChart from "../../components/SalesTrendChart.jsx";
+import TopProductsChart from "../../components/TopProductsChart.jsx";
+import { Loader2 } from "lucide-react";
 
 // Import our NEW detailed report components
-import ProductReport from '../../components/reports/super-admin-report/ProductReport.jsx';
-import SalesReport from '../../components/reports/super-admin-report/SalesReport.jsx';
-import EmployeeReport from '../../components/reports/super-admin-report/EmployeeReport.jsx';
+import ProductReport from "../../components/reports/super-admin-report/ProductReport.jsx";
+import SalesReport from "../../components/reports/super-admin-report/SalesReport.jsx";
+import EmployeeReport from "../../components/reports/super-admin-report/EmployeeReport.jsx";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -34,10 +34,10 @@ const ReportsPage = () => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('bulan');
+  const [filter, setFilter] = useState("bulan");
 
   // NEW state for the bottom detailed reports section
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState("products");
 
   // Get user and branch info from localStorage
   const token = localStorage.getItem("token");
@@ -47,7 +47,7 @@ const ReportsPage = () => {
   useEffect(() => {
     let cancelled = false;
     const fetchReportData = async () => {
-      if (user?.role !== 'super admin') {
+      if (user?.role !== "super admin") {
         setError("Hanya Super Admin yang dapat melihat laporan ini.");
         setLoading(false);
         return;
@@ -56,29 +56,31 @@ const ReportsPage = () => {
       setError(null);
       try {
         const res = await axios.get(`${API_URL}/reports/all?filter=${filter}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.data?.status === 'success' && !cancelled) {
+        if (res.data?.status === "success" && !cancelled) {
           setReportData(res.data.data);
         }
       } catch {
-        if (!cancelled) setError("Terjadi kesalahan saat mengambil data laporan.");
+        if (!cancelled)
+          setError("Terjadi kesalahan saat mengambil data laporan.");
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
     fetchReportData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [token, user?.role, filter]);
-
 
   const renderActiveTabComponent = () => {
     switch (activeTab) {
-      case 'products':
+      case "products":
         return <ProductReport token={token} />;
-      case 'sales':
+      case "sales":
         return <SalesReport token={token} filter={filter} />; // Pass filter here
-      case 'employees':
+      case "employees":
         return <EmployeeReport token={token} />;
       default:
         return null;
@@ -86,7 +88,7 @@ const ReportsPage = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -95,17 +97,52 @@ const ReportsPage = () => {
       {/* --- TOP SECTION: VISUAL DASHBOARD (Updated to match admin cabang style) --- */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Laporan Penjualan</h1>
-          <p className="text-gray-500 text-sm sm:text-base">Analisis performa penjualan untuk seluruh cabang.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Laporan Penjualan
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base">
+            Analisis performa penjualan untuk seluruh cabang.
+          </p>
         </div>
         <div className="flex bg-gray-100 p-1 rounded-lg self-start md:self-center">
-          <button onClick={() => setFilter('minggu')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'minggu' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Minggu Ini</button>
-          <button onClick={() => setFilter('bulan')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'bulan' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Bulan Ini</button>
-          <button onClick={() => setFilter('tahun')} className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${filter === 'tahun' ? 'bg-white text-red-600 shadow' : 'text-gray-600'}`}>Tahun Ini</button>
+          <button
+            onClick={() => setFilter("minggu")}
+            className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+              filter === "minggu"
+                ? "bg-white text-red-600 shadow"
+                : "text-gray-600"
+            }`}
+          >
+            Minggu Ini
+          </button>
+          <button
+            onClick={() => setFilter("bulan")}
+            className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+              filter === "bulan"
+                ? "bg-white text-red-600 shadow"
+                : "text-gray-600"
+            }`}
+          >
+            Bulan Ini
+          </button>
+          <button
+            onClick={() => setFilter("tahun")}
+            className={`px-3 sm:px-4 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+              filter === "tahun"
+                ? "bg-white text-red-600 shadow"
+                : "text-gray-600"
+            }`}
+          >
+            Tahun Ini
+          </button>
         </div>
       </div>
-      
-      {error && <div className="p-3 bg-red-100 text-red-700 rounded-md text-center mb-6">{error}</div>}
+
+      {error && (
+        <div className="p-3 bg-red-100 text-red-700 rounded-md text-center mb-6">
+          {error}
+        </div>
+      )}
       {loading && !error && (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
@@ -115,29 +152,75 @@ const ReportsPage = () => {
       {!loading && !error && reportData && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2"> 
-              <SalesTrendChart data={reportData.salesTrend} /> 
+            <div className="lg:col-span-2">
+              <SalesTrendChart data={reportData.salesTrend} />
             </div>
-            <div className="h-[350px] sm:h-[420px]"> 
-              <TopProductsChart data={reportData.topProducts} /> 
+            <div className="h-[350px] sm:h-[420px]">
+              <TopProductsChart data={reportData.topProducts} />
             </div>
             <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                <DashboardCard title="Total Pendapatan" value={formatRupiah(reportData.summary.totalPendapatan)} />
-                <DashboardCard title="Total Transaksi" value={reportData.summary.totalTransaksi.toLocaleString('id-ID')} />
-                <DashboardCard title="Rata-rata Transaksi" value={formatRupiah(reportData.summary.avgTransaksi)} />
-                <DashboardCard title="Produk Terlaris" value={reportData.summary.produkTerlaris} />
-                <DashboardCard title="Hari Paling Ramai" value={reportData.summary.hariTersibuk} />
+              <DashboardCard
+                title="Total Pendapatan"
+                value={formatRupiah(reportData.summary.totalPendapatan)}
+              />
+              <DashboardCard
+                title="Total Transaksi"
+                value={reportData.summary.totalTransaksi.toLocaleString(
+                  "id-ID"
+                )}
+              />
+              <DashboardCard
+                title="Rata-rata Transaksi"
+                value={formatRupiah(reportData.summary.avgTransaksi)}
+              />
+              <DashboardCard
+                title="Produk Terlaris"
+                value={reportData.summary.produkTerlaris}
+              />
+              <DashboardCard
+                title="Hari Paling Ramai"
+                value={reportData.summary.hariTersibuk}
+              />
             </div>
           </div>
 
           {/* --- NEW SECTION: DETAILED REPORTS (Updated to match admin cabang style) --- */}
           <div className="pt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Laporan Rinci</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Laporan Rinci
+            </h2>
             <div className="border-b border-gray-200 overflow-x-auto scrollbar-hide">
               <nav className="-mb-px flex space-x-6">
-                <button onClick={() => setActiveTab('products')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'products' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Produk</button>
-                <button onClick={() => setActiveTab('sales')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'sales' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Penjualan</button>
-                <button onClick={() => setActiveTab('employees')} className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${activeTab === 'employees' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700'}`}>Laporan Karyawan</button>
+                <button
+                  onClick={() => setActiveTab("products")}
+                  className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${
+                    activeTab === "products"
+                      ? "text-red-600 border-b-2 border-red-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Laporan Produk
+                </button>
+                <button
+                  onClick={() => setActiveTab("sales")}
+                  className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${
+                    activeTab === "sales"
+                      ? "text-red-600 border-b-2 border-red-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Laporan Penjualan
+                </button>
+                <button
+                  onClick={() => setActiveTab("employees")}
+                  className={`flex-shrink-0 whitespace-nowrap py-3 px-1 text-sm font-semibold ${
+                    activeTab === "employees"
+                      ? "text-red-600 border-b-2 border-red-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Laporan Karyawan
+                </button>
               </nav>
             </div>
             <div className="mt-6">

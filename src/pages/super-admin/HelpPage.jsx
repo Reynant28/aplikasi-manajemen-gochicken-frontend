@@ -1,5 +1,5 @@
-// src/pages/HelpPage.jsx
 import React from "react";
+//eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -18,56 +18,47 @@ const HelpPage = () => {
     {
       icon: <BookOpen className="text-green-600" size={22} />,
       title: "General Page",
-      desc:
-        "Menampilkan ringkasan aktivitas operasional, statistik utama, dan aktivitas terbaru. Super Admin dan Admin Cabang dapat memantau performa sistem, penjualan, serta aktivitas harian melalui grafik dan daftar aktivitas.",
+      desc: "Menampilkan ringkasan aktivitas operasional, statistik utama, dan aktivitas terbaru. Super Admin dan Admin Cabang dapat memantau performa sistem, penjualan, serta aktivitas harian melalui grafik dan daftar aktivitas.",
     },
     {
       icon: <BarChart2 className="text-green-600" size={22} />,
       title: "Reports Page",
-      desc:
-        "Menampilkan laporan data secara mendetail dengan diagram dan visualisasi untuk memudahkan analisis. Pengguna dapat melihat laporan penjualan, pengeluaran, dan performa karyawan yang dapat difilter atau diunduh.",
+      desc: "Menampilkan laporan data secara mendetail dengan diagram dan visualisasi untuk memudahkan analisis. Pengguna dapat melihat laporan penjualan, pengeluaran, dan performa karyawan yang dapat difilter atau diunduh.",
     },
     {
       icon: <Building2 className="text-green-600" size={22} />,
       title: "Kelola Cabang Page",
-      desc:
-        "Digunakan untuk mengelola data seluruh cabang di sistem. Super Admin dapat menambah, memperbarui, atau menghapus cabang yang tidak aktif.",
+      desc: "Digunakan untuk mengelola data seluruh cabang di sistem. Super Admin dapat menambah, memperbarui, atau menghapus cabang yang tidak aktif.",
     },
     {
       icon: <Layers className="text-green-600" size={22} />,
       title: "Kelola Produk Page",
-      desc:
-        "Berfungsi untuk menambah, mengubah, dan menghapus produk yang tersedia. Setiap produk dapat memiliki deskripsi, harga, dan gambar untuk tampilan yang menarik.",
+      desc: "Berfungsi untuk menambah, mengubah, dan menghapus produk yang tersedia. Setiap produk dapat memiliki deskripsi, harga, dan gambar untuk tampilan yang menarik.",
     },
     {
       icon: <Users className="text-green-600" size={22} />,
       title: "Karyawan Page",
-      desc:
-        "Menampilkan daftar seluruh karyawan yang bekerja di setiap cabang. Admin Cabang dapat menambahkan, memperbarui, atau menghapus data karyawan sesuai kebutuhan.",
+      desc: "Menampilkan daftar seluruh karyawan yang bekerja di setiap cabang. Admin Cabang dapat menambahkan, memperbarui, atau menghapus data karyawan sesuai kebutuhan.",
     },
     {
       icon: <UserCog className="text-green-600" size={22} />,
       title: "Admin Cabang Page",
-      desc:
-        "Fitur khusus untuk Super Admin dalam menambah dan mengelola akun Admin Cabang. Setiap Admin Cabang bertanggung jawab atas aktivitas di cabangnya masing-masing.",
+      desc: "Fitur khusus untuk Super Admin dalam menambah dan mengelola akun Admin Cabang. Setiap Admin Cabang bertanggung jawab atas aktivitas di cabangnya masing-masing.",
     },
     {
       icon: <Wallet className="text-green-600" size={22} />,
       title: "Pengeluaran Page",
-      desc:
-        "Digunakan untuk mencatat semua jenis pengeluaran di cabang. Setiap transaksi pengeluaran harus disertai keterangan rinci agar memudahkan evaluasi keuangan.",
+      desc: "Digunakan untuk mencatat semua jenis pengeluaran di cabang. Setiap transaksi pengeluaran harus disertai keterangan rinci agar memudahkan evaluasi keuangan.",
     },
     {
       icon: <Receipt className="text-green-600" size={22} />,
       title: "Transaksi Page",
-      desc:
-        "Menampilkan seluruh riwayat transaksi yang terjadi di sistem. Pengguna dapat meninjau detail transaksi, status pembayaran, dan mengekspor data ke PDF atau Excel.",
+      desc: "Menampilkan seluruh riwayat transaksi yang terjadi di sistem. Pengguna dapat meninjau detail transaksi, status pembayaran, dan mengekspor data ke PDF atau Excel.",
     },
     {
       icon: <Package className="text-green-600" size={22} />,
       title: "Daftar Bahan Baku Page",
-      desc:
-        "Berfungsi untuk mengelola data bahan baku yang digunakan dalam operasional. Super Admin dapat menambah, memperbarui, atau menghapus bahan baku sesuai kebutuhan stok produksi.",
+      desc: "Berfungsi untuk mengelola data bahan baku yang digunakan dalam operasional. Super Admin dapat menambah, memperbarui, atau menghapus bahan baku sesuai kebutuhan stok produksi.",
     },
   ];
 
@@ -85,7 +76,8 @@ const HelpPage = () => {
         </h1>
         <p className="text-gray-600 text-sm max-w-2xl">
           Berikut panduan penggunaan setiap halaman dalam sistem GoChicken
-          Management. Panduan ini membantu memahami fungsi utama dari masing-masing fitur.
+          Management. Panduan ini membantu memahami fungsi utama dari
+          masing-masing fitur.
         </p>
       </motion.div>
 
@@ -101,9 +93,7 @@ const HelpPage = () => {
             className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-all"
           >
             <div className="flex items-start gap-4">
-              <div className="bg-green-100 p-3 rounded-full">
-                {item.icon}
-              </div>
+              <div className="bg-green-100 p-3 rounded-full">{item.icon}</div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800">
                   {item.title}

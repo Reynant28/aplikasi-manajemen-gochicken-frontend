@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
 import { X, CheckCircle } from "lucide-react";
+//eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 
+//eslint-disable-next-line no-unused-vars
 const SuccessPopUp = ({ isOpen, onClose, title, message, duration = 3000 }) => {
   useEffect(() => {
     if (!isOpen) return;

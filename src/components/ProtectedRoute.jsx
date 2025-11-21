@@ -26,7 +26,11 @@ export default function ProtectedRoute({ allowedRole }) {
   }
 
   // Kalau admin cabang, pastikan URL id_cabang = yang login
-  if (user.role === "admin cabang" && id_cabang && +id_cabang !== cabang?.id_cabang) {
+  if (
+    user.role === "admin cabang" &&
+    id_cabang &&
+    +id_cabang !== cabang?.id_cabang
+  ) {
     return (
       <Navigate
         to={`/admin-cabang/${cabang?.id_cabang}/dashboard/general`}

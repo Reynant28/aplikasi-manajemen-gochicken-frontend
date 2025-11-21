@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Info } from "lucide-react";
 
 const DashboardCard = ({ title, value, children }) => {
   const textRef = useRef(null);
@@ -9,7 +9,8 @@ const DashboardCard = ({ title, value, children }) => {
   useEffect(() => {
     // Check if the text is overflowing its container
     if (textRef.current) {
-      const isOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
+      const isOverflowing =
+        textRef.current.scrollWidth > textRef.current.clientWidth;
       setIsTruncated(isOverflowing);
     }
   }, [value]); // Rerun check when the value changes
@@ -23,16 +24,16 @@ const DashboardCard = ({ title, value, children }) => {
         {value && (
           <div className="relative flex items-center gap-2">
             {/* ✨ PERBAIKAN: Ukuran font diperkecil */}
-            <p 
+            <p
               ref={textRef}
               className="text-xl sm:text-2xl font-bold text-gray-800 break-words truncate"
             >
               {value}
             </p>
-            
+
             {/* ✨ PERBAIKAN: Ikon Info hanya muncul jika teks terpotong */}
             {isTruncated && (
-              <div 
+              <div
                 className="relative"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
@@ -54,4 +55,3 @@ const DashboardCard = ({ title, value, children }) => {
 };
 
 export default DashboardCard;
-

@@ -38,17 +38,11 @@ export function CardTitle({ className, children }) {
 }
 
 export function CardDescription({ className, children }) {
-  return (
-    <p className={clsx("text-sm text-gray-500", className)}>{children}</p>
-  );
+  return <p className={clsx("text-sm text-gray-500", className)}>{children}</p>;
 }
 
 export function CardContent({ className, children }) {
-  return (
-    <div className={clsx("p-4 text-gray-500", className)}>
-      {children}
-    </div>
-  );
+  return <div className={clsx("p-4 text-gray-500", className)}>{children}</div>;
 }
 
 export default Card;
