@@ -78,9 +78,9 @@ const ProdukPage = () => {
 
   const renderContent = () => {
     if (loading) return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <RefreshCw className="animate-spin h-8 w-8 mb-4" />
-        <p>Memuat data stok produk...</p>
+      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+          <RefreshCw className="animate-spin text-gray-400 mb-4" size={32} />
+          <p className="text-gray-500">Memuat data stok produk...</p>
       </div>
     );
     

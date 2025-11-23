@@ -3,8 +3,6 @@ import Login from "./pages/Login";
 import DashboardLayout from './components/DashboardLayout.jsx';
 //import protected route
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-// ✅ IMPORT PROVIDER
-
 
 // Super Admin pages
 import GeneralPageSuper from './pages/super-admin/GeneralPage.jsx';
@@ -20,6 +18,8 @@ import TransaksiPageSuper from "./pages/super-admin/TransaksiPage.jsx";
 import BahanPage from "./pages/super-admin/BahanPage.jsx";
 import HelpPage from "./pages/super-admin/HelpPage.jsx";
 import BahanBakuPakaiPage from "./pages/super-admin/BahanBakuPakai.jsx";
+import AuditLogPage from "./pages/super-admin/AuditLogPage.jsx";
+import BackupRestorePage from "./pages/super-admin/BackupRestorePage.jsx";
 
 // Admin Cabang pages
 import GeneralPageCabang from './pages/admin-cabang/GeneralPage.jsx';
@@ -34,7 +34,7 @@ import HelpPageCabang from "./pages/admin-cabang/HelpPageCabang.jsx";
 
 import Dashboard from "./components/Dashboard";
 import './App.css'
-import AuditLogPage from "./pages/super-admin/AuditLogPage.jsx";
+
 
 function App() {
   return (
@@ -64,6 +64,7 @@ function App() {
                 <Route path="bahan" element={<BahanPage />} />
                 <Route path="help" element={<HelpPage />} />
                 <Route path="audit-log" element={<AuditLogPage />} />
+                <Route path="backup-restore" element={<BackupRestorePage />} />
               </Route>
             </Route>
 

@@ -14,8 +14,6 @@ const getActivityIcon = (activity) => {
       return { emoji: <Pencil />, color: 'bg-blue-50 text-blue-800' };
     case 'deleted':
       return { emoji: <Trash />, color: 'bg-red-50 text-rose-700' };
-    case 'expense':
-      return { emoji: '💰', color: 'bg-orange-100 text-orange-600' };
     default:
       return { emoji: '⚪', color: 'bg-gray-100 text-gray-600' };
   }
@@ -24,7 +22,7 @@ const getActivityIcon = (activity) => {
 const RecentActivities = ({ loading, error, data, onRefresh }) => {
   return (
     <motion.div 
-      className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-md border border-gray-100 p-6"
+      className="bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.8 }}
@@ -52,7 +50,7 @@ const RecentActivities = ({ loading, error, data, onRefresh }) => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-gray-100 to-gray-300 rounded-xl p-4 border border-gray-200">
+        <div className="bg-gray-100  rounded-xl p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Aktivitas</p>
@@ -64,7 +62,7 @@ const RecentActivities = ({ loading, error, data, onRefresh }) => {
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-gray-100 to-gray-300 rounded-xl p-4 border border-gray-200">
+        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Hari Ini</p>
@@ -82,7 +80,7 @@ const RecentActivities = ({ loading, error, data, onRefresh }) => {
           </div>
         </div>
         
-        <div className="bg-gradient-to-br from-gray-100 to-gray-300 rounded-xl p-4 border border-gray-200">
+        <div className="bg-gray-100 rounded-xl p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Aktivitas</p>

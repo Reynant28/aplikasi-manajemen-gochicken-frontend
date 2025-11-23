@@ -290,30 +290,66 @@ const KaryawanPage = () => {
             </>
             )}
 
-            {/* Rest of your components remain the same */}
             <AnimatePresence>
-                <KaryawanForm
-                    isOpen={showAddForm}
-                    onClose={() => setShowAddForm(false)}
-                    onSubmit={handleAdd}
-                    formData={newKaryawan}
-                    onFormChange={setNewKaryawan}
-                    cabang={cabang}
-                    loading={loading}
-                    mode="add"
-                />
+                {showAddForm && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm bg-black/30"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowAddForm(false)}
+                    >
+                        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                            <KaryawanForm
+                                formData={newKaryawan}
+                                onChange={(e) => {
+                                    const { name, value } = e.target;
+                                    setNewKaryawan(prev => ({
+                                        ...prev,
+                                        [name]: value
+                                    }));
+                                }}
+                                onSubmit={handleAdd}
+                                loading={loading}
+                                isEditing={false}
+                                cabang={cabang}
+                                isSuperAdmin={true} // ← Add this for Super Admin
+                                onClose={() => setShowAddForm(false)}
+                            />
+                        </div>
+                    </motion.div>
+                )}
             </AnimatePresence>
 
             <AnimatePresence>
-                <KaryawanForm
-                    isOpen={!!editKaryawan}
-                    onClose={() => setEditKaryawan(null)}
-                    onSubmit={handleUpdate}
-                    formData={editKaryawan || {}}
-                    onFormChange={setEditKaryawan}
-                    cabang={cabang}
-                    mode="edit"
-                />
+                {editKaryawan && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setEditKaryawan(null)}
+                    >
+                        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                            <KaryawanForm
+                                formData={editKaryawan}
+                                onChange={(e) => {
+                                    const { name, value } = e.target;
+                                    setEditKaryawan(prev => ({
+                                        ...prev,
+                                        [name]: value
+                                    }));
+                                }}
+                                onSubmit={handleUpdate}
+                                loading={loading}
+                                isEditing={true}
+                                cabang={cabang}
+                                isSuperAdmin={true} // ← Add this for Super Admin
+                                onClose={() => setEditKaryawan(null)}
+                            />
+                        </div>
+                    </motion.div>
+                )}
             </AnimatePresence>
 
             <ConfirmDeletePopup

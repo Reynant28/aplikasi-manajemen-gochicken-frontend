@@ -51,7 +51,7 @@ const StatsCards = ({ loading, totalProduk, transaksiHariIni, pendapatanBulanIni
       {stats.map((item, index) => (
         <motion.div 
           key={index}
-          className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}

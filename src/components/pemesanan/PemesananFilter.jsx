@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import CustomDatePicker from './CustomDatePicker';
 
-const PemesananFilter = ({ filter, setFilter, customDate, setCustomDate }) => {
+
+const PemesananFilter = ({ filter, setFilter }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -94,54 +94,6 @@ const PemesananFilter = ({ filter, setFilter, customDate, setCustomDate }) => {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Custom Date Range */}
-              <div className="relative">
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">
-                  Tanggal Kustom
-                </label>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => {
-                      setShowStartDatePicker(p => !p);
-                      setShowEndDatePicker(false);
-                    }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-left text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    {customDate[0] 
-                      ? format(new Date(customDate[0]), 'd MMM yyyy', { locale: id }) 
-                      : 'Dari'
-                    }
-                  </button>
-                  <span className="text-gray-500">-</span>
-                  <button 
-                    onClick={() => {
-                      setShowEndDatePicker(p => !p);
-                      setShowStartDatePicker(false);
-                    }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-left text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                  >
-                    {customDate[1] 
-                      ? format(new Date(customDate[1]), 'd MMM yyyy', { locale: id }) 
-                      : 'Sampai'
-                    }
-                  </button>
-                </div>
-                
-                {showStartDatePicker && (
-                  <CustomDatePicker 
-                    selectedDate={customDate[0]} 
-                    onDateSelect={(date) => handleDateSelect(date, 'start')} 
-                  />
-                )}
-                
-                {showEndDatePicker && (
-                  <CustomDatePicker 
-                    selectedDate={customDate[1]} 
-                    onDateSelect={(date) => handleDateSelect(date, 'end')} 
-                  />
-                )}
               </div>
             </motion.div>
           )}

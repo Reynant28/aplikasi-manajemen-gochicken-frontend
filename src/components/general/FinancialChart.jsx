@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
-import axios from "axios";
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,7 +13,7 @@ import {
 import { format, getDay, getMonth, getWeekOfMonth, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 
-const API_URL = "http://localhost:8000/api";
+
 
 const formatRupiah = (value = 0) => {
   try {
@@ -31,103 +30,36 @@ const formatRupiah = (value = 0) => {
 const processChartData = (rawData = [], filter) => {
   if (!rawData || rawData.length === 0) return [];
 
-  if (filter === "minggu") {
-    const days = [
-      { name: "Min", value: 0 }, { name: "Sen", value: 0 },
-      { name: "Sel", value: 0 }, { name: "Rab", value: 0 },
-      { name: "Kam", value: 0 }, { name: "Jum", value: 0 },
-      { name: "Sab", value: 0 },
-    ];
-    rawData.forEach(item => {
-      const dayIndex = getDay(parseISO(item.tanggal));
-      days[dayIndex].value += parseFloat(item.total);
-    });
-    return days;
-  }
-  
-  if (filter === "bulan") {
-    const weeks = [
-      { name: "Minggu 1", value: 0 }, { name: "Minggu 2", value: 0 },
-      { name: "Minggu 3", value: 0 }, { name: "Minggu 4", value: 0 },
-      { name: "Minggu 5", value: 0 },
-    ];
-    rawData.forEach(item => {
-      const date = parseISO(item.tanggal);
-      const weekOfMonth = getWeekOfMonth(date) - 1;
-      if (weeks[weekOfMonth]) {
-        weeks[weekOfMonth].value += parseFloat(item.total);
-      }
-    });
-    return weeks.filter(w => w.value > 0);
-  }
-
-  if (filter === "tahun") {
-     const months = Array.from({ length: 12 }, (_, i) => ({
-      name: format(new Date(0, i), "MMM", { locale: id }),
-      value: 0,
-    }));
-    rawData.forEach(item => {
-      const monthIndex = getMonth(parseISO(item.tanggal));
-      months[monthIndex].value += parseFloat(item.total);
-    });
-    return months;
-  }
-
-  return [];
+  // The backend now returns pre-aggregated data, so we just need to format it
+  return rawData.map(item => ({
+    name: item.period,
+    value: parseFloat(item.total)
+  }));
 };
 
-const FinancialChart = ({ token }) => {
+const FinancialChart = ({ loading, error, data, chartFilter, onFilterChange }) => {
   const [chartData, setChartData] = useState([]);
-  const [chartLoading, setChartLoading] = useState(true);
-  const [chartError, setChartError] = useState(null);
   const [chartMode, setChartMode] = useState("pendapatan");
-  const [chartFilter, setChartFilter] = useState("tahun");
 
+  // Process data when props change
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchChartData = async () => {
-      setChartLoading(true);
-      setChartError(null);
-
-      try {
-        const res = await axios.get(
-          `${API_URL}/dashboard/chart?filter=${chartFilter}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (res?.data?.status === "success" && !cancelled) {
-          const rawData = res.data.data[chartMode] || [];
-          const processedData = processChartData(rawData, chartFilter);
-          setChartData(processedData);
-        } else if (!cancelled) {
-          setChartError("Gagal memuat data chart.");
-        }
-      } catch (err) {
-        console.error("fetchChartData error", err);
-        if (!cancelled) setChartError("Terjadi kesalahan saat mengambil data chart.");
-      } finally {
-        if (!cancelled) setChartLoading(false);
-      }
-    };
-
-    fetchChartData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token, chartMode, chartFilter]);
+    if (data) {
+      const rawData = data[chartMode] || [];
+      const processedData = processChartData(rawData, chartFilter);
+      setChartData(processedData);
+    }
+  }, [data, chartMode, chartFilter]);
 
   const handleModeChange = (newMode) => {
     setChartMode(newMode);
     if (newMode === 'pengeluaran' && chartFilter === 'minggu') {
-       setChartFilter('tahun');
+      onFilterChange('tahun');
     }
   };
 
   return (
     <motion.div 
-      className="lg:col-span-2 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-md border border-gray-100 p-6"
+      className="lg:col-span-2 bg-gray-50 rounded-2xl shadow-md border border-gray-100 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
@@ -172,7 +104,7 @@ const FinancialChart = ({ token }) => {
             {["minggu", "bulan", "tahun"].map((f) => (
               <button
                 key={f}
-                onClick={() => setChartFilter(f)}
+                onClick={() => onFilterChange(f)} // Use onFilterChange
                 className={`px-4 py-1.5 text-xs font-semibold capitalize transition-all ${
                   chartFilter === f
                     ? "bg-white text-gray-900 shadow-sm"
@@ -187,10 +119,10 @@ const FinancialChart = ({ token }) => {
       </div>
 
       <div className="w-full h-[400px]">
-        {chartLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center h-full text-gray-500">Memuat data grafik...</div>
-        ) : chartError ? (
-          <div className="flex justify-center items-center h-full text-red-500">{chartError}</div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-full text-red-500">{error}</div>
         ) : chartData.length === 0 ? (
           <div className="flex justify-center items-center h-full text-gray-400">Tidak ada data untuk ditampilkan.</div>
         ) : (

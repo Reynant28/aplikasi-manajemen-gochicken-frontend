@@ -20,6 +20,12 @@ const GeneralPage = () => {
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState({});
 
+  const [chartData, setChartData] = useState({ pendapatan: [], pengeluaran: [] });
+  const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState(null);
+
+  const [chartFilter, setChartFilter] = useState("tahun");
+
   const [monthComparison, setMonthComparison] = useState(null);
   const [monthComparisonLoading, setMonthComparisonLoading] = useState(true);
 
@@ -49,6 +55,40 @@ const GeneralPage = () => {
   // Fetch dashboard data for cabang
   useEffect(() => {
     let cancelled = false;
+    const fetchChartData = async () => {
+      setChartLoading(true);
+      setChartError(null);
+
+      try {
+        const res = await axios.get(`${API_URL}/dashboard/cabang/${cabangId}/chart`, {
+          params: { 
+            filter: chartFilter, // Use the filter state
+            year: 2025 // Add year parameter if needed
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res?.data?.status === "success" && !cancelled) {
+          setChartData(res.data.data);
+        } else if (!cancelled) {
+          setChartError("Gagal memuat data chart");
+        }
+      } catch (err) {
+        if (!cancelled) setChartError("Terjadi kesalahan saat mengambil data chart");
+      } finally {
+        if (!cancelled) setChartLoading(false);
+      }
+    };
+
+    if (token && cabangId) fetchChartData();
+
+    return () => { cancelled = true; };
+  }, [token, cabangId, chartFilter]);
+
+  // Add this useEffect to fetch the main dashboard stats
+  useEffect(() => {
+    let cancelled = false;
+    
     const fetchStatsForCabang = async (id) => {
       try {
         setLoading(true);
@@ -74,6 +114,7 @@ const GeneralPage = () => {
       setLoading(false);
       setError(user?.role !== "admin cabang" ? "Halaman ini khusus untuk Admin Cabang." : "Data cabang tidak ditemukan.");
     }
+    
     return () => { cancelled = true; };
   }, [token, cabangId, user?.role]);
 
@@ -153,7 +194,7 @@ const GeneralPage = () => {
       setMonthComparisonLoading(true);
 
       try {
-        const res = await axios.get(`${API_URL}/dashboard/cabang/${cabangId}/month-comparison`, {
+        const res = await axios.get(`${API_URL}/reports/cabang/${cabangId}/month-comparison`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -290,9 +331,11 @@ const GeneralPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <FinancialChart 
-          token={token}
-          cabangId={cabangId}
-          userRole={user?.role}
+          loading={chartLoading}
+          error={chartError}
+          data={chartData}
+          chartFilter={chartFilter}
+          onFilterChange={setChartFilter}
         />
         
         <TopProductsSection 

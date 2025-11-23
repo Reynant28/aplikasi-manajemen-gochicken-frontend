@@ -5,13 +5,13 @@ import { TrendingDown } from "lucide-react";
 const DecliningProducts = ({ loading, data }) => {
   return (
     <motion.div 
-      className="bg-gradient-to-br from-gray-100 to-gray-200 hover:shadow-lg transition-all rounded-2xl shadow-md border border-gray-100 p-6"
+      className="bg-gray-50 hover:shadow-lg transition-all rounded-2xl shadow-md border border-gray-100 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
     >
       <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <TrendingDown className="text-orange-600" />
+        <TrendingDown className="text-red-600" />
         Produk yang Menurun Penjualannya
       </h2>
 
@@ -26,7 +26,7 @@ const DecliningProducts = ({ loading, data }) => {
           {data.map((product, index) => (
             <div
               key={index}
-              className="p-4 bg-orange-50 rounded-xl border border-orange-100 hover:shadow-md transition-all"
+              className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md transition-all"
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
@@ -37,7 +37,7 @@ const DecliningProducts = ({ loading, data }) => {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <p className="text-gray-500">Bulan Ini</p>
-                  <p className="font-bold text-orange-600">{product.current_sales} terjual</p>
+                  <p className="font-bold text-red-600">{product.current_sales} terjual</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Bulan Lalu</p>

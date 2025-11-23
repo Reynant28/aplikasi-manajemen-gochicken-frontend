@@ -24,10 +24,8 @@ const formatRupiah = (value) => new Intl.NumberFormat("id-ID", {
 
 const getStatusBadge = (status) => {
   const statusConfig = {
-    'pending': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' },
-    'diproses': { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Diproses' },
-    'dikirim': { color: 'bg-purple-100 text-purple-800 border-purple-200', label: 'Dikirim' },
-    'selesai': { color: 'bg-green-100 text-green-800 border-green-200', label: 'Selesai' },
+    'OnLoan': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' },
+    'Selesai': { color: 'bg-green-100 text-green-800 border-green-200', label: 'Selesai' },
     'dibatalkan': { color: 'bg-red-100 text-red-800 border-red-200', label: 'Dibatalkan' }
   };
   

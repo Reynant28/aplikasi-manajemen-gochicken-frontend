@@ -330,7 +330,7 @@ const PengeluaranPage = () => {
           <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Jumlah Transaksi</p>
+                <p className="text-sm font-medium text-gray-600">Jumlah Pengeluaran</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{pengeluaranList.length}</p>
               </div>
               <div className="p-3 bg-gray-100 rounded-lg">
@@ -385,7 +385,7 @@ const PengeluaranPage = () => {
 
           {/* Data Info */}
           <div className="text-sm text-gray-600">
-            Menampilkan {indexOfFirst + 1}-{Math.min(indexOfLast, filteredData.length)} dari {filteredData.length} transaksi
+            Menampilkan {indexOfFirst + 1}-{Math.min(indexOfLast, filteredData.length)} dari {filteredData.length} pengeluaran
           </div>
 
           {/* Pagination */}

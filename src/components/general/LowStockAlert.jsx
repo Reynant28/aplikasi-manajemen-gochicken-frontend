@@ -5,7 +5,7 @@ import { AlertTriangle } from "lucide-react";
 const LowStockAlert = ({ loading, data }) => {
   return (
     <motion.div 
-      className="bg-gradient-to-br from-gray-100 to-gray-200 hover:shadow-lg transition-all rounded-2xl shadow-md border border-gray-100 p-6"
+      className="bg-gray-50 hover:shadow-lg transition-all rounded-2xl shadow-md border border-gray-100 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}

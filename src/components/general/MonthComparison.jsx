@@ -17,21 +17,21 @@ const formatRupiah = (value = 0) => {
 const MonthComparison = ({ loading, data }) => {
   return (
     <motion.div 
-      className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-md border border-gray-100 p-6"
+      className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
       <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <TrendingUp className="text-blue-600" />
-        Perbandingan Bulan Ini vs Bulan Lalu
+        <TrendingUp className="text-green-600" />
+        Perbandingan Bulan Ini dengan Bulan Lalu
       </h2>
 
       {loading ? (
         <div className="text-gray-500">Memuat data perbandingan...</div>
       ) : data ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gray-100 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
             <p className="text-sm text-gray-600 mb-1">Pendapatan</p>
             <p className="text-2xl font-bold text-gray-800 mb-2">
               {formatRupiah(data.current_revenue)}
@@ -43,7 +43,7 @@ const MonthComparison = ({ loading, data }) => {
             </div>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
             <p className="text-sm text-gray-600 mb-1">Transaksi</p>
             <p className="text-2xl font-bold text-gray-800 mb-2">
               {data.current_transactions}
@@ -55,7 +55,7 @@ const MonthComparison = ({ loading, data }) => {
             </div>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
+          <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
             <p className="text-sm text-gray-600 mb-1">Rata-rata per Transaksi</p>
             <p className="text-2xl font-bold text-gray-800 mb-2">
               {formatRupiah(data.avg_transaction)}

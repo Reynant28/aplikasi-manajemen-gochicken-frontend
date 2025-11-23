@@ -74,13 +74,7 @@ const KasirForm = ({ formData, onChange, onSubmit, loading, isEditing, cabang })
 
                 {/* Submit Button */}
                 <div className="flex gap-3 pt-4">
-                    <button
-                        type="button"
-                        onClick={() => document.querySelector('button[type="button"]').closest('.modal-overlay').click()}
-                        className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-                    >
-                        Batal
-                    </button>
+                    
                     <button
                         type="submit"
                         disabled={loading}

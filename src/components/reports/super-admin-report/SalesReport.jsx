@@ -92,7 +92,7 @@ const SalesReport = ({ cabangId, token }) => {
     return growth.toFixed(1);
   };
 
-  if (loading) return <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin text-green-600" /></div>;
+  if (loading) return <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin text-gray-600" /></div>;
   if (error) return <div className="flex flex-col justify-center items-center h-40 text-red-600"><ServerCrash size={32} /><p className="mt-2">{error}</p></div>;
 
   const totalPendapatan = calculateTotalPendapatan();

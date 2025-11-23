@@ -125,7 +125,7 @@ const PemesananForm = ({ isOpen, onClose, onSubmit, isSubmitting, produkList, ca
                     >
                       <option value="Tunai">Tunai</option>
                       <option value="QRIS">QRIS</option>
-                      <option value="Debit">Debit</option>
+                      <option value="Transfer Bank">Transfer Bank</option>
                     </select>
                   </div>
                 </div>
@@ -195,7 +195,7 @@ const PemesananForm = ({ isOpen, onClose, onSubmit, isSubmitting, produkList, ca
                             <button 
                               type="button" 
                               onClick={() => removeDetailItem(index)}
-                              className="p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                              className="p-2 text-rose-600 hover:bg-red-100 rounded-xl transition-colors"
                             >
                               <X size={16}/>
                             </button>

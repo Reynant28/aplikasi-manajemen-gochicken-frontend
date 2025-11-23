@@ -24,6 +24,12 @@ const GeneralPage = () => {
   const [produkTerlaris, setProdukTerlaris] = useState(null);
   const [error, setError] = useState(null);
 
+  const [chartData, setChartData] = useState({ pendapatan: [], pengeluaran: [] });
+  const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState(null);
+
+  const [chartFilter, setChartFilter] = useState("tahun"); // Move filter state here
+
   const [monthComparison, setMonthComparison] = useState(null);
   const [monthComparisonLoading, setMonthComparisonLoading] = useState(true);
 
@@ -80,7 +86,6 @@ const GeneralPage = () => {
     };
   }, [token]);
 
-  // Fetch global stats
   useEffect(() => {
     let cancelled = false;
 
@@ -120,6 +125,35 @@ const GeneralPage = () => {
       cancelled = true;
     };
   }, [token]);
+
+  // Fetch global stats
+  useEffect(() => {
+    let cancelled = false;
+    const fetchChartData = async () => {
+      setChartLoading(true);
+      setChartError(null);
+      try {
+        const res = await axios.get(`${API_URL}/dashboard/chart`, {
+          params: { 
+            filter: chartFilter, // Use the filter state
+            year: 2025 // Optional: add year parameter
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res?.data?.status === "success" && !cancelled) {
+          setChartData(res.data.data);
+        } else if (!cancelled) {
+          setChartError("Gagal memuat data chart");
+        }
+      } catch (err) {
+        if (!cancelled) setChartError("Terjadi kesalahan saat mengambil data chart");
+      } finally {
+        if (!cancelled) setChartLoading(false);
+      }
+    };
+    if (token) fetchChartData();
+    return () => { cancelled = true; };
+  }, [token, chartFilter]); // Add chartFilter to dependencies
 
   // Fetch daily summary
   useEffect(() => {
@@ -298,7 +332,13 @@ const GeneralPage = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <FinancialChart token={token} />
+        <FinancialChart 
+          loading={chartLoading}
+          error={chartError}
+          data={chartData}
+          chartFilter={chartFilter}
+          onFilterChange={setChartFilter}
+        />
         
         <TopProductsSection 
           loading={topProductsLoading}

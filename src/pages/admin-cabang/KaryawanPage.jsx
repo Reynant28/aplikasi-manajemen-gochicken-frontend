@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Users, AlertTriangle, RefreshCw, MapPin, Phone, DollarSign, Building2 } from "lucide-react";
+import { Plus, Users, AlertTriangle, Loader2, MapPin, Phone, DollarSign, Building2 } from "lucide-react";
 import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
 import KaryawanForm from "../../components/karyawan/KaryawanForm";
 import CardInfo from "../../components/ui/CardInfo";
@@ -79,7 +79,7 @@ const KaryawanPage = () => {
         try {
             const karyawanData = {
                 ...formData,
-                id_cabang: cabangId
+                id_cabang: cabangId // Automatically assign to current branch
             };
 
             const res = await axios.post(`${API_URL}/karyawan`, karyawanData, {
@@ -114,7 +114,7 @@ const KaryawanPage = () => {
         try {
             const karyawanData = {
                 ...formData,
-                id_cabang: cabangId
+                id_cabang: cabangId // Keep the same branch on update
             };
 
             const res = await axios.put(`${API_URL}/karyawan/${formData.id_karyawan}`, karyawanData, {
@@ -211,7 +211,7 @@ const KaryawanPage = () => {
             {/* Loading State */}
             {loading && karyawan.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
-                    <RefreshCw className="animate-spin text-gray-400 mb-4" size={32} />
+                    <Loader2 className="animate-spin text-gray-400 mb-4" size={32} />
                     <p className="text-gray-500">Memuat data karyawan...</p>
                 </div>
             ) : (
@@ -240,7 +240,7 @@ const KaryawanPage = () => {
                                     title={item.nama_karyawan}
                                     avatarIcon={<Users size={36} className="text-white" />}
                                     avatarBg="bg-gray-700"
-                                    badge={item.cabang?.nama_cabang || "N/A"}
+                                    badge={item.cabang?.nama_cabang || cabang?.nama_cabang || "N/A"}
                                     badgeIcon={<Building2 size={12} />}
                                     items={[
                                         {
@@ -272,32 +272,65 @@ const KaryawanPage = () => {
             {/* Add Karyawan Form */}
             <AnimatePresence>
                 {showAddForm && (
-                    <KaryawanForm
-                        isOpen={showAddForm}
-                        onClose={() => setShowAddForm(false)}
-                        formData={newKaryawan}
-                        onFormChange={setNewKaryawan}
-                        onSubmit={handleAdd}
-                        loading={loading}
-                        mode="add"
-                        cabang={cabang ? [cabang] : []}
-                    />
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 backdrop-blur-sm bg-black/30"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowAddForm(false)}
+                    >
+                        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                            <KaryawanForm
+                                formData={newKaryawan}
+                                onChange={(e) => {
+                                    const { name, value } = e.target;
+                                    setNewKaryawan(prev => ({
+                                        ...prev,
+                                        [name]: value
+                                    }));
+                                }}
+                                onSubmit={handleAdd}
+                                loading={loading}
+                                isEditing={false}
+                                cabang={[]} // Empty array since we don't need selection
+                                isSuperAdmin={false} // ← This is Admin Cabang
+                                currentCabang={cabang} // ← Pass current cabang info
+                                onClose={() => setShowAddForm(false)}
+                            />
+                        </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Edit Karyawan Form */}
             <AnimatePresence>
                 {editKaryawan && (
-                    <KaryawanForm
-                        isOpen={!!editKaryawan}
-                        onClose={() => setEditKaryawan(null)}
-                        formData={editKaryawan}
-                        onFormChange={setEditKaryawan}
-                        onSubmit={handleUpdate}
-                        loading={loading}
-                        mode="edit"
-                        cabang={cabang ? [cabang] : []}
-                    />
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setEditKaryawan(null)}
+                    >
+                        <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                            <KaryawanForm
+                                formData={editKaryawan}
+                                onChange={(e) => {
+                                    const { name, value } = e.target;
+                                    setEditKaryawan(prev => ({
+                                        ...prev,
+                                        [name]: value
+                                    }));
+                                }}
+                                onSubmit={handleUpdate}
+                                loading={loading}
+                                isEditing={true}
+                                cabang={[]} // Empty array since we don't need selection
+                                isSuperAdmin={false} // ← This is Admin Cabang
+                                currentCabang={cabang} // ← Pass current cabang info
+                                onClose={() => setEditKaryawan(null)}
+                            />
+                        </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 

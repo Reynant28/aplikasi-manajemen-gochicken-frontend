@@ -31,58 +31,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     };
   }, []);
 
-  const handleBackup = async () => {
-    try {
-      const response = await axios.get("http://localhost:8000/api/backup/export", {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = "database_backup.sql";
-      
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error("Backup failed:", error);
-      
-      if (error.response) {
-        const { status, data } = error.response;
-        
-        if (status === 401) {
-          alert("Unauthorized: Please login again.");
-        } else if (status === 403) {
-          alert("Access denied: Only Super Admin can backup database.");
-        } else if (status === 500) {
-          alert("Server error: " + (data.message || "Failed to create backup."));
-        } else {
-          alert(data.message || "Failed to create backup.");
-        }
-      } else if (error.request) {
-        alert("Network error: Cannot connect to server.");
-      } else {
-        alert("Error: " + error.message);
-      }
-    }
-  };
-
   let basePath = "/super-admin/dashboard";
   if (user?.role === "admin cabang" && cabang?.id_cabang) {
     basePath = `/admin-cabang/${cabang.id_cabang}/dashboard`;
@@ -105,7 +53,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       icon: <BarChart2 size={18} className="text-gray-200" />,
       items: [
         { to: "/reports", label: "Laporan Master", icon: <ChartColumn size={18} />, roles: ["super admin", "admin cabang"] },
-        { to: "/daily-reports", label: "Laporan Harian", icon: <FileChartColumnIncreasing size={18} />, roles: ["super admin", "admin cabang"] },
+        { to: "/daily-reports", label: "Laporan Harian", icon: <FileChartColumnIncreasing size={18} />, roles: ["super admin"] },
         { to: "/audit-log", label: "Audit Log", icon: <Receipt size={18} />, roles: ["super admin"] },
       ],
     },
@@ -132,7 +80,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         { to: "/pengeluaran", label: "Pengeluaran", icon: <Wallet size={18} />, roles: ["super admin", "admin cabang"] },
         { to: "/jenis-pengeluaran", label: "Jenis Pengeluaran", icon: <WalletCards size={18} />, roles: ["super admin"] },
         { to: "/transaksi", label: "Transaksi", icon: <Receipt size={18} />, roles: ["super admin", "admin cabang"] },
-        { to: "/bahan", label: "Bahan", icon: <Package size={18} />, roles: ["super admin"] },
+        { to: "/bahan", label: "Bahan Baku", icon: <Package size={18} />, roles: ["super admin"] },
         { to: "/bahan-baku-pakai", label: "Bahan Baku Pakai", icon: <Boxes size={18} />, roles: ["super admin"] },
       ],
     },
@@ -302,15 +250,15 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           >
             <HelpCircle size={18} /> Help Center
           </NavLink>
-          <button
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-700 hover:text-white transition-all text-left"
-            onClick={() => {
-              handleLinkClick();
-              handleBackup();
-            }}
-          >
-            <DatabaseBackup size={18} /> Backup Database
-          </button>
+          {user?.role === "super admin" && (
+            <NavLink
+              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-700 hover:text-white transition-all text-left"
+              onClick={handleLinkClick}
+              to={`${basePath}/backup-restore`}
+            >
+              <DatabaseBackup size={18} /> Backup Database
+            </NavLink>
+          )}
         </div>
       </motion.div>
     </div>

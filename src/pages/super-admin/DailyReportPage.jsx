@@ -25,21 +25,18 @@ const formatRupiah = (value = 0) =>
   }).format(value);
 
 // Enhanced Dashboard Card Component with Gray Theme
-const DashboardCard = ({ title, value, icon, gradient, index = 0, isPositive = true }) => {
+const DashboardCard = ({ title, value, icon, bgColor = "bg-white", textColor = "text-gray-800", iconBg = "bg-gray-100", index = 0, isPositive = true }) => {
   return (
     <motion.div
-      className={`bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 overflow-hidden relative`}
+      className={`${bgColor} rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 overflow-hidden relative`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      {/* Background Gradient Overlay */}
-      <div className={`absolute top-0 right-0 w-32 h-32 ${gradient} opacity-10 rounded-full blur-2xl`}></div>
-      
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl ${gradient} shadow-lg`}>
+          <div className={`p-3 rounded-xl ${iconBg} shadow-lg`}>
             {icon}
           </div>
           <div className={`text-xs font-semibold px-3 py-1 rounded-full ${
@@ -49,7 +46,7 @@ const DashboardCard = ({ title, value, icon, gradient, index = 0, isPositive = t
           </div>
         </div>
         <h3 className="text-sm font-medium text-gray-500 mb-1">{title}</h3>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
+        <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
       </div>
     </motion.div>
   );
@@ -225,40 +222,40 @@ const DailyReportPage = () => {
             <DashboardCard 
               title="Total Penjualan" 
               value={formatRupiah(data.penjualan_harian)}
-              icon={<ShoppingBag size={24} className="text-white" />}
-              gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
+              icon={<ShoppingBag size={24} className="text-gray-700" />}
               index={0}
+              bgColor="bg-gray-50"
               isPositive={data.penjualan_harian > 0}
             />
             <DashboardCard 
               title="Modal Bahan Baku" 
               value={formatRupiah(data.modal_bahan_baku)}
-              icon={<Package size={24} className="text-white" />}
-              gradient="bg-gradient-to-br from-amber-500 to-orange-600"
+              icon={<Package size={24} className="text-gray-700" />}
               index={1}
+              bgColor="bg-gray-50"
               isPositive={false}
             />
             <DashboardCard 
               title="Pengeluaran Harian" 
               value={formatRupiah(data.pengeluaran_harian)}
-              icon={<CreditCard size={24} className="text-white" />}
-              gradient="bg-gradient-to-br from-red-500 to-rose-600"
+              icon={<CreditCard size={24} className="text-gray-700" />}
               index={2}
+              bgColor="bg-gray-50"
               isPositive={false}
             />
             <DashboardCard 
               title="Laba Harian" 
               value={formatRupiah(data.laba_harian)}
-              icon={data.laba_harian >= 0 ? <TrendingUp size={24} className="text-white" /> : <TrendingDown size={24} className="text-white" />}
-              gradient={data.laba_harian >= 0 ? "bg-gradient-to-br from-green-500 to-emerald-600" : "bg-gradient-to-br from-red-500 to-rose-600"}
+              icon={data.laba_harian >= 0 ? <TrendingUp size={24} className="text-green-700" /> : <TrendingDown size={24} className="text-rose-700" />}
               index={3}
+              bgColor="bg-gray-50"
               isPositive={data.laba_harian >= 0}
             />
             <DashboardCard 
               title="Nett Income" 
               value={formatRupiah(data.nett_income)}
-              icon={<DollarSign size={24} className="text-white" />}
-              gradient={data.nett_income >= 0 ? "bg-gradient-to-br from-purple-500 to-violet-600" : "bg-gradient-to-br from-red-500 to-rose-600"}
+              icon={<DollarSign size={24} className="text-gray-700" />}
+              bgColor="bg-gray-50"
               index={4}
               isPositive={data.nett_income >= 0}
             />
@@ -271,7 +268,7 @@ const DailyReportPage = () => {
             transition={{ delay: 0.1 }}
             className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
           >
-            <div className="p-6 border-b bg-gradient-to-r from-blue-50 via-white to-blue-50">
+            <div className="p-6 border-b bg-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-emerald-100 rounded-lg">
@@ -343,7 +340,7 @@ const DailyReportPage = () => {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
           >
-            <div className="p-6 border-b bg-gradient-to-r from-amber-50 via-white to-orange-50">
+            <div className="p-6 border-b bg-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-amber-100 rounded-lg">
@@ -421,7 +418,7 @@ const DailyReportPage = () => {
             transition={{ delay: 0.3 }}
             className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
           >
-            <div className="p-6 border-b bg-gradient-to-r from-red-50 via-white to-rose-50">
+            <div className="p-6 border-b bg-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-100 rounded-lg">

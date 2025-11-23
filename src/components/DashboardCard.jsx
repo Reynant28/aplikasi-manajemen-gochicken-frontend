@@ -3,6 +3,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const DashboardCard = ({ title, value, icon, children }) => {
+
+  const getTextSizeClass = (text) => {
+    if (!text) return 'text-2xl';
+
+    const length = text.toString().length;
+    if (length <= 5) return 'text-2xl';
+    if (length <= 15) return 'text-xl';
+    return 'text-lg';
+  }
+
   return (
     <motion.div
       className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100"
@@ -20,7 +30,7 @@ const DashboardCard = ({ title, value, icon, children }) => {
       </div>
       <div className="mt-2">
         {value && (
-          <p className="text-2xl font-bold text-gray-800 break-normal md:break-all">
+          <p className={`${getTextSizeClass(value)} font-bold text-gray-800 break-normal md:break-all`}>
             {value}
           </p>
         )}
