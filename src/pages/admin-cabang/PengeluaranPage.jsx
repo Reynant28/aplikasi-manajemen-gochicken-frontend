@@ -11,6 +11,7 @@ import {
   Tag,
   Calendar,
   FileText,
+  Plus,
 } from "lucide-react";
 import axios from "axios";
 import PengeluaranTable from "../../components/pengeluaran/PengeluaranTable";
@@ -210,15 +211,13 @@ const PengeluaranPage = () => {
             </p>
           </div>
 
-          <motion.button
+          <button
             onClick={() => openModal("add")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold self-start sm:self-center"
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition shadow-md font-semibold self-start sm:self-center"
           >
-            <PlusCircle size={20} />
+            <Plus size={18} />
             Tambah Pengeluaran
-          </motion.button>
+          </button>
         </div>
 
         <AnimatePresence>

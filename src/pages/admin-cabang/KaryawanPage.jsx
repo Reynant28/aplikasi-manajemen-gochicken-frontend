@@ -2,9 +2,22 @@
 import React, { useState, useEffect, useCallback } from "react";
 //eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  User,
+  Edit,
+  Trash2,
+  Plus,
+  Loader2,
+  Search,
+  Filter,
+  Building,
+  MapPin,
+  Phone,
+  DollarSign,
+  XCircle,
+  AlertTriangle,
+} from "lucide-react";
 import axios from "axios";
-import KaryawanTable from "../../components/karyawan/KaryawanTable";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -14,18 +27,25 @@ const KaryawanPage = () => {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" });
 
+  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [selectedKaryawan, setSelectedKaryawan] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Data states
+  const [editingKaryawan, setEditingKaryawan] = useState(null);
+  const [deleteKaryawan, setDeleteKaryawan] = useState(null);
 
+  // Form and filter states
   const [formData, setFormData] = useState({
     nama_karyawan: "",
     alamat: "",
     telepon: "",
     gaji: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Action loading states
+  const [actionLoading, setActionLoading] = useState(null);
 
   const token = localStorage.getItem("token");
   const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
@@ -36,6 +56,7 @@ const KaryawanPage = () => {
     setTimeout(() => setMessage({ type: "", text: "" }), 4000);
   };
 
+  // Fetch karyawan
   const fetchKaryawan = useCallback(async () => {
     if (!cabangId) {
       setError("Data cabang tidak ditemukan.");
@@ -51,9 +72,9 @@ const KaryawanPage = () => {
       if (res.data.status === "success") {
         setKaryawanList(res.data.data || []);
       }
-      //eslint-disable-next-line no-unused-vars
     } catch (err) {
-      setError("Gagal mengambil data karyawan.");
+      console.error("Failed to fetch karyawan:", err);
+      setError("Terjadi kesalahan koneksi ke server.");
     } finally {
       setLoading(false);
     }
@@ -63,39 +84,53 @@ const KaryawanPage = () => {
     fetchKaryawan();
   }, [fetchKaryawan]);
 
-  const openModal = (karyawan = null) => {
-    setSelectedKaryawan(karyawan);
-    setFormData(
-      karyawan
-        ? {
-            nama_karyawan: karyawan.nama_karyawan,
-            alamat: karyawan.alamat,
-            telepon: karyawan.telepon,
-            gaji: karyawan.gaji,
-          }
-        : { nama_karyawan: "", alamat: "", telepon: "", gaji: "" }
-    );
+  // Filter karyawan based on search
+  const filteredKaryawan = karyawanList.filter((karyawan) => {
+    const matchesSearch =
+      karyawan.nama_karyawan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      karyawan.alamat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      karyawan.telepon.includes(searchTerm);
+    return matchesSearch;
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleAddKaryawan = () => {
+    setEditingKaryawan(null);
+    setFormData({
+      nama_karyawan: "",
+      alamat: "",
+      telepon: "",
+      gaji: "",
+    });
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedKaryawan(null);
+  const handleEdit = (karyawan) => {
+    setEditingKaryawan(karyawan);
+    setFormData({
+      nama_karyawan: karyawan.nama_karyawan,
+      alamat: karyawan.alamat,
+      telepon: karyawan.telepon,
+      gaji: karyawan.gaji,
+    });
+    setIsModalOpen(true);
   };
-
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setActionLoading(editingKaryawan ? "editing" : "adding");
+
     const apiData = { ...formData, id_cabang: cabangId };
 
     try {
       let res;
-      if (selectedKaryawan) {
+      if (editingKaryawan) {
         res = await axios.put(
-          `${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`,
+          `${API_URL}/karyawan/${editingKaryawan.id_karyawan}`,
           apiData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -104,72 +139,162 @@ const KaryawanPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
+      
       if (res.data.status === "success") {
         showMessage("success", res.data.message);
-        fetchKaryawan();
-        closeModal();
+        await fetchKaryawan();
+        setIsModalOpen(false);
+        setEditingKaryawan(null);
       }
     } catch (err) {
+      console.error("Submit error:", err);
       const errorMsg =
         err.response?.data?.message ||
-        `Gagal ${selectedKaryawan ? "memperbarui" : "menambah"} karyawan.`;
+        `Gagal ${editingKaryawan ? "memperbarui" : "menambah"} karyawan`;
       showMessage("error", errorMsg);
     } finally {
-      setIsSubmitting(false);
+      setActionLoading(null);
     }
-  };
-
-  const openConfirmDelete = (karyawan) => {
-    setSelectedKaryawan(karyawan);
-    setIsConfirmOpen(true);
-  };
-
-  const closeConfirmDelete = () => {
-    setIsConfirmOpen(false);
-    setSelectedKaryawan(null);
   };
 
   const handleDelete = async () => {
-    if (!selectedKaryawan) return;
-    setIsSubmitting(true);
+    if (!deleteKaryawan) return;
+
+    setActionLoading("deleting");
     try {
       const res = await axios.delete(
-        `${API_URL}/karyawan/${selectedKaryawan.id_karyawan}`,
+        `${API_URL}/karyawan/${deleteKaryawan.id_karyawan}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       if (res.data.status === "success") {
         showMessage("success", res.data.message);
-        fetchKaryawan();
-        closeConfirmDelete();
+        await fetchKaryawan();
+        setIsDeleteModalOpen(false);
+        setDeleteKaryawan(null);
       }
-      //eslint-disable-next-line no-unused-vars
     } catch (err) {
-      showMessage("error", "Gagal menghapus karyawan.");
+      console.error("Delete error:", err);
+      showMessage("error", "Gagal menghapus karyawan");
     } finally {
-      setIsSubmitting(false);
+      setActionLoading(null);
     }
+  };
+
+  const confirmDelete = (karyawan) => {
+    setDeleteKaryawan(karyawan);
+    setIsDeleteModalOpen(true);
+  };
+
+  const formatRupiah = (value) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(value);
   };
 
   const renderContent = () => {
     if (loading)
       return (
-        <div className="flex items-center justify-center h-64 text-gray-500">
-          <RefreshCw className="animate-spin h-6 w-6 mr-3" /> Memuat...
+        <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+          <Loader2 className="animate-spin h-8 w-8 mb-4 text-red-500" />
+          <p>Memuat data karyawan...</p>
         </div>
       );
+
     if (error)
       return (
-        <div className="flex flex-col items-center justify-center h-64 text-red-600 bg-red-50 p-4 rounded-lg">
-          <AlertTriangle className="h-8 w-8 mb-2" />
-          {error}
+        <div className="flex flex-col items-center justify-center h-96 text-red-700 bg-red-50 rounded-lg">
+          <XCircle className="h-10 w-10 mb-4" />
+          <p className="font-semibold">Terjadi Kesalahan</p>
+          <p>{error}</p>
         </div>
       );
+
     return (
-      <KaryawanTable
-        karyawanList={karyawanList}
-        onEdit={openModal}
-        onDelete={openConfirmDelete}
-      />
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Nama Karyawan
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Alamat
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Telepon
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Gaji
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredKaryawan.map((karyawan) => (
+                <motion.tr
+                  key={karyawan.id_karyawan}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                        <User className="text-red-600" size={16} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {karyawan.nama_karyawan}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center text-sm text-gray-600 max-w-xs truncate">
+                      <MapPin size={16} className="mr-2 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{karyawan.alamat}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone size={16} className="mr-2 text-gray-400" />
+                      {karyawan.telepon}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm font-semibold text-green-600">
+                      <DollarSign size={16} className="mr-1" />
+                      {formatRupiah(karyawan.gaji)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(karyawan)}
+                        className="text-yellow-600 bg-yellow-50 hover:bg-yellow-100 px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1 transition-colors"
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => confirmDelete(karyawan)}
+                        className="text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1 transition-colors"
+                      >
+                        <Trash2 size={14} /> Hapus
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     );
   };
 
@@ -181,112 +306,113 @@ const KaryawanPage = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}</style>
+
       <motion.div
         className="space-y-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
+        {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-              Manajemen Karyawan
+              Kelola Karyawan
             </h1>
             <p className="text-gray-500 text-sm sm:text-base">
-              Kelola daftar karyawan untuk cabang{" "}
+              Kelola data karyawan untuk cabang{" "}
               <strong>{cabang?.nama_cabang || "N/A"}</strong>
             </p>
           </div>
-          <motion.button
-            onClick={() => openModal()}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold self-start sm:self-center"
+          <button
+            onClick={handleAddKaryawan}
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition shadow-md font-semibold self-start sm:self-center"
           >
-            <PlusCircle size={20} /> Tambah Karyawan
-          </motion.button>
+            <Plus size={18} /> Tambah Karyawan
+          </button>
         </div>
 
-        <AnimatePresence>
-          {message.text && (
-            <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className={`fixed top-20 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${
-                message.type === "success"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {message.type === "success" ? "✓" : "✗"} {message.text}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Message Display */}
+        {message.text && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`p-3 rounded-lg flex items-center gap-3 text-sm font-semibold ${
+              message.type === "success"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {message.type === "success" ? "✓" : "✗"} {message.text}
+          </motion.div>
+        )}
 
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">
-          {renderContent()}
+        {/* Search Section */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Cari karyawan..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-400"
+            />
+          </div>
         </div>
+
+        {/* Karyawan Content */}
+        <div>{renderContent()}</div>
+
+        {/* Empty State */}
+        {!loading && !error && filteredKaryawan.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+            <User className="mx-auto text-gray-400" size={48} />
+            <p className="text-gray-500 mt-4">Tidak ada karyawan ditemukan</p>
+          </div>
+        )}
       </motion.div>
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Karyawan Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
-            onMouseDown={closeModal}
+            onMouseDown={() => setIsModalOpen(false)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
           >
             <motion.div
               onMouseDown={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-lg relative"
+              className="bg-white rounded-xl shadow-2xl w-full max-w-md"
             >
-              <div className="p-6 border-b flex justify-between items-center">
+              <div className="p-6 border-b">
                 <h2 className="text-xl font-bold text-gray-800">
-                  {selectedKaryawan ? "Edit Karyawan" : "Tambah Karyawan Baru"}
+                  {editingKaryawan ? "Edit Karyawan" : "Tambah Karyawan Baru"}
                 </h2>
-                <button
-                  onClick={closeModal}
-                  className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
-                >
-                  <X size={20} />
-                </button>
               </div>
+
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nama Karyawan
-                    </label>
-                    <input
-                      type="text"
-                      name="nama_karyawan"
-                      value={formData.nama_karyawan}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Telepon
-                    </label>
-                    <input
-                      type="text"
-                      name="telepon"
-                      value={formData.telepon}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nama Karyawan
+                  </label>
+                  <input
+                    type="text"
+                    name="nama_karyawan"
+                    value={formData.nama_karyawan}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                    required
+                  />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Alamat
@@ -295,49 +421,62 @@ const KaryawanPage = () => {
                     name="alamat"
                     value={formData.alamat}
                     onChange={handleChange}
-                    rows="2"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                    rows="3"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
                     required
-                    disabled={isSubmitting}
-                  ></textarea>
+                  />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Gaji (Rp)
+                    Telepon
+                  </label>
+                  <input
+                    type="text"
+                    name="telepon"
+                    value={formData.telepon}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gaji
                   </label>
                   <input
                     type="number"
                     name="gaji"
                     value={formData.gaji}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900"
                     required
-                    disabled={isSubmitting}
                   />
                 </div>
-                <div className="pt-2 flex justify-end gap-3">
+
+                <div className="flex gap-3 pt-4">
                   <button
                     type="button"
-                    onClick={closeModal}
-                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
-                    disabled={isSubmitting}
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait"
-                    disabled={isSubmitting}
+                    disabled={actionLoading}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:bg-red-400 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? (
+                    {actionLoading ? (
                       <>
-                        <Loader2 className="animate-spin mr-2" size={16} />{" "}
-                        {selectedKaryawan ? "Menyimpan..." : "Menambah..."}
+                        <Loader2 className="animate-spin" size={18} />
+                        Menyimpan...
                       </>
-                    ) : selectedKaryawan ? (
-                      "Simpan"
+                    ) : editingKaryawan ? (
+                      "Simpan Perubahan"
                     ) : (
-                      "Tambah"
+                      "Tambah Karyawan"
                     )}
                   </button>
                 </div>
@@ -347,50 +486,72 @@ const KaryawanPage = () => {
         )}
       </AnimatePresence>
 
+      {/* Delete Confirmation Modal */}
       <AnimatePresence>
-        {isConfirmOpen && (
+        {isDeleteModalOpen && deleteKaryawan && (
           <motion.div
-            onMouseDown={closeConfirmDelete}
+            onMouseDown={() => setIsDeleteModalOpen(false)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
           >
             <motion.div
               onMouseDown={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
+              className="bg-white rounded-xl shadow-2xl w-full max-w-md"
             >
-              <AlertTriangle className="mx-auto text-red-500 h-12 w-12 mb-4" />
-              <h2 className="text-lg font-bold text-gray-800">
-                Konfirmasi Hapus
-              </h2>
-              <p className="text-sm text-gray-500 mt-2 mb-6">
-                Apakah Anda yakin ingin menghapus karyawan <br />
-                <strong>{selectedKaryawan?.nama_karyawan}</strong>? Tindakan ini
-                tidak dapat dibatalkan.
-              </p>
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={closeConfirmDelete}
-                  className="px-6 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
-                  disabled={isSubmitting}
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="flex items-center justify-center w-28 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400 disabled:cursor-wait"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin" size={16} />
-                  ) : (
-                    "Hapus"
-                  )}
-                </button>
+              <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-gray-800">
+                  Hapus Karyawan
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Apakah Anda yakin ingin menghapus karyawan ini?
+                </p>
+              </div>
+
+              <div className="p-6">
+                <div className="flex items-center gap-4 p-4 bg-red-50 rounded-lg">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <User className="text-red-600" size={24} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      {deleteKaryawan.nama_karyawan}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {deleteKaryawan.telepon}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {formatRupiah(deleteKaryawan.gaji)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={actionLoading === "deleting"}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold disabled:bg-red-400 flex items-center justify-center gap-2"
+                  >
+                    {actionLoading === "deleting" ? (
+                      <>
+                        <Loader2 className="animate-spin" size={18} />
+                        Menghapus...
+                      </>
+                    ) : (
+                      "Hapus"
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

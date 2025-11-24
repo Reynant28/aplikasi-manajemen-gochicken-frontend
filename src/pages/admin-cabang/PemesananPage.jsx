@@ -19,6 +19,7 @@ import {
   ShoppingCart,
   Smartphone,
   Laptop,
+  Search,
 } from "lucide-react";
 import axios from "axios";
 import PemesananTable from "../../components/pemesanan/PemesananTable";
@@ -65,6 +66,7 @@ const PemesananPage = () => {
     status: "semua",
     source: "semua",
   });
+  const [searchTerm, setSearchTerm] = useState("");
   const [customDate, setCustomDate] = useState([null, null]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -94,6 +96,7 @@ const PemesananPage = () => {
         page,
         status: filter.status,
         source: filter.source,
+        search: searchTerm,
       };
       const [startDate, endDate] = customDate;
       if (filter.time === "custom" && startDate && endDate) {
@@ -122,7 +125,7 @@ const PemesananPage = () => {
         setLoading(false);
       }
     },
-    [token, cabangId, filter, customDate]
+    [token, cabangId, filter, customDate, searchTerm]
   );
 
   useEffect(() => {
@@ -238,14 +241,30 @@ const PemesananPage = () => {
     );
   };
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filter.status !== "semua") count++;
+    if (filter.source !== "semua") count++;
+    if (filter.time !== "bulan") count++;
+    if (searchTerm) count++;
+    return count;
+  }, [filter, searchTerm]);
+
   return (
     <>
-      <style>{`.custom-scrollbar::-webkit-scrollbar{width:6px}.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}`}</style>
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      `}</style>
+
       <motion.div
         className="space-y-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
@@ -256,212 +275,216 @@ const PemesananPage = () => {
               <strong>{cabang?.nama_cabang || "N/A"}</strong>
             </p>
           </div>
-          <motion.button
+          <button
             onClick={() => openModal("add")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold self-start md:self-center"
+            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg hover:bg-red-700 transition shadow-md font-semibold self-start md:self-center"
           >
-            <PlusCircle size={20} /> Buat Pesanan Baru
-          </motion.button>
+            <Plus size={18} />
+            Buat Pesanan Baru
+          </button>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm border flex flex-wrap items-center gap-x-6 gap-y-4">
-          <div className="relative">
-            <button
-              onClick={() => setIsFilterOpen((prev) => !prev)}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition"
-            >
-              <Filter size={16} /> <span>Filter Tampilan</span>
-            </button>
-            <AnimatePresence>
-              {isFilterOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full mt-2 w-80 bg-white rounded-lg shadow-xl border z-10 p-4 space-y-4"
-                >
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">
-                      Sumber Pesanan
-                    </label>
-                    <div className="flex bg-gray-100 p-1 rounded-lg mt-1">
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, source: "semua" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md flex items-center justify-center gap-1 ${
-                          filter.source === "semua"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        <Laptop size={12} /> Semua
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, source: "android" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md flex items-center justify-center gap-1 ${
-                          filter.source === "android"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        <Smartphone size={12} /> Android
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, source: "manual" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md flex items-center justify-center gap-1 ${
-                          filter.source === "manual"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        <Laptop size={12} /> Manual
-                      </button>
-                    </div>
-                  </div>
+        {/* Search and Filter Section - REDESIGNED */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
+              <input
+                type="text"
+                placeholder="Cari kode transaksi, nama pelanggan, atau produk..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-gray-900 placeholder-gray-400"
+              />
+            </div>
 
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">
-                      Waktu
-                    </label>
-                    <div className="flex bg-gray-100 p-1 rounded-lg mt-1">
-                      <button
-                        onClick={() => {
-                          setFilter((prev) => ({ ...prev, time: "minggu" }));
-                          setCustomDate([null, null]);
-                        }}
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.time === "minggu"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        Minggu
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFilter((prev) => ({ ...prev, time: "bulan" }));
-                          setCustomDate([null, null]);
-                        }}
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.time === "bulan"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        Bulan
-                      </button>
-                      <button
-                        onClick={() => {
-                          setFilter((prev) => ({ ...prev, time: "tahun" }));
-                          setCustomDate([null, null]);
-                        }}
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.time === "tahun"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        Tahun
-                      </button>
-                    </div>
-                  </div>
+            {/* Filter Button */}
+            <div className="relative">
+              <button
+                onClick={() => setIsFilterOpen((prev) => !prev)}
+                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-200 transition font-semibold"
+              >
+                <Filter size={18} />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
 
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600">
-                      Status
-                    </label>
-                    <div className="flex bg-gray-100 p-1 rounded-lg mt-1">
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, status: "semua" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.status === "semua"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        Semua
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, status: "OnLoan" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.status === "OnLoan"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        OnLoan
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFilter((prev) => ({ ...prev, status: "Selesai" }))
-                        }
-                        className={`flex-1 px-3 py-1 text-sm rounded-md ${
-                          filter.status === "Selesai"
-                            ? "bg-white text-red-600 shadow"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        Selesai
-                      </button>
+              {/* Filter Dropdown */}
+              <AnimatePresence>
+                {isFilterOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-20 p-4 space-y-4"
+                  >
+                    {/* Source Filter */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Sumber Pesanan
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: "semua", label: "Semua", icon: Laptop },
+                          { value: "android", label: "Android", icon: Smartphone },
+                          { value: "manual", label: "Manual", icon: ShoppingCart },
+                          //eslint-disable-next-line no-unused-vars
+                        ].map(({ value, label, icon: Icon }) => (
+                          <button
+                            key={value}
+                            onClick={() =>
+                              setFilter((prev) => ({ ...prev, source: value }))
+                            }
+                            className={`p-2 rounded-lg border text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
+                              filter.source === value
+                                ? "bg-red-50 border-red-200 text-red-700"
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="relative">
-                    <label className="text-sm font-semibold text-gray-600">
-                      Tanggal Kustom
-                    </label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <button
-                        onClick={() => {
-                          setShowStartDatePicker((p) => !p);
-                          setShowEndDatePicker(false);
-                        }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-left text-gray-700"
-                      >
-                        {customDate[0]
-                          ? format(new Date(customDate[0]), "d MMM yyyy")
-                          : "Dari"}
-                      </button>
-                      <span>-</span>
-                      <button
-                        onClick={() => {
-                          setShowEndDatePicker((p) => !p);
-                          setShowStartDatePicker(false);
-                        }}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-left text-gray-700"
-                      >
-                        {customDate[1]
-                          ? format(new Date(customDate[1]), "d MMM yyyy")
-                          : "Sampai"}
-                      </button>
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Status
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: "semua", label: "Semua" },
+                          { value: "OnLoan", label: "On Loan" },
+                          { value: "Selesai", label: "Selesai" },
+                        ].map(({ value, label }) => (
+                          <button
+                            key={value}
+                            onClick={() =>
+                              setFilter((prev) => ({ ...prev, status: value }))
+                            }
+                            className={`p-2 rounded-lg border text-sm font-medium transition-colors ${
+                              filter.status === value
+                                ? "bg-red-50 border-red-200 text-red-700"
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    {showStartDatePicker && (
-                      <CustomDatePicker
-                        selectedDate={customDate[0]}
-                        onDateSelect={(date) => handleDateSelect(date, "start")}
-                      />
+
+                    {/* Time Filter */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Periode Waktu
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: "minggu", label: "Minggu Ini" },
+                          { value: "bulan", label: "Bulan Ini" },
+                          { value: "tahun", label: "Tahun Ini" },
+                          { value: "custom", label: "Kustom" },
+                        ].map(({ value, label }) => (
+                          <button
+                            key={value}
+                            onClick={() => {
+                              setFilter((prev) => ({ ...prev, time: value }));
+                              if (value !== "custom") {
+                                setCustomDate([null, null]);
+                              }
+                            }}
+                            className={`p-2 rounded-lg border text-sm font-medium transition-colors ${
+                              filter.time === value
+                                ? "bg-red-50 border-red-200 text-red-700"
+                                : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom Date Picker */}
+                    {filter.time === "custom" && (
+                      <div className="pt-2 border-t">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Tanggal Kustom
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setShowStartDatePicker((p) => !p);
+                                setShowEndDatePicker(false);
+                              }}
+                              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                            >
+                              {customDate[0]
+                                ? format(new Date(customDate[0]), "d MMM yyyy")
+                                : "Dari Tanggal"}
+                            </button>
+                            <span className="text-gray-400">-</span>
+                            <button
+                              onClick={() => {
+                                setShowEndDatePicker((p) => !p);
+                                setShowStartDatePicker(false);
+                              }}
+                              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                            >
+                              {customDate[1]
+                                ? format(new Date(customDate[1]), "d MMM yyyy")
+                                : "Sampai Tanggal"}
+                            </button>
+                          </div>
+                          {showStartDatePicker && (
+                            <CustomDatePicker
+                              selectedDate={customDate[0]}
+                              onDateSelect={(date) => handleDateSelect(date, "start")}
+                            />
+                          )}
+                          {showEndDatePicker && (
+                            <CustomDatePicker
+                              selectedDate={customDate[1]}
+                              onDateSelect={(date) => handleDateSelect(date, "end")}
+                            />
+                          )}
+                        </div>
+                      </div>
                     )}
-                    {showEndDatePicker && (
-                      <CustomDatePicker
-                        selectedDate={customDate[1]}
-                        onDateSelect={(date) => handleDateSelect(date, "end")}
-                      />
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+
+                    {/* Clear Filters Button */}
+                    <div className="pt-2 border-t">
+                      <button
+                        onClick={() => {
+                          setFilter({
+                            time: "bulan",
+                            status: "semua",
+                            source: "semua",
+                          });
+                          setSearchTerm("");
+                          setCustomDate([null, null]);
+                        }}
+                        className="w-full py-2 text-sm text-gray-600 hover:text-gray-800 font-medium"
+                      >
+                        Reset Semua Filter
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
@@ -471,10 +494,10 @@ const PemesananPage = () => {
               initial={{ opacity: 0, y: -20, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.9 }}
-              className={`fixed top-4 left-1/2 -translate-x-1/2 p-4 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-[9999] ${
+              className={`fixed top-20 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${
                 message.type === "success"
-                  ? "bg-green-100 text-green-800 border border-green-200"
-                  : "bg-red-100 text-red-800 border border-red-200"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
               }`}
             >
               {message.type === "success" ? "✓" : "✗"} {message.text}
@@ -495,6 +518,7 @@ const PemesananPage = () => {
         )}
       </motion.div>
 
+      {/* Add/Edit Modal - UPDATED to show all content without scrolling initially */}
       <AddEditModal
         isOpen={modalState.type === "add"}
         onClose={closeModal}
@@ -535,6 +559,7 @@ const PemesananPage = () => {
   );
 };
 
+// AddEditModal - UPDATED to show all content without scrolling initially
 const AddEditModal = ({
   isOpen,
   onClose,
@@ -626,229 +651,224 @@ const AddEditModal = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      <motion.div
+        onMouseDown={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
         <motion.div
-          onMouseDown={onClose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onMouseDown={(e) => e.stopPropagation()}
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 20 }}
+          className="bg-white rounded-xl shadow-2xl w-full max-w-2xl" // Removed max-height restriction for no scrolling initially
         >
-          <motion.div
-            onMouseDown={(e) => e.stopPropagation()}
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.9 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-2xl relative"
-          >
-            <div className="p-6 border-b flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">
-                  {mode === "edit" ? "Edit Pesanan" : "Buat Pesanan Baru"}
-                </h2>
-                {mode === "edit" && isAndroidTransaction && (
-                  <p className="text-sm text-orange-600 flex items-center gap-1 mt-1">
-                    <Smartphone size={14} />
-                    Pesanan dari Android - hanya status yang dapat diubah
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
-              >
-                <X size={20} />
-              </button>
+          <div className="p-6 border-b flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">
+                {mode === "edit" ? "Edit Pesanan" : "Buat Pesanan Baru"}
+              </h2>
+              {mode === "edit" && isAndroidTransaction && (
+                <p className="text-sm text-orange-600 flex items-center gap-1 mt-1">
+                  <Smartphone size={14} />
+                  Pesanan dari Android - hanya status yang dapat diubah
+                </p>
+              )}
             </div>
-            <form
-              onSubmit={handleFormSubmit}
-              className="max-h-[80vh] overflow-y-auto custom-scrollbar"
+            <button
+              onClick={onClose}
+              className="p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
             >
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nama Pelanggan
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.nama_pelanggan}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          nama_pelanggan: e.target.value,
-                        }))
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
-                      required={!isAndroidTransaction}
-                      disabled={mode === "edit" && isAndroidTransaction}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Metode Pembayaran
-                    </label>
-                    <select
-                      value={formData.metode_pembayaran}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          metode_pembayaran: e.target.value,
-                        }))
-                      }
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
-                      required={!isAndroidTransaction}
-                      disabled={mode === "edit" && isAndroidTransaction}
-                    >
-                      {PAYMENT_METHODS.map((method) => (
-                        <option key={method} value={method}>
-                          {method}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Removed max-height and overflow-y-auto from form to show all content without scrolling */}
+          <form onSubmit={handleFormSubmit}>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status Transaksi
+                    Nama Pelanggan
                   </label>
-                  <select
-                    value={formData.status_transaksi}
+                  <input
+                    type="text"
+                    value={formData.nama_pelanggan}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        status_transaksi: e.target.value,
+                        nama_pelanggan: e.target.value,
                       }))
                     }
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
-                    required
+                    required={!isAndroidTransaction}
+                    disabled={mode === "edit" && isAndroidTransaction}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Metode Pembayaran
+                  </label>
+                  <select
+                    value={formData.metode_pembayaran}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        metode_pembayaran: e.target.value,
+                      }))
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                    required={!isAndroidTransaction}
+                    disabled={mode === "edit" && isAndroidTransaction}
                   >
-                    <option value="OnLoan">On Loan</option>
-                    <option value="Selesai">Selesai</option>
+                    {PAYMENT_METHODS.map((method) => (
+                      <option key={method} value={method}>
+                        {method}
+                      </option>
+                    ))}
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status Transaksi
+                </label>
+                <select
+                  value={formData.status_transaksi}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      status_transaksi: e.target.value,
+                    }))
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900"
+                  required
+                >
+                  <option value="OnLoan">On Loan</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
 
-                {!(mode === "edit" && isAndroidTransaction) && (
-                  <div className="pt-2">
-                    <h3 className="text-md font-semibold text-gray-800 mb-2">
-                      Detail Pesanan
-                    </h3>
-                    <div className="space-y-3">
-                      {formData.details.map((item, index) => (
-                        <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                          <div className="grid grid-cols-12 gap-x-3 gap-y-2 items-end">
-                            <div className="col-span-12 sm:col-span-7">
-                              <label className="text-xs font-medium text-gray-600">
-                                Produk
-                              </label>
-                              <select
-                                name="id_produk"
-                                value={item.id_produk}
-                                onChange={(e) => handleDetailChange(index, e)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
-                                disabled={
-                                  mode === "edit" && isAndroidTransaction
-                                }
-                              >
-                                <option value="">Pilih Produk...</option>
-                                {produkList.map((p) => (
-                                  <option
-                                    key={p.id_produk}
-                                    value={p.id_produk}
-                                    disabled={p.jumlah_stok <= 0}
-                                  >
-                                    {p.nama_produk} (Stok: {p.jumlah_stok})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="col-span-6 sm:col-span-4">
-                              <label className="text-xs font-medium text-gray-600">
-                                Jumlah
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                name="jumlah_produk"
-                                value={item.jumlah_produk}
-                                onChange={(e) => handleDetailChange(index, e)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
-                                placeholder="e.g., 2"
-                                disabled={
-                                  mode === "edit" && isAndroidTransaction
-                                }
-                              />
-                            </div>
-                            <div className="col-span-6 sm:col-span-1 flex justify-end">
-                              <button
-                                type="button"
-                                onClick={() => removeDetailItem(index)}
-                                className="p-2 text-red-500 hover:bg-red-100 rounded-full"
-                                disabled={
-                                  mode === "edit" && isAndroidTransaction
-                                }
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
+              {!(mode === "edit" && isAndroidTransaction) && (
+                <div className="pt-2">
+                  <h3 className="text-md font-semibold text-gray-800 mb-2">
+                    Detail Pesanan
+                  </h3>
+                  <div className="space-y-3">
+                    {formData.details.map((item, index) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="grid grid-cols-12 gap-x-3 gap-y-2 items-end">
+                          <div className="col-span-12 sm:col-span-7">
+                            <label className="text-xs font-medium text-gray-600">
+                              Produk
+                            </label>
+                            <select
+                              name="id_produk"
+                              value={item.id_produk}
+                              onChange={(e) => handleDetailChange(index, e)}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
+                              disabled={mode === "edit" && isAndroidTransaction}
+                            >
+                              <option value="">Pilih Produk...</option>
+                              {produkList.map((p) => (
+                                <option
+                                  key={p.id_produk}
+                                  value={p.id_produk}
+                                  disabled={p.jumlah_stok <= 0}
+                                >
+                                  {p.nama_produk} (Stok: {p.jumlah_stok})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-span-6 sm:col-span-4">
+                            <label className="text-xs font-medium text-gray-600">
+                              Jumlah
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              name="jumlah_produk"
+                              value={item.jumlah_produk}
+                              onChange={(e) => handleDetailChange(index, e)}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-sm text-gray-900"
+                              placeholder="e.g., 2"
+                              disabled={mode === "edit" && isAndroidTransaction}
+                            />
+                          </div>
+                          <div className="col-span-6 sm:col-span-1 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => removeDetailItem(index)}
+                              className="p-2 text-red-500 hover:bg-red-100 rounded-full"
+                              disabled={mode === "edit" && isAndroidTransaction}
+                            >
+                              <X size={16} />
+                            </button>
                           </div>
                         </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addDetailItem}
-                        className="w-full text-sm py-2 px-4 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200"
-                        disabled={mode === "edit" && isAndroidTransaction}
-                      >
-                        + Tambah Produk
-                      </button>
-                    </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addDetailItem}
+                      className="w-full text-sm py-2 px-4 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200"
+                      disabled={mode === "edit" && isAndroidTransaction}
+                    >
+                      + Tambah Produk
+                    </button>
                   </div>
-                )}
-
-                <div className="text-right pt-2">
-                  <p className="text-gray-600">Total Harga</p>
-                  <p className="text-2xl font-bold text-gray-700">
-                    {formatRupiah(totalHarga)}
-                  </p>
                 </div>
+              )}
+
+              <div className="text-right pt-2">
+                <p className="text-gray-600">Total Harga</p>
+                <p className="text-2xl font-bold text-gray-700">
+                  {formatRupiah(totalHarga)}
+                </p>
               </div>
-              <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
-                  disabled={isSubmitting}
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center justify-center w-40 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="animate-spin mr-2" size={16} />{" "}
-                      {mode === "edit" ? "Mengupdate..." : "Menyimpan..."}
-                    </>
-                  ) : mode === "edit" ? (
-                    "Update Pesanan"
-                  ) : (
-                    "Simpan Pesanan"
-                  )}
-                </button>
-              </div>
-            </form>
-          </motion.div>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100"
+                disabled={isSubmitting}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="flex items-center justify-center w-40 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" size={16} />{" "}
+                    {mode === "edit" ? "Mengupdate..." : "Menyimpan..."}
+                  </>
+                ) : mode === "edit" ? (
+                  "Update Pesanan"
+                ) : (
+                  "Simpan Pesanan"
+                )}
+              </button>
+            </div>
+          </form>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   );
 };
 
+// DetailModal - Keep original
 const DetailModal = ({ isOpen, onClose, data }) => (
   <AnimatePresence>
     {isOpen && (
@@ -959,6 +979,7 @@ const DetailModal = ({ isOpen, onClose, data }) => (
   </AnimatePresence>
 );
 
+// DeleteModal - Keep original
 const DeleteModal = ({
   isOpen,
   onClose,
@@ -1039,6 +1060,7 @@ const DeleteModal = ({
   </AnimatePresence>
 );
 
+// CustomDatePicker - Keep original
 const CustomDatePicker = ({ selectedDate, onDateSelect }) => {
   const [currentDate, setCurrentDate] = useState(
     selectedDate ? new Date(selectedDate) : new Date()
