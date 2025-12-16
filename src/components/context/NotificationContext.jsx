@@ -1,59 +1,109 @@
-// src/components/context/NotificationContext.jsx (UPDATE INI)
-
+// src/components/context/NotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const NotificationContext = createContext();
-
-// 💡 KEY untuk Local Storage
 const NOTIFICATION_STORAGE_KEY = 'user_notifications'; 
 
-export const useNotification = () => useContext(NotificationContext);
+export const useNotification = () => {
+  const context = useContext(NotificationContext);
+  if (!context) {
+    throw new Error('useNotification must be used within a NotificationProvider');
+  }
+  return context;
+};
 
 export const NotificationProvider = ({ children }) => {
-    // 1. Inisialisasi state dengan data dari Local Storage
     const [notifications, setNotifications] = useState(() => {
         try {
             const storedNotifs = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
-            // Batasi jumlah notifikasi yang dimuat untuk performa (misalnya 15)
-            return storedNotifs ? JSON.parse(storedNotifs).slice(0, 30) : [];
+            return storedNotifs ? JSON.parse(storedNotifs) : [];
         } catch (error) {
             console.error("Error reading notifications from Local Storage:", error);
             return [];
         }
     });
 
-    // 2. Simpan notifikasi ke Local Storage setiap kali berubah
     useEffect(() => {
         try {
-            // Batasi notifikasi yang disimpan (misalnya 30 notifikasi terakhir)
-            const notifsToStore = notifications.slice(0, 30);
-            localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifsToStore));
+            localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications));
         } catch (error) {
             console.error("Error writing notifications to Local Storage:", error);
         }
     }, [notifications]);
 
-    // Fungsi untuk menambah notifikasi (tidak banyak berubah)
-    const addNotification = (message, type = 'info') => {
+    const formatTimestamp = () => {
+        const now = new Date();
+        const date = now.getDate().toString().padStart(2, '0');
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        
+        return {
+            fullDate: `${date}/${month}/${year}`,
+            time: `${hours}.${minutes}`,
+            fullDateTime: `${date}/${month}/${year} ${hours}.${minutes}`
+        };
+    };
+
+    // 🔥 PERBAIKAN: Gunate useCallback untuk stabilisasi fungsi
+    const addNotification = React.useCallback((message, type = 'info', page = '', action = '') => {
+        const timestamp = formatTimestamp();
         const newNotification = {
-            id: Date.now(),
+            id: Date.now() + Math.random(), // 🔥 Pastikan ID unik
             message,
-            type, // 'success', 'error', 'info'
-            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            type,
+            page,
+            action,
+            date: timestamp.fullDate,
+            time: timestamp.time,
+            fullDateTime: timestamp.fullDateTime,
+            timestamp: new Date().toISOString()
         };
 
-        // Tambahkan notifikasi baru di awal array
-        setNotifications(prevNotifs => [newNotification, ...prevNotifs]);
-    };
+        setNotifications(prevNotifs => {
+            const updated = [newNotification, ...prevNotifs];
+            // Batasi maksimal 50 notifikasi untuk performa
+            return updated.slice(0, 50);
+        });
+    }, []);
 
-    // Fungsi untuk menghapus semua notifikasi
-    const clearNotifications = () => {
+    // 🔥 PERBAIKAN KUNCI: Pastikan removeNotification tidak menyebabkan re-render tidak perlu
+    const removeNotification = React.useCallback((id) => {
+        setNotifications(prev => {
+            const filtered = prev.filter(notification => {
+                // 🔥 Debug: Log untuk memastikan filtering bekerja
+                if (notification.id === id) {
+                    console.log('Removing notification:', id);
+                    return false;
+                }
+                return true;
+            });
+            
+            // 🔥 Cek jika benar-benar ada perubahan
+            if (filtered.length === prev.length) {
+                console.log('No notification found with id:', id);
+                return prev; // Kembalikan array lama jika tidak ada perubahan
+            }
+            
+            return filtered;
+        });
+    }, []);
+
+    const clearNotifications = React.useCallback(() => {
         setNotifications([]);
-        // Local Storage akan terhapus otomatis oleh useEffect di atas
-    };
+    }, []);
+
+    // 🔥 Nilai context yang stabil
+    const contextValue = React.useMemo(() => ({
+        notifications, 
+        addNotification, 
+        clearNotifications,
+        removeNotification 
+    }), [notifications, addNotification, clearNotifications, removeNotification]);
 
     return (
-        <NotificationContext.Provider value={{ notifications, addNotification, clearNotifications }}>
+        <NotificationContext.Provider value={contextValue}>
             {children}
         </NotificationContext.Provider>
     );

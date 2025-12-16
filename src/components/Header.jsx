@@ -1,316 +1,615 @@
+// src/components/Header.jsx
 import { useState, useRef, useEffect } from "react";
 import {
-  Search,
   Bell,
   LogOut,
-  X,
+  ChevronRight,
+  Home,
+  Menu,
+  AlertTriangle,
+  Trash2,
   History,
   CheckCircle,
   XCircle,
-  Menu,
-  AlertTriangle, // Ikon baru untuk modal
+  Edit,
+  Plus,
+  Trash,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../components/context/NotificationContext";
 
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const location = useLocation();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  // 🟢 STATE BARU UNTUK MODAL LOGOUT
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const searchRef = useRef(null);
   const notifRef = useRef(null);
-
   const user = JSON.parse(localStorage.getItem("user"));
-  const { notifications, clearNotifications } = useNotification();
+  const { notifications, clearNotifications, removeNotification } = useNotification();
 
-  // 🟢 FUNGSI BARU UNTUK KONFIRMASI LOGOUT
+  // Effect untuk mendeteksi perubahan ukuran layar
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Fungsi untuk generate breadcrumb berdasarkan path
+  const generateBreadcrumbs = () => {
+    const pathnames = location.pathname.split('/').filter(x => x);
+    const breadcrumbs = [];
+    
+    // Tambahkan home berdasarkan role
+    const homePath = user?.role === "super admin" 
+      ? "/super-admin/dashboard/general" 
+      : `/admin-cabang/${user?.id_cabang}/dashboard/general`;
+    
+    breadcrumbs.push({ 
+      name: isMobile ? "" : "Dashboard", 
+      path: homePath, 
+      icon: <Home size={16} />,
+      isLast: pathnames.length === 0
+    });
+
+    pathnames.forEach((value, index) => {
+      const path = `/${pathnames.slice(0, index + 1).join('/')}`;
+      
+      // Mapping nama yang lebih user-friendly
+      const nameMap = {
+        'super-admin': 'Super Admin',
+        'admin-cabang': 'Admin Cabang',
+        'dashboard': isMobile ? '' : 'Dashboard',
+        'general': 'Overview',
+        'reports': 'Laporan',
+        'daily': 'Laporan Harian',
+        'kelola-cabang': 'Kelola Cabang',
+        'produk': 'Produk',
+        'branch': 'Admin Cabang',
+        'pengeluaran': 'Pengeluaran',
+        'karyawan': 'Karyawan',
+        'transaksi': 'Transaksi',
+        'bahan': 'Bahan Baku',
+        'bahan-baku-pakai': 'Pemakaian Harian'
+      };
+
+      const friendlyName = nameMap[value] || value.replace(/-/g, ' ');
+      const isLast = index === pathnames.length - 1;
+      
+      // Untuk mobile, hanya tampilkan item terakhir atau singkatkan
+      let displayName = friendlyName;
+      if (isMobile) {
+        if (isLast) {
+          // Untuk item terakhir, tampilkan singkatan jika perlu
+          displayName = friendlyName.length > 12 ? friendlyName.substring(0, 10) + '...' : friendlyName;
+        } else {
+          // Untuk item bukan terakhir, sembunyikan atau singkatkan
+          displayName = friendlyName.length > 8 ? friendlyName.substring(0, 6) + '...' : friendlyName;
+        }
+      }
+      
+      breadcrumbs.push({ 
+        name: displayName, 
+        originalName: friendlyName,
+        path: path,
+        isLast: isLast
+      });
+    });
+
+    return breadcrumbs;
+  };
+
+  const breadcrumbs = generateBreadcrumbs();
+
   const handleConfirmLogout = () => {
-    // Lakukan proses logout yang sebenarnya
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("cabang");
     navigate("/");
-    setIsModalOpen(false); // Pastikan modal tertutup
+    setIsModalOpen(false);
   };
 
-  // 🟢 FUNGSI LAMA DIMODIFIKASI UNTUK MEMBUKA MODAL
   const handleLogoutClick = () => {
     setIsModalOpen(true);
   };
 
-  const superAdminPages = [
-    { name: "General", path: "/super-admin/dashboard/general" },
-    { name: "Reports", path: "/super-admin/dashboard/reports" },
-    { name: "Kelola Cabang", path: "/super-admin/dashboard/kelola-cabang" },
-    { name: "Produk", path: "/super-admin/dashboard/produk" },
-    { name: "Admin Cabang", path: "/super-admin/dashboard/branch" },
-    { name: "Pengeluaran", path: "/super-admin/dashboard/pengeluaran" },
-    { name: "Karyawan", path: "/super-admin/dashboard/karyawan" },
-    { name: "Transaksi", path: "/super-admin/dashboard/transaksi" },
-    { name: "Bahan", path: "/super-admin/dashboard/bahan" },
-  ];
-
-  const adminCabangPages = [
-    { name: "General", path: `/admin-cabang/${user?.id_cabang}/dashboard/general` },
-    { name: "Reports", path: `/admin-cabang/${user?.id_cabang}/dashboard/reports` },
-    { name: "Pengeluaran", path: `/admin-cabang/${user?.id_cabang}/dashboard/pengeluaran` },
-    { name: "Karyawan", path: `/admin-cabang/${user?.id_cabang}/dashboard/karyawan` },
-    { name: "Produk", path: `/admin-cabang/${user?.id_cabang}/dashboard/produk` },
-  ];
-
-  const pages =
-    user?.role === "super admin" ? superAdminPages : adminCabangPages;
-
-  const filteredPages = pages.filter((page) =>
-    page.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Logic untuk menutup Search
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        if (window.innerWidth >= 640 && !searchTerm) {
-          setIsSearchOpen(false);
-        }
-      }
-      // Logic untuk menutup Notifikasi
       if (notifRef.current && !notifRef.current.contains(event.target)) {
         setIsNotifOpen(false);
       }
     };
+    
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [searchTerm]);
+  }, []);
 
-  const getNotifColor = (type) => {
-    switch (type) {
-      case 'success':
-        return 'border-green-400 bg-green-50/50 text-green-700';
-      case 'error':
-        return 'border-red-400 bg-red-50/50 text-red-700';
-      case 'info':
-      default:
-        return 'border-blue-400 bg-blue-50/50 text-blue-700';
+  // Fungsi untuk menentukan warna berdasarkan jenis aksi
+  const getNotifColor = (message) => {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('telah ditambahkan') || 
+        lowerMessage.includes('telah dibuat') ||
+        lowerMessage.includes('success') ||
+        lowerMessage.includes('tambah') ||
+        lowerMessage.includes('backup telah')) {
+      return 'border-green-400 bg-green-50/80 text-green-800';
+    } else if (lowerMessage.includes('telah diubah') || 
+               lowerMessage.includes('telah mengubah') ||
+               lowerMessage.includes('update') ||
+               lowerMessage.includes('ubah')) {
+      return 'border-blue-400 bg-blue-50/80 text-blue-800';
+    } else if (lowerMessage.includes('telah dihapus') || 
+               lowerMessage.includes('menghapus') ||
+               lowerMessage.includes('delete') ||
+               lowerMessage.includes('hapus')) {
+      return 'border-red-400 bg-red-50/80 text-red-800';
+    } else if (lowerMessage.includes('gagal') || 
+               lowerMessage.includes('error') ||
+               lowerMessage.includes('failed')) {
+      return 'border-orange-400 bg-orange-50/80 text-orange-800';
+    } else {
+      return 'border-green-400 bg-green-50/80 text-green-800';
     }
   };
 
-  const getNotifIcon = (type) => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle size={18} className="text-green-600 min-w-4" />;
-      case 'error':
-        return <XCircle size={18} className="text-red-600 min-w-4" />;
-      case 'info':
-      default:
-        return <History size={18} className="text-blue-600 min-w-4" />;
+  // Fungsi untuk menentukan icon berdasarkan jenis aksi
+  const getNotifIcon = (message) => {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('telah ditambahkan') || 
+        lowerMessage.includes('telah dibuat') ||
+        lowerMessage.includes('success') ||
+        lowerMessage.includes('tambah') ||
+        lowerMessage.includes('backup telah')) {
+      return <Plus size={18} className="text-green-600 min-w-4" />;
+    } else if (lowerMessage.includes('telah diubah') || 
+               lowerMessage.includes('telah mengubah') ||
+               lowerMessage.includes('update') ||
+               lowerMessage.includes('ubah')) {
+      return <Edit size={18} className="text-blue-600 min-w-4" />;
+    } else if (lowerMessage.includes('telah dihapus') || 
+               lowerMessage.includes('menghapus') ||
+               lowerMessage.includes('delete') ||
+               lowerMessage.includes('hapus')) {
+      return <Trash size={18} className="text-red-600 min-w-4" />;
+    } else if (lowerMessage.includes('gagal') || 
+               lowerMessage.includes('error') ||
+               lowerMessage.includes('failed')) {
+      return <AlertTriangle size={18} className="text-orange-600 min-w-4" />;
+    } else {
+      return <History size={18} className="text-gray-600 min-w-4" />;
     }
   };
 
+  // Fungsi untuk format group notifications by date
+  const groupNotificationsByDate = () => {
+    const grouped = {};
+    
+    notifications.forEach(notif => {
+      if (!grouped[notif.date]) {
+        grouped[notif.date] = [];
+      }
+      grouped[notif.date].push(notif);
+    });
+    
+    return grouped;
+  };
 
-    return (
+  // Fungsi untuk mengganti kata "berhasil" menjadi "telah" di pesan notifikasi
+  const formatNotificationMessage = (message) => {
+    return message
+      .replace(/berhasil ditambahkan/gi, 'telah ditambahkan')
+      .replace(/berhasil dibuat/gi, 'telah dibuat')
+      .replace(/berhasil diubah/gi, 'telah diubah')
+      .replace(/berhasil mengubah/gi, 'telah mengubah')
+      .replace(/berhasil dihapus/gi, 'telah dihapus')
+      .replace(/berhasil menghapus/gi, 'telah menghapus')
+      .replace(/backup berhasil/gi, 'backup telah');
+  };
+
+  const groupedNotifications = groupNotificationsByDate();
+
+  // Cek apakah user adalah super admin
+  const isSuperAdmin = user?.role === "super admin";
+
+  return (
     <>
-      {/* CSS Kustom untuk Scrollbar */}
-      <style>{`.custom-notif-scrollbar::-webkit-scrollbar{width:8px}.custom-notif-scrollbar::-webkit-scrollbar-track{background:#f0f0f0;border-radius:10px}.custom-notif-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-notif-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}`}</style>
+      <style>{`
+        .custom-notif-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-notif-scrollbar::-webkit-scrollbar-track {
+          background: #f8fafc;
+          border-radius: 10px;
+        }
+        .custom-notif-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+        .custom-notif-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        
+        /* Responsive text sizes */
+        @media (max-width: 640px) {
+          .responsive-text {
+            font-size: 0.75rem;
+          }
+          .breadcrumb-item {
+            padding: 0.375rem 0.5rem;
+          }
+        }
+      `}</style>
 
-      {/* Header Utama */}
-      <header className="bg-gradient-to-r from-white to-gray-50 p-4 flex flex-wrap sm:flex-nowrap justify-between items-center border-b border-gray-200 shadow-sm">
-
-        {/* Tombol Menu untuk Mobile Sidebar */}
-        <div className="flex items-center space-x-3 order-0 sm:order-none">
+      {/* Header Utama - Sembunyikan di mobile */}
+      {!isMobile && (
+        <header className="bg-white px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between border-b border-gray-200 shadow-sm">
+          
+          {/* Left Section - Menu Button & Breadcrumb */}
+          <div className="flex items-center flex-1 min-w-0">
             <button
               onClick={onMenuClick}
-              className="p-2 rounded-full hover:bg-gray-200 lg:hidden"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 lg:hidden transition-colors duration-200 mr-1 sm:mr-2"
             >
-              <Menu size={20} className="text-gray-700" />
+              <Menu size={18} className="sm:w-5 text-gray-700" />
             </button>
-        </div>
-
-
-        {/* Search Section DENGAN ANIMASI KEMBALI */}
-        <div className="relative w-full sm:w-1/3 order-1 sm:order-none mb-3 sm:mb-0" ref={searchRef}>
-          <div className="flex items-center relative">
-
-            {/* Input Search - Menggunakan transisi width */}
-            <input
-              type="text"
-              placeholder="Cari halaman..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`py-2 pr-4 text-gray-700 rounded-full transition-all duration-500 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-700
-                      // Selalu w-full di mobile
-                      w-full pl-10 bg-white shadow-lg opacity-100
-
-                      // LOGIKA DESKTOP UNTUK ANIMASI:
-                      sm:w-64 sm:focus:w-full
-                      ${!isSearchOpen && window.innerWidth >= 640 && !searchTerm
-                        ? "sm:w-10 sm:p-0 sm:opacity-0 sm:pointer-events-none" // Menyembunyikan dan menyempit di desktop jika tidak terbuka
-                        : "sm:w-64 sm:pl-10 sm:opacity-100" // Lebar normal di desktop
-                      }
-                      `}
-              onFocus={() => setIsSearchOpen(true)}
-            />
-
-            {/* Tombol/Ikon Search */}
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className={`absolute inset-y-0 flex items-center transition-all duration-500 ease-in-out
-                      left-0 ml-3 text-gray-500
-
-                      // LOGIKA DESKTOP UNTUK IKON/TOMBOL:
-                      ${isSearchOpen || searchTerm
-                          ? "sm:text-gray-500"
-                          : "sm:ml-0 sm:bg-green-700 sm:p-2 sm:rounded-full sm:text-white sm:hover:bg-green-800 sm:left-0 sm:opacity-100 sm:w-10 sm:h-10 sm:justify-center hidden sm:flex"
-                      }
-                      `}
-              style={{ zIndex: 10 }}
-            >
-              <Search size={20} />
-            </button>
-
-          </div>
-
-          {/* Dropdown hasil pencarian */}
-          {isSearchOpen && searchTerm && (
-            <motion.ul
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute left-0 mt-2 w-full sm:w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-hidden"
-            >
-              {filteredPages.length > 0 ? (
-                filteredPages.map((page, index) => (
-                  <motion.li
-                    key={index}
-                    className="px-4 py-2 hover:bg-green-50 cursor-pointer text-gray-700 text-sm"
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => {
-                      navigate(page.path);
-                      setSearchTerm("");
-                      setIsSearchOpen(false);
-                    }}
-                  >
-                    {page.name}
-                  </motion.li>
-                ))
-              ) : (
-                <li className="px-4 py-2 text-gray-400 text-sm">Halaman tidak ditemukan</li>
-              )}
-            </motion.ul>
-          )}
-        </div>
-
-        {/* Right Section */}
-        <div className="flex items-center space-x-3 sm:space-x-4 order-2 sm:order-none">
-
-          {/* Notification Button and Dropdown */}
-          <div className="relative" ref={notifRef}>
-            <motion.button
-              className="p-2 rounded-full hover:bg-gray-100 relative"
-              whileTap={{ scale: 0.9 }}
-              whileHover={{
-                rotate: [0, -10, 10, -10, 0],
-                transition: { duration: 0.4 },
-              }}
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-            >
-              <Bell size={24} className="text-gray-600" />
-              {notifications.length > 0 && (
-                <span className="absolute top-1 right-1 block h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border-2 border-white">
-                  {notifications.length > 9 ? '9+' : notifications.length}
-                </span>
-              )}
-            </motion.button>
-
-            <AnimatePresence>
-              {isNotifOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
-
-                  // FIX POSISI NOTIFIKASI
-                  className="absolute mt-3
-                             left-0 sm:left-auto sm:right-0
-                             w-64 max-w-[90vw] sm:w-96
-                             bg-white border border-gray-200 rounded-xl shadow-2xl z-40 overflow-hidden"
-                >
-                  {/* Header Dropdown (Konten tetap sama) */}
-                  <div className="p-4 flex justify-between items-center border-b bg-gray-50/50">
-                    <h3 className="text-md font-bold text-gray-800 flex items-center gap-2">
-                      <History size={18} className="text-green-600" /> Riwayat Aktivitas
-                    </h3>
-                    <button
-                      onClick={clearNotifications}
-                      className="text-xs font-medium text-red-500 hover:text-red-700 flex items-center gap-1 p-1 rounded hover:bg-red-50 transition-colors"
-                      title="Hapus Semua"
+            
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm overflow-hidden">
+              {breadcrumbs.map((breadcrumb, index) => (
+                <div key={index} className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+                  {index > 0 && (
+                    <ChevronRight size={14} className="sm:w-4 text-gray-400 flex-shrink-0" />
+                  )}
+                  {breadcrumb.isLast ? (
+                    <span 
+                      className="text-gray-900 font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-1 sm:gap-2 breadcrumb-item"
+                      title={breadcrumb.originalName}
                     >
-                      <X size={14} /> Clear
+                      {breadcrumb.icon && index === 0 && (
+                        <span className="flex-shrink-0">{breadcrumb.icon}</span>
+                      )}
+                      <span className="truncate max-w-16 xs:max-w-20 sm:max-w-32 md:max-w-48 responsive-text">
+                        {breadcrumb.name}
+                      </span>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => navigate(breadcrumb.path)}
+                      className="text-gray-600 hover:text-gray-900 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center gap-1 sm:gap-2 border border-transparent hover:border-gray-200 breadcrumb-item"
+                      title={breadcrumb.originalName}
+                    >
+                      {breadcrumb.icon && index === 0 && (
+                        <span className="flex-shrink-0">{breadcrumb.icon}</span>
+                      )}
+                      <span className="truncate max-w-16 xs:max-w-20 sm:max-w-32 md:max-w-48 responsive-text">
+                        {breadcrumb.name}
+                      </span>
                     </button>
-                  </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
 
-                  {/* List Notifikasi */}
-                  <ul className="max-h-80 sm:max-h-96 overflow-y-auto divide-y divide-gray-100 custom-notif-scrollbar">
-                    {notifications.length > 0 ? (
-                      notifications.map((notif) => (
-                        <motion.li
-                          key={notif.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          className={`p-3 border-l-4 ${getNotifColor(notif.type)} transition-colors duration-200 hover:bg-gray-100/70`}
+          {/* Right Section */}
+          <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-4">
+            
+            {/* Notification - Hanya tampil untuk Super Admin */}
+            {isSuperAdmin && (
+              <div className="relative" ref={notifRef}>
+                <motion.button
+                  className="p-1.5 sm:p-2.5 rounded-xl hover:bg-gray-100 relative transition-colors duration-200"
+                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                >
+                  <Bell size={18} className="sm:w-5 md:w-6 text-gray-600" />
+                  {notifications.length > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-0.5 -right-0.5 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border border-white"
+                    >
+                      {notifications.length > 9 ? '9+' : notifications.length}
+                    </motion.span>
+                  )}
+                </motion.button>
+
+                <AnimatePresence>
+                  {isNotifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute mt-2 right-0 w-72 xs:w-80 sm:w-96 bg-white border border-gray-200 rounded-xl shadow-xl z-40 overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="p-3 sm:p-4 flex justify-between items-center border-b border-gray-100 bg-white">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
+                          <History size={16} className="sm:w-5 text-green-600" />
+                          Riwayat Aktivitas
+                        </h3>
+                        <motion.button
+                          onClick={clearNotifications}
+                          className="text-xs sm:text-sm font-medium text-red-500 hover:text-red-700 flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-red-50 transition-colors duration-150"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
-                          <div className="flex items-start gap-2">
-                            {getNotifIcon(notif.type)}
-                            <div className="flex-grow">
-                              <p className="text-sm font-medium leading-snug">{notif.message}</p>
-                              <span className="text-xs opacity-75 mt-0.5 block">{notif.timestamp}</span>
-                            </div>
+                          <Trash2 size={14} className="sm:w-4" />
+                          <span className="hidden xs:inline">Clear</span>
+                        </motion.button>
+                      </div>
+
+                      {/* Notifications List */}
+                      <div className="max-h-64 sm:max-h-80 overflow-y-auto custom-notif-scrollbar">
+                        {notifications.length > 0 ? (
+                          <div className="divide-y divide-gray-100">
+                            {Object.entries(groupedNotifications).map(([date, dayNotifications]) => (
+                              <div key={date}>
+                                {/* Date Header */}
+                                <div className="sticky top-0 bg-gray-50 px-3 sm:px-4 py-2 border-b border-gray-200">
+                                  <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                    <Calendar size={12} className="text-gray-400" />
+                                    <span>{date}</span>
+                                    <span className="text-gray-400">•</span>
+                                    <span className="text-gray-500">{dayNotifications.length} aktivitas</span>
+                                  </div>
+                                </div>
+                                
+                                {/* Notifications for this date */}
+                                {dayNotifications.map((notif) => (
+                                  <motion.div
+                                    key={notif.id}
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    className={`p-3 sm:p-4 border-l-4 ${getNotifColor(notif.message)} transition-colors duration-200 hover:bg-gray-50`}
+                                  >
+                                    <div className="flex items-start gap-2 sm:gap-3">
+                                      <div className="flex-shrink-0 mt-0.5">
+                                        {getNotifIcon(notif.message)}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs sm:text-sm font-medium leading-relaxed text-gray-900 break-words">
+                                          {formatNotificationMessage(notif.message)}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <Clock size={12} className="text-gray-400" />
+                                          <span className="text-xs text-gray-500">
+                                            {notif.time}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() => removeNotification(notif.id)}
+                                        className="flex-shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                                      >
+                                        <XCircle size={14} className="text-gray-400" />
+                                      </button>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            ))}
                           </div>
-                        </motion.li>
-                      ))
-                    ) : (
-                      <li className="p-4 text-center text-gray-500 text-sm">
-                        Belum ada aktivitas baru.
-                      </li>
-                    )}
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          {/* END Notification */}
+                        ) : (
+                          <div className="p-6 sm:p-8 text-center">
+                            <History size={32} className="sm:w-12 mx-auto text-gray-300 mb-2 sm:mb-3" />
+                            <p className="text-gray-500 text-xs sm:text-sm">Belum ada aktivitas baru</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
-          {/* Greeting (Sembunyikan di mobile) */}
-          <div className="hidden sm:flex items-center">
-            <span className="text-sm font-semibold text-gray-700">
-              Hello, {user?.nama || "Guest"}
-            </span>
-          </div>
+            {/* User Greeting - Hidden on mobile */}
+            <div className="hidden xs:flex items-center px-2 sm:px-3 py-1 sm:py-2">
+              <span className="text-xs sm:text-sm font-semibold text-gray-800 truncate max-w-20 sm:max-w-32">
+                Hello, {user?.nama || "Guest"}
+              </span>
+            </div>
 
-          {/* Logout */}
-          <motion.div
-            onClick={handleLogoutClick}
-            className="relative w-10 h-10 flex items-center justify-center rounded-full cursor-pointer overflow-hidden group"
-            whileTap={{ scale: 0.9 }}
-          >
-            <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            <motion.div
-              initial={{ x: 0 }}
-              whileHover={{ x: 4 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            {/* Logout Button */}
+            <motion.button
+              onClick={handleLogoutClick}
+              className="p-1.5 sm:p-2.5 rounded-xl hover:bg-red-50 transition-colors duration-200 group relative"
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <LogOut size={22} className="text-red-600" />
-            </motion.div>
-          </motion.div>
-        </div>
-      </header>
+              <LogOut size={18} className="sm:w-5 md:w-6 text-red-600" />
+              <div className="absolute inset-0 rounded-xl bg-red-500 opacity-0 group-hover:opacity-5 transition-opacity duration-200"></div>
+            </motion.button>
+          </div>
+        </header>
+      )}
 
-      {/* 🟢 MODAL LOGOUT KUSTOM DENGAN ANIMASI */}
+      {/* Mobile Header Minimal - Hanya tampilkan menu button dan breadcrumb terakhir */}
+      {isMobile && (
+        <header className="bg-white px-4 py-4 flex items-center justify-between border-b border-gray-200 shadow-sm">
+          <div className="flex items-center flex-1 min-w-0">
+            <button
+              onClick={onMenuClick}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200 mr-2"
+            >
+              <Menu size={18} className="text-gray-700" />
+            </button>
+            
+            {/* Breadcrumb terakhir saja untuk mobile */}
+            {breadcrumbs.length > 0 && (
+              <nav className="flex items-center">
+                {breadcrumbs.slice(-1).map((breadcrumb, index) => (
+                  <div key={index} className="flex items-center">
+                    {breadcrumb.isLast ? (
+                      <span 
+                        className="text-gray-900 font-medium px-2 py-1 rounded-lg bg-gray-50 border border-gray-200 flex items-center gap-1 breadcrumb-item"
+                        title={breadcrumb.originalName}
+                      >
+                        {breadcrumb.icon && (
+                          <span className="flex-shrink-0">{breadcrumb.icon}</span>
+                        )}
+                        <span className="truncate max-w-32 responsive-text">
+                          {breadcrumb.name}
+                        </span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => navigate(breadcrumb.path)}
+                        className="text-gray-600 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center gap-1 border border-transparent hover:border-gray-200 breadcrumb-item"
+                        title={breadcrumb.originalName}
+                      >
+                        {breadcrumb.icon && (
+                          <span className="flex-shrink-0">{breadcrumb.icon}</span>
+                        )}
+                        <span className="truncate max-w-32 responsive-text">
+                          {breadcrumb.name}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            )}
+          </div>
+
+          {/* Right section untuk mobile - hanya notifikasi (jika super admin) dan logout */}
+          <div className="flex items-center space-x-1 ml-2">
+            {/* Notification untuk mobile - Hanya untuk Super Admin */}
+            {isSuperAdmin && (
+              <div className="relative" ref={notifRef}>
+                <motion.button
+                  className="p-1.5 rounded-xl hover:bg-gray-100 relative transition-colors duration-200"
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsNotifOpen(!isNotifOpen)}
+                >
+                  <Bell size={18} className="text-gray-600" />
+                  {notifications.length > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border border-white"
+                    >
+                      {notifications.length > 9 ? '9+' : notifications.length}
+                    </motion.span>
+                  )}
+                </motion.button>
+
+                <AnimatePresence>
+                  {isNotifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute mt-2 right-0 w-80 bg-white border border-gray-200 rounded-xl shadow-xl z-40 overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="p-3 flex justify-between items-center border-b border-gray-100 bg-white">
+                        <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                          <History size={16} className="text-green-600" />
+                          Riwayat Aktivitas
+                        </h3>
+                        <motion.button
+                          onClick={clearNotifications}
+                          className="text-xs font-medium text-red-500 hover:text-red-700 flex items-center gap-2 p-1.5 rounded-lg hover:bg-red-50 transition-colors duration-150"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Trash2 size={14} />
+                          <span>Clear</span>
+                        </motion.button>
+                      </div>
+
+                      {/* Notifications List */}
+                      <div className="max-h-64 overflow-y-auto custom-notif-scrollbar">
+                        {notifications.length > 0 ? (
+                          <div className="divide-y divide-gray-100">
+                            {Object.entries(groupedNotifications).map(([date, dayNotifications]) => (
+                              <div key={date}>
+                                {/* Date Header */}
+                                <div className="sticky top-0 bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                  <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                    <Calendar size={12} className="text-gray-400" />
+                                    <span>{date}</span>
+                                    <span className="text-gray-400">•</span>
+                                    <span className="text-gray-500">{dayNotifications.length} aktivitas</span>
+                                  </div>
+                                </div>
+                                
+                                {/* Notifications for this date */}
+                                {dayNotifications.map((notif) => (
+                                  <motion.div
+                                    key={notif.id}
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    className={`p-3 border-l-4 ${getNotifColor(notif.message)} transition-colors duration-200 hover:bg-gray-50`}
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <div className="flex-shrink-0 mt-0.5">
+                                        {getNotifIcon(notif.message)}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium leading-relaxed text-gray-900 break-words">
+                                          {formatNotificationMessage(notif.message)}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <Clock size={12} className="text-gray-400" />
+                                          <span className="text-xs text-gray-500">
+                                            {notif.time}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() => removeNotification(notif.id)}
+                                        className="flex-shrink-0 p-1 rounded-full hover:bg-gray-200 transition-colors"
+                                      >
+                                        <XCircle size={14} className="text-gray-400" />
+                                      </button>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center">
+                            <History size={32} className="mx-auto text-gray-300 mb-2" />
+                            <p className="text-gray-500 text-xs">Belum ada aktivitas baru</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Logout Button untuk mobile */}
+            <motion.button
+              onClick={handleLogoutClick}
+              className="p-1.5 rounded-xl hover:bg-red-50 transition-colors duration-200"
+              whileTap={{ scale: 0.95 }}
+            >
+              <LogOut size={18} className="text-red-600" />
+            </motion.button>
+          </div>
+        </header>
+      )}
+
+      {/* Logout Confirmation Modal - Responsive */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -318,51 +617,49 @@ const Header = ({ onMenuClick }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsModalOpen(false)} // Tutup saat klik di luar
+            onClick={() => setIsModalOpen(false)}
           >
             <motion.div
-              className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"
-              initial={{ y: "-100vh", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100vh", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 100, damping: 15 }}
-              onClick={(e) => e.stopPropagation()} // Cegah penutupan saat klik di dalam modal
+              className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-xs xs:max-w-sm sm:max-w-md overflow-hidden mx-2"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Modal */}
-              <div className="bg-red-50 p-4 flex items-center justify-between border-b border-red-100">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle size={24} className="text-red-600" />
-                  <h4 className="text-lg font-bold text-red-700">Konfirmasi Logout</h4>
+              {/* Header */}
+              <div className="bg-red-50 p-4 sm:p-6 flex items-center gap-3 sm:gap-4 border-b border-red-100">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl">
+                  <AlertTriangle size={20} className="sm:w-6 text-red-600" />
                 </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 rounded-full text-gray-500 hover:bg-gray-200"
-                >
-                  <X size={18} />
-                </button>
+                <div>
+                  <h4 className="text-lg sm:text-xl font-bold text-red-800">Konfirmasi Logout</h4>
+                  <p className="text-red-600 text-xs sm:text-sm mt-1">Sesi {user?.role || "Admin"}</p>
+                </div>
               </div>
 
-              {/* Body Modal */}
-              <div className="p-6">
-                <p className="text-gray-700 mb-6">
-                  Anda yakin ingin keluar dari sesi {user?.role || "Admin"}? Anda akan diarahkan kembali ke halaman login.
+              {/* Body */}
+              <div className="p-4 sm:p-6">
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                  Anda yakin ingin keluar? Anda akan diarahkan kembali ke halaman login.
                 </p>
 
-                {/* Footer/Aksi Modal */}
-                <div className="flex justify-end space-x-3">
+                {/* Actions */}
+                <div className="flex justify-end space-x-2 sm:space-x-3 mt-4 sm:mt-6">
                   <motion.button
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors"
+                    className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
                     whileTap={{ scale: 0.95 }}
                   >
                     Batal
                   </motion.button>
                   <motion.button
                     onClick={handleConfirmLogout}
-                    className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md"
+                    className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 flex items-center gap-1 sm:gap-2 shadow-md"
                     whileTap={{ scale: 0.95 }}
                   >
-                    <LogOut size={16} className="inline mr-1" /> Logout
+                    <LogOut size={14} className="sm:w-4" />
+                    Logout
                   </motion.button>
                 </div>
               </div>
@@ -370,7 +667,6 @@ const Header = ({ onMenuClick }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* 🟢 END MODAL LOGOUT KUSTOM */}
     </>
   );
 };

@@ -19,7 +19,7 @@ const DashboardCard = ({ title, value, children }) => {
       <div className="mt-2">
         {value && (
           // PENYESUAIAN UKURAN FONT UTAMA (VALUE): Ukuran font dikecilkan lagi
-          <p className={`font-bold text-green-600 break-words 
+          <p className={`font-bold text-orange-600 break-words 
             ${isLongText 
               ? 'text-base sm:text-lg' // Teks panjang: Dari lg/xl menjadi base/lg
               : 'text-lg sm:text-xl lg:text-2xl' // Angka/Rupiah: Dari xl/2xl/3xl menjadi lg/xl/2xl

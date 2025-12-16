@@ -94,7 +94,7 @@ const SalesReport = ({ cabangId, token }) => {
             key={i + 1}
             onClick={() => onPageChange(i + 1)}
             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-              i + 1 === currentPage ? 'z-10 bg-green-50 border-green-500 text-green-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              i + 1 === currentPage ? 'z-10 bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
             {i + 1}
@@ -111,7 +111,7 @@ const SalesReport = ({ cabangId, token }) => {
     </div>
   );
 
-  if (loading) return <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin text-green-600" /></div>;
+  if (loading) return <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin text-orange-600" /></div>;
   if (error) return <div className="flex flex-col justify-center items-center h-40 text-red-600"><ServerCrash size={32} /><p className="mt-2">{error}</p></div>;
 
   return (

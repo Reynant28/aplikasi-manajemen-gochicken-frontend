@@ -34,6 +34,30 @@ const PengeluaranPage = () => {
     const cabang = JSON.parse(localStorage.getItem("cabang") || "null");
     const cabangId = cabang?.id_cabang;
 
+    const getThemeColors = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+        if (user?.role === 'super admin') {
+          return {
+            primary: 'bg-orange-600 hover:bg-orange-700',
+            primaryLight: 'bg-orange-100',
+            primaryText: 'text-orange-700',
+            primaryBorder: 'border-orange-200',
+            ring: 'focus:ring-orange-500',
+            gradient: 'from-orange-50 to-white'
+          };
+        }
+        return {
+          primary: 'bg-red-600 hover:bg-red-700',
+          primaryLight: 'bg-red-100',
+          primaryText: 'text-red-700',
+          primaryBorder: 'border-red-200',
+          ring: 'focus:ring-red-500',
+          gradient: 'from-red-50 to-white'
+        };
+      };
+
+      const theme = getThemeColors();
+
     const showMessage = (type, text) => {
         setMessage({ type, text });
         setTimeout(() => setMessage({ type: "", text: "" }), 4000);
@@ -158,13 +182,23 @@ const PengeluaranPage = () => {
     return (
         <>
             <style>{`.custom-scrollbar::-webkit-scrollbar{width:6px}.custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8} .date-input-container input::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }`}</style>
-            <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div className={`p-6 space-y-6 min-h-screen bg-gradient-to-br ${theme.gradient}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <div><h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1><p className="text-gray-500">Catat dan kelola semua pengeluaran untuk cabang <strong>{cabang?.nama_cabang || 'N/A'}</strong></p></div>
-                    <motion.button onClick={() => openModal('add')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"><PlusCircle size={20} /> Tambah Pengeluaran</motion.button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1>
+                        <p className="text-gray-600 mt-1">
+                          Catat dan kelola semua pengeluaran untuk <strong className={`font-semibold ${theme.primaryText}`}>
+                             {cabang?.nama_cabang || 'N/A'}
+                          </strong>
+                        </p>
+                    </div>
+                    <motion.button onClick={() => openModal('add')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} 
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-5 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold">
+                        <PlusCircle size={20} /> Tambah Pengeluaran
+                    </motion.button>
                 </div>
                 <AnimatePresence>
-                    {message.text && (<motion.div initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.9 }} className={`fixed top-6 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${ message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" }`}>{message.type === "success" ? "✓" : "✗"} {message.text}</motion.div>)}
+                    {message.text && (<motion.div initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -20, scale: 0.9 }} className={`fixed top-6 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-50 ${ message.type === "success" ? "bg-red-100 text-red-800" : "bg-red-100 text-red-800" }`}>{message.type === "success" ? "✓" : "✗"} {message.text}</motion.div>)}
                 </AnimatePresence>
                 <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 sm:p-6">{renderContent()}</div>
             </motion.div>
@@ -272,22 +306,22 @@ const FormModal = ({ isOpen, onClose, onSubmit, isSubmitting, formData, setFormD
                     <form onSubmit={handleFormSubmit} className="max-h-[80vh] overflow-y-auto custom-scrollbar">
                         <div className="p-6 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label><div className="relative date-input-container"><input type="date" name="tanggal" value={formData.tanggal || ''} onChange={handleChange} className="w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting} /><Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" /></div></div>
-                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Jenis Pengeluaran</label><div className="flex gap-2"><select name="id_jenis" value={formData.id_jenis || ''} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting}><option value="">Pilih Jenis...</option>{jenisList.map(j => <option key={j.id_jenis} value={j.id_jenis}>{j.jenis_pengeluaran}</option>)}</select><button type="button" onClick={() => setShowAddJenis(true)} className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"><Plus size={16}/></button></div></div>
+                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label><div className="relative date-input-container"><input type="date" name="tanggal" value={formData.tanggal || ''} onChange={handleChange} className="w-full border border-gray-300 rounded-lg pl-3 pr-10 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting} /><Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" /></div></div>
+                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Jenis Pengeluaran</label><div className="flex gap-2"><select name="id_jenis" value={formData.id_jenis || ''} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting}><option value="">Pilih Jenis...</option>{jenisList.map(j => <option key={j.id_jenis} value={j.id_jenis}>{j.jenis_pengeluaran}</option>)}</select><button type="button" onClick={() => setShowAddJenis(true)} className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"><Plus size={16}/></button></div></div>
                             </div>
-                            <div><label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label><textarea name="keterangan" value={formData.keterangan || ''} onChange={handleChange} rows="2" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" required disabled={isSubmitting}></textarea></div>
+                            <div><label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label><textarea name="keterangan" value={formData.keterangan || ''} onChange={handleChange} rows="2" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" required disabled={isSubmitting}></textarea></div>
                             
                             { isPembelianBahanBaku ? (
-                                <div className="pt-2"><h3 className="text-md font-semibold text-gray-800 mb-2">Detail Pembelian Bahan Baku</h3><div className="space-y-3">{formData.details && formData.details.map((item, index) => (<div key={index} className="p-3 bg-gray-50 rounded-lg"><div className="grid grid-cols-12 gap-x-3 gap-y-2 items-end"><div className="col-span-12 sm:col-span-5"><label className="text-xs font-medium text-gray-600">Bahan Baku</label><select name="id_bahan_baku" value={item.id_bahan_baku} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900"><option value="">Pilih Bahan...</option>{bahanBakuList.map(b => <option key={b.id_bahan_baku} value={b.id_bahan_baku}>{b.nama_bahan}</option>)}</select></div><div className="col-span-6 sm:col-span-2"><label className="text-xs font-medium text-gray-600">Jumlah</label><input type="number" min="1" name="jumlah_item" value={item.jumlah_item} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900" placeholder="e.g., 10"/></div><div className="col-span-6 sm:col-span-4"><label className="text-xs font-medium text-gray-600">Harga Satuan</label><input type="number" min="0" name="harga_satuan" value={item.harga_satuan} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900" placeholder="e.g., 25000"/></div><div className="col-span-12 sm:col-span-1 flex justify-end"><button type="button" onClick={() => removeDetailItem(index)} className="p-2 text-red-500 hover:bg-red-100 rounded-full"><X size={16}/></button></div></div></div>))}<button type="button" onClick={addDetailItem} className="w-full text-sm py-2 px-4 bg-green-100 text-green-700 font-semibold rounded-lg hover:bg-green-200">+ Tambah Item</button></div></div>
+                                <div className="pt-2"><h3 className="text-md font-semibold text-gray-800 mb-2">Detail Pembelian Bahan Baku</h3><div className="space-y-3">{formData.details && formData.details.map((item, index) => (<div key={index} className="p-3 bg-gray-50 rounded-lg"><div className="grid grid-cols-12 gap-x-3 gap-y-2 items-end"><div className="col-span-12 sm:col-span-5"><label className="text-xs font-medium text-gray-600">Bahan Baku</label><select name="id_bahan_baku" value={item.id_bahan_baku} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900"><option value="">Pilih Bahan...</option>{bahanBakuList.map(b => <option key={b.id_bahan_baku} value={b.id_bahan_baku}>{b.nama_bahan}</option>)}</select></div><div className="col-span-6 sm:col-span-2"><label className="text-xs font-medium text-gray-600">Jumlah</label><input type="number" min="1" name="jumlah_item" value={item.jumlah_item} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900" placeholder="e.g., 10"/></div><div className="col-span-6 sm:col-span-4"><label className="text-xs font-medium text-gray-600">Harga Satuan</label><input type="number" min="0" name="harga_satuan" value={item.harga_satuan} onChange={e => handleDetailChange(index, e)} className="w-full border-gray-300 rounded-md text-sm text-gray-900" placeholder="e.g., 25000"/></div><div className="col-span-12 sm:col-span-1 flex justify-end"><button type="button" onClick={() => removeDetailItem(index)} className="p-2 text-red-500 hover:bg-red-100 rounded-full"><X size={16}/></button></div></div></div>))}<button type="button" onClick={addDetailItem} className="w-full text-sm py-2 px-4 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200">+ Tambah Item</button></div></div>
                             ) : (
-                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Pengeluaran</label><input type="text" value={displayJumlah} onChange={handleJumlahChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 text-gray-900" placeholder="Masukkan jumlah, e.g., 150000" required={!isPembelianBahanBaku} disabled={isSubmitting} /><div className="flex gap-2 mt-2">{quickAddValues.map(value => (<button key={value} type="button" onClick={() => handleAddJumlah(value)} className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full hover:bg-green-200 transition">+ {new Intl.NumberFormat('id-ID').format(value)}</button>))}</div></div>
+                                <div><label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Pengeluaran</label><input type="text" value={displayJumlah} onChange={handleJumlahChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 text-gray-900" placeholder="Masukkan jumlah, e.g., 150000" required={!isPembelianBahanBaku} disabled={isSubmitting} /><div className="flex gap-2 mt-2">{quickAddValues.map(value => (<button key={value} type="button" onClick={() => handleAddJumlah(value)} className="px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full hover:bg-red-200 transition">+ {new Intl.NumberFormat('id-ID').format(value)}</button>))}</div></div>
                             )}
 
-                            <div className="text-right pt-2"><p className="text-gray-600">Total Pengeluaran:</p><p className="text-2xl font-bold text-green-600">{formatRupiah(isPembelianBahanBaku ? totalDetails : formData.jumlah)}</p></div>
+                            <div className="text-right pt-2"><p className="text-gray-600">Total Pengeluaran:</p><p className="text-2xl font-bold text-red-600">{formatRupiah(isPembelianBahanBaku ? totalDetails : formData.jumlah)}</p></div>
                         </div>
-                        <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button><button type="submit" className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:bg-green-400" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="animate-spin mr-2" size={16}/> Menyimpan...</> : "Simpan"}</button></div>
+                        <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border rounded-lg hover:bg-gray-100" disabled={isSubmitting}>Batal</button><button type="submit" className="flex items-center justify-center w-36 px-6 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:bg-red-400" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="animate-spin mr-2" size={16}/> Menyimpan...</> : "Simpan"}</button></div>
                     </form>
-                    {showAddJenis && <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center"><div className="p-4 bg-white rounded-lg shadow-xl border w-80"><h4 className="font-semibold mb-2 text-gray-800">Tambah Jenis Baru</h4><input value={newJenis} onChange={e => setNewJenis(e.target.value)} className="text-gray-800 w-full border-gray-300 rounded-md text-sm" placeholder="e.g., Biaya Listrik"/><div className="flex justify-end gap-2 mt-3"><button onClick={() => { setShowAddJenis(false); setNewJenis(""); }} className="text-sm px-3 py-1 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200" disabled={isAddingJenis}>Batal</button><button onClick={handleJenisSubmit} className="flex items-center justify-center w-24 text-sm px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400" disabled={isAddingJenis}>{isAddingJenis ? <Loader2 className="animate-spin" size={16}/> : "Simpan"}</button></div></div></div>}
+                    {showAddJenis && <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center"><div className="p-4 bg-white rounded-lg shadow-xl border w-80"><h4 className="font-semibold mb-2 text-gray-800">Tambah Jenis Baru</h4><input value={newJenis} onChange={e => setNewJenis(e.target.value)} className="text-gray-800 w-full border-gray-300 rounded-md text-sm" placeholder="e.g., Biaya Listrik"/><div className="flex justify-end gap-2 mt-3"><button onClick={() => { setShowAddJenis(false); setNewJenis(""); }} className="text-sm px-3 py-1 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200" disabled={isAddingJenis}>Batal</button><button onClick={handleJenisSubmit} className="flex items-center justify-center w-24 text-sm px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400" disabled={isAddingJenis}>{isAddingJenis ? <Loader2 className="animate-spin" size={16}/> : "Simpan"}</button></div></div></div>}
                 </motion.div>
             </motion.div>
         )}
@@ -339,7 +373,7 @@ const DetailModal = ({ isOpen, onClose, data }) => (
             
             <div className="pt-4 text-right">
                 <p className="text-gray-600">Total Pengeluaran</p>
-                <p className="text-3xl font-bold text-green-600">{formatRupiah(data?.jumlah)}</p>
+                <p className="text-3xl font-bold text-red-600">{formatRupiah(data?.jumlah)}</p>
             </div>
         </div>
         <div className="p-6 bg-gray-50 rounded-b-xl flex justify-end">

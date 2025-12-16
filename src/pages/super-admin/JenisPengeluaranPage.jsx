@@ -1,416 +1,305 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash, FileText } from "lucide-react"; 
-import { useNotification } from "../../components/context/NotificationContext"; 
+import { FileText, TrendingUp, DollarSign, Package, Calendar, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import {
- ConfirmDeletePopup,
- SuccessPopup,
- Button,
- Modal,
-} from "../../components/ui";
 
 const API_URL = "http://localhost:8000/api";
 
-const PengeluaranPage = () => {
- const [pengeluaran, setPengeluaran] = useState([]);
- const [loading, setLoading] = useState(false);
-
- // ✅ HOOK NOTIFIKASI
- const { addNotification } = useNotification(); 
- 
- // --- STATE LAINNYA (Tidak Berubah) ---
- const [selectedDate, setSelectedDate] = useState("");
- const [currentPage, setCurrentPage] = useState(1);
- const itemsPerPage = 8; 
-
- const [formData, setFormData] = useState({
-  jenis_pengeluaran: "",
- });
-
- const [editPengeluaran, setEditPengeluaran] = useState(null);
- const [showForm, setShowForm] = useState(false);
- const [showConfirm, setShowConfirm] = useState(false);
- const [deleteId, setDeleteId] = useState(null);
- const [showSuccess, setShowSuccess] = useState(false);
- const [successMessage, setSuccessMessage] = useState("");
-
- const token = localStorage.getItem("token");
- const user = JSON.parse(localStorage.getItem("user"));
- const cabang = JSON.parse(localStorage.getItem("cabang"));
-
- // Ambil data pengeluaran
- const fetchPengeluaran = useCallback(async () => {
+const formatRupiah = (value = 0) => {
   try {
-   setLoading(true);
-   const res = await fetch(`${API_URL}/jenis-pengeluaran`, {
-    headers: { Authorization: `Bearer ${token}` },
-   });
-   const data = await res.json();
-   setPengeluaran(data.data || []);
-  } catch (err) {
-   console.error("Fetch pengeluaran error:", err);
-   setPengeluaran([]);
-  } finally {
-    setLoading(false);
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(value || 0);
+  } catch {
+    return `Rp ${value}`;
   }
- }, [token]);
-
- useEffect(() => {
-  if (token) fetchPengeluaran();
- }, [token, fetchPengeluaran]);
-
- // Tambah pengeluaran
- const handleAdd = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  try {
-   const res = await fetch(`${API_URL}/jenis-pengeluaran`, {
-    method: "POST",
-    headers: {
-     "Content-Type": "application/json",
-     Authorization: `Bearer ${token}`,
-    },
-   });
-
-   const data = await res.json();
-   if (res.status === 201 || data.status === "success") {
-    setSuccessMessage(data.message || "Pengeluaran berhasil ditambahkan!");
-    setShowSuccess(true);
-        // ✅ TAMBAH NOTIFIKASI
-        addNotification(`[Pengeluaran] Berhasil menambah data Jenis Pengeluaran ${formData.jenis_pengeluaran}`, 'success');
-
-    setFormData({ jenis_pengeluaran: "" });
-    setShowForm(false);
-    fetchPengeluaran();
-   } else {
-        // ✅ TAMBAH NOTIFIKASI JIKA GAGAL
-        addNotification(`[Pengeluaran] Gagal menambah data: ${data.message || 'Error'}`, 'error');
-    alert("❌ " + (data.message || "Error"));
-   }
-  } catch (err) {
-   console.error("Add pengeluaran error:", err);
-  }
-
-  setLoading(false);
- };
-
- // Update pengeluaran
- const handleUpdate = async () => {
-  try {
-   const res = await fetch(
-    `${API_URL}/jenis-pengeluaran/${editPengeluaran.id_jenis}`,
-    {
-     method: "PUT",
-     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-     },
-     body: JSON.stringify({
-            jenis_pengeluaran: editPengeluaran.jenis_pengeluaran,
-        }),
-    }
-   );
-
-   const data = await res.json();
-   if (res.ok) {
-    setSuccessMessage(data.message || "Pengeluaran berhasil diupdate!");
-    setShowSuccess(true);
-        // ✅ TAMBAH NOTIFIKASI
-        addNotification(`[Pengeluaran] Berhasil mengubah data jenis pengeluaran ${editPengeluaran.id_jenis}`, 'success');
-    fetchPengeluaran();
-    setEditPengeluaran(null);
-   } else {
-        // ✅ TAMBAH NOTIFIKASI JIKA GAGAL
-        addNotification(`[Pengeluaran] Gagal mengubah data: ${data.message || 'Error'}`, 'error');
-    alert("❌ " + (data.message || "Error"));
-   }
-  } catch (err) {
-   console.error("Update pengeluaran error:", err);
-  }
- };
-
- // Hapus pengeluaran
- const confirmDelete = (id) => {
-  setDeleteId(id);
-  setShowConfirm(true);
- };
-
- const handleDelete = async () => {
-  try {
-   const res = await fetch(`${API_URL}/jenis-pengeluaran/${deleteId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-   });
-
-   if (res.ok) {
-    setSuccessMessage("Pengeluaran berhasil dihapus!");
-    setShowSuccess(true);
-        // ✅ TAMBAH NOTIFIKASI
-        addNotification(`[Pengeluaran] Data pengeluaran ID ${deleteId} telah dihapus.`, 'error');
-    fetchPengeluaran();
-   } else {
-        // Coba ambil pesan error jika ada
-        const data = await res.json();
-        // ✅ TAMBAH NOTIFIKASI JIKA GAGAL
-        addNotification(`[Pengeluaran] Gagal menghapus data: ${data.message || 'Unknown Error'}`, 'error');
-      }
-  } catch (err) {
-   console.error("Delete pengeluaran error:", err);
-  }
-  setShowConfirm(false);
-  setDeleteId(null);
- };
-
- // ... (Sisa fungsi dan render komponen tidak berubah) ...
-    const closeSuccessPopup = () => setShowSuccess(false);
-
- // --- LOGIKA FILTER DAN PAGINATION BARU ---
- 
- // Pagination logic
-    const totalPages = Math.ceil(pengeluaran.length / itemsPerPage);
-    const indexOfLast = currentPage * itemsPerPage;
-    const indexOfFirst = indexOfLast - itemsPerPage;
-    const currentData = pengeluaran.slice(indexOfFirst, indexOfLast);
-
-    const changePage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-        setCurrentPage(page);
-    }
-    };
-
-    const getPageNumbers = () => {
-    const maxPagesToShow = 5;
-    const pages = [];
-
-    if (totalPages <= maxPagesToShow) {
-        for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-        const startPage = Math.max(2, currentPage - Math.floor((maxPagesToShow - 3) / 2));
-        const endPage = Math.min(totalPages - 1, currentPage + Math.ceil((maxPagesToShow - 3) / 2));
-
-        pages.push(1);
-        if (startPage > 2) pages.push("...");
-        for (let i = startPage; i <= endPage; i++) pages.push(i);
-        if (endPage < totalPages - 1) pages.push("...");
-        if (totalPages > 1) pages.push(totalPages);
-    }
-
-    return pages.filter((v, i, s) => s.indexOf(v) === i);
-    };
-
- // ----------------------------------------
-
- return (
-  <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-   <motion.h1
-    className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-   >
-    Kelola Jenis Pengeluaran
-   </motion.h1>
-
-   <div className="mb-6 flex justify-between items-start">
-    <Button onClick={() => setShowForm(true)}>
-     <Plus size={18} /> Tambah Jenis Pengeluaran
-    </Button>
-    
-    {/* ✅ FILTER TANGGAL DAN PAGINATION */}
-    <div className="flex flex-col md:flex-row items-center gap-4">
-     {/* Pagination Component */}
-     {totalPages > 1 && (
-      <div className="flex items-center border border-gray-200 rounded-xl shadow-md divide-x divide-gray-200">
-       <button
-        onClick={() => changePage(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`p-3 rounded-l-xl transition duration-150 ease-in-out ${
-         currentPage === 1
-          ? "bg-gray-100 cursor-not-allowed text-gray-400"
-          : "bg-white hover:bg-green-50 hover:text-green-600 text-gray-700"
-        }`}
-       >
-        <span className="text-gray-600">
-         &lt;
-        </span>
-       </button>
-       {getPageNumbers().map((page, i) => (
-        <button
-         key={i}
-         onClick={() => typeof page === "number" && changePage(page)}
-         disabled={page === "..."}
-         className={`px-4 py-2 text-sm font-medium transition duration-150 ease-in-out ${
-          currentPage === page
-           ? "bg-green-600 text-white shadow-inner shadow-green-800/20"
-           : page === "..."
-           ? "bg-white text-gray-400 cursor-default"
-           : "bg-white text-gray-700 hover:bg-green-50 hover:text-green-600"
-         }`}
-        >
-         {page}
-        </button>
-       ))}
-       <button
-        onClick={() => changePage(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`p-3 rounded-r-xl transition duration-150 ease-in-out ${
-         currentPage === totalPages
-          ? "bg-gray-100 cursor-not-allowed text-gray-400"
-          : "bg-white hover:bg-green-50 hover:text-green-600 text-gray-700"
-        }`}
-       >
-        <span className="text-gray-600">
-         &gt;
-        </span>
-       </button>
-      </div>
-     )}
-    </div>
-   </div>
-
-   {/* --- Tabel Pengeluaran --- */}
-   <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="overflow-hidden bg-white shadow-md rounded-xl"
-   >
-    {loading ? (
-     <p className="p-4 text-center text-gray-500">⏳ Memuat data...</p>
-    ) : currentData.length === 0 ? (
-     <p className="p-4 text-center text-gray-600">❌ Tidak ada data pengeluaran yang sesuai dengan filter.</p>
-    ) : (
-     <table className="min-w-full text-sm text-gray-700 border-separate border-spacing-0">
-      <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-       <tr>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         No
-        </th>
-        <th className="px-6 py-4 text-left font-semibold border-b border-gray-200">
-         Jenis Pengeluaran
-        </th>
-        <th className="px-6 py-4 text-center font-semibold border-b border-gray-200">
-         Aksi
-        </th>
-       </tr>
-      </thead>
-      <tbody>
-       {currentData.map((item, index) => (
-        <tr key={item.id_jenis} className="hover:bg-gray-50 transition">
-         <td className="px-6 py-4 font-bold text-gray-800 border-b border-gray-200">
-          {indexOfFirst + index + 1} {/* Nomor urut berdasarkan halaman */}
-         </td>
-         <td className="px-6 py-4 text-gray-600 italic border-b border-gray-200">
-          {item.jenis_pengeluaran}
-         </td>
-         <td className="px-6 py-4 text-center border-b border-gray-200">
-          <div className="flex justify-center gap-3">
-           <button
-            className="text-green-600 hover:text-green-800"
-            onClick={() => setEditPengeluaran(item)}
-            title="Edit"
-           >
-            <Edit size={18} />
-           </button>
-           <button
-            className="text-red-500 hover:text-red-700"
-            onClick={() => confirmDelete(item.id_jenis)}
-            title="Hapus"
-           >
-            <Trash size={18} />
-           </button>
-          </div>
-         </td>
-        </tr>
-       ))}
-      </tbody>
-     </table>
-    )}
-   </motion.div>
-
-    {/* --- Modal Tambah Pengeluaran --- (Tidak Berubah) */}
-   <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-    <h2 className="text-xl font-semibold mb-4 text-green-700 flex items-center gap-2">
-     <Plus size={18} /> Tambah Pengeluaran
-    </h2>
-    <form onSubmit={handleAdd}>
-     <label className="text-sm font-medium text-gray-700">Jenis Pengeluaran</label>
-     <input
-      type="text"
-      value={formData.jenis_pengeluaran}
-      onChange={(e) => setFormData({ ...formData, jenis_pengeluaran: e.target.value })}
-      className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-      required
-     />
-
-     <div className="flex justify-end gap-3 mt-4">
-      <button
-       type="button"
-       onClick={() => setShowForm(false)}
-       className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-      >
-       Batal
-      </button>
-      <button
-       type="submit"
-       disabled={loading}
-       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-      >
-       {loading ? "Menyimpan..." : "Simpan"}
-      </button>
-     </div>
-    </form>
-   </Modal>
-
-   {/* --- Modal Edit Pengeluaran --- (Tidak Berubah) */}
-   <Modal
-    isOpen={!!editPengeluaran}
-    onClose={() => setEditPengeluaran(null)}
-   >
-    <h2 className="text-xl font-semibold mb-4 text-green-700">
-     ✏ Edit Pengeluaran
-    </h2>
-
-    <label className="text-sm font-medium text-gray-700">Jenis Pengeluaran</label>
-    <input
-     type="text"
-     value={editPengeluaran?.jenis_pengeluaran || ""}
-     onChange={(e) =>
-      setEditPengeluaran({ ...editPengeluaran, jenis_pengeluaran: e.target.value })
-     }
-     className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-    />
-    <div className="flex justify-end gap-3 mt-4">
-     <button
-      onClick={() => setEditPengeluaran(null)}
-      className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-     >
-      Batal
-     </button>
-     <button
-      onClick={handleUpdate}
-      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-     >
-      Simpan
-     </button>
-    </div>
-   </Modal>
-
-   {/* --- Popup Hapus --- (Tidak Berubah) */}
-   <ConfirmDeletePopup
-    isOpen={showConfirm}
-    onClose={() => setShowConfirm(false)}
-    onConfirm={handleDelete}
-   />
-
-   {/* --- Popup Sukses --- (Tidak Berubah) */}
-   <SuccessPopup
-    isOpen={showSuccess}
-    onClose={closeSuccessPopup}
-    title="Aksi Berhasil 🎉"
-    message={successMessage}
-   />
-  </div>
- );
 };
 
-export default PengeluaranPage;
+const JenisPengeluaranPage = () => {
+  const [jenisPengeluaran, setJenisPengeluaran] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    totalJenis: 0,
+    jenisAktif: 0,
+    jenisTerpopuler: "-",
+    updateTerakhir: "-",
+    totalTransaksi: 0,
+  });
+
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const cabang = JSON.parse(localStorage.getItem("cabang"));
+
+  const theme = {
+    bgGradient: "from-red-50 via-white to-red-100",
+    primary: "text-red-600",
+    primaryBg: "bg-red-600",
+    primaryLight: "bg-red-50",
+    primaryBorder: "border-red-200",
+    cardBg: "bg-white",
+    cardBorder: "border-gray-200",
+    textPrimary: "text-gray-900",
+    textSecondary: "text-gray-600",
+    textMuted: "text-gray-500",
+  };
+
+  const fetchJenisPengeluaran = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/jenis-pengeluaran`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setJenisPengeluaran(data.data || []);
+      calculateStats(data.data || []);
+    } catch (err) {
+      console.error("Fetch jenis pengeluaran error:", err);
+      setJenisPengeluaran([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const calculateStats = (data) => {
+    const totalJenis = data.length;
+    const jenisAktif = data.filter((item) => item.status === "active" || !item.status).length;
+
+    const jenisTerpopuler =
+      data.length > 0
+        ? data.reduce((prev, current) =>
+            prev.jumlah_digunakan > current.jumlah_digunakan ? prev : current
+          ).jenis_pengeluaran
+        : "-";
+
+    const totalTransaksi = data.reduce((sum, item) => sum + (item.total_transaksi || 0), 0);
+
+    const updateTerakhir =
+      data.length > 0
+        ? new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+        : "-";
+
+    setStats({
+      totalJenis,
+      jenisAktif,
+      jenisTerpopuler,
+      updateTerakhir,
+      totalTransaksi,
+    });
+  };
+
+  useEffect(() => {
+    if (token) fetchJenisPengeluaran();
+  }, [token, fetchJenisPengeluaran]);
+
+  const StatCard = ({ title, value, icon: Icon, description }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`${theme.cardBg} rounded-2xl p-6 shadow-lg border ${theme.cardBorder} hover:shadow-xl transition-all duration-300`}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className={`text-sm font-medium ${theme.textSecondary}`}>{title}</p>
+          <p className={`text-2xl font-bold ${theme.textPrimary} mt-2`}>{value}</p>
+          {description && <p className={`text-xs ${theme.textMuted} mt-1`}>{description}</p>}
+        </div>
+        <div className={`p-3 rounded-full ${theme.primaryLight}`}>
+          <Icon className={`w-6 h-6 ${theme.primary}`} />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const JenisCard = ({ item, index }) => (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className={`${theme.cardBg} rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 border ${theme.cardBorder}`}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            <div className={`w-3 h-3 rounded-full ${theme.primaryBg}`}></div>
+            <h3 className={`font-semibold ${theme.textPrimary} text-lg`}>
+              {item.jenis_pengeluaran}
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm">
+            <span
+              className={`flex items-center gap-1 ${theme.primaryLight} px-3 py-1 rounded-full ${theme.primary}`}
+            >
+              <FileText size={14} />
+              Jenis Pengeluaran
+            </span>
+
+            <span className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full text-green-700">
+              <Package size={14} />
+              Aktif
+            </span>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <div className="bg-gray-50 rounded-lg px-3 py-2">
+            <p className={`text-xs ${theme.textMuted}`}>ID</p>
+            <p className="text-sm font-mono text-gray-700">{item.id_jenis}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className={`text-xs ${theme.textMuted}`}>Digunakan</p>
+            <p className={`text-sm font-semibold ${theme.textPrimary}`}>
+              {item.jumlah_digunakan || 0}x
+            </p>
+          </div>
+          <div>
+            <p className={`text-xs ${theme.textMuted}`}>Total Transaksi</p>
+            <p className={`text-sm font-semibold ${theme.textPrimary}`}>
+              {formatRupiah(item.total_transaksi || 0)}
+            </p>
+          </div>
+          <div>
+            <p className={`text-xs ${theme.textMuted}`}>Status</p>
+            <p className="text-sm font-semibold text-green-600">Aktif</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} p-6`}>
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className={`animate-spin h-8 w-8 ${theme.primary} mr-3`} />
+          <p className={`text-lg ${theme.textSecondary}`}>Memuat data jenis pengeluaran...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} p-6`}>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h1 className={`text-3xl font-bold ${theme.textPrimary} mb-2`}>
+          Katalog Jenis Pengeluaran
+        </h1>
+        <p className={theme.textSecondary}>
+          Daftar lengkap jenis pengeluaran yang tersedia di sistem
+        </p>
+      </motion.div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Jenis"
+          value={stats.totalJenis}
+          icon={FileText}
+          description="Jenis pengeluaran tersedia"
+        />
+        <StatCard
+          title="Jenis Aktif"
+          value={stats.jenisAktif}
+          icon={TrendingUp}
+          description="Dalam sistem"
+        />
+        <StatCard
+          title="Jenis Terpopuler"
+          value={stats.jenisTerpopuler}
+          icon={DollarSign}
+          description="Paling sering digunakan"
+        />
+        <StatCard
+          title="Update Terakhir"
+          value={stats.updateTerakhir}
+          icon={Calendar}
+          description="Data terbaru"
+        />
+      </div>
+
+      {/* List Jenis */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className={`text-xl font-bold ${theme.textPrimary}`}>Daftar Jenis Pengeluaran</h2>
+            <p className={`${theme.textSecondary} text-sm`}>
+              {jenisPengeluaran.length} jenis pengeluaran ditemukan • Total transaksi:{" "}
+              {formatRupiah(stats.totalTransaksi)}
+            </p>
+          </div>
+
+          <button
+            onClick={fetchJenisPengeluaran}
+            className={`flex items-center gap-2 px-4 py-2 ${theme.cardBg} ${theme.textSecondary} rounded-lg hover:bg-gray-50 transition-colors border ${theme.cardBorder}`}
+          >
+            <RefreshCw size={16} />
+            Refresh Data
+          </button>
+        </div>
+
+        {jenisPengeluaran.length === 0 ? (
+          <div className={`text-center py-12 ${theme.cardBg} rounded-2xl shadow-lg`}>
+            <FileText className={`mx-auto h-16 w-16 ${theme.textMuted} mb-4`} />
+            <p className={`${theme.textSecondary} text-lg`}>Belum ada data jenis pengeluaran</p>
+            <p className={`${theme.textMuted} text-sm mt-1`}>
+              Data akan muncul di sini ketika tersedia
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jenisPengeluaran.map((item, index) => (
+              <JenisCard key={item.id_jenis} item={item} index={index} />
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-center"
+      >
+        <div className={`${theme.cardBg} rounded-xl p-4 shadow-md`}>
+          <p className={`text-sm ${theme.textSecondary}`}>Cabang Aktif</p>
+          <p className={`text-lg font-semibold ${theme.textPrimary}`}>
+            {cabang?.nama_cabang || "Cabang Cimahi | Cabang Bandung"}
+          </p>
+        </div>
+
+        <div className={`${theme.cardBg} rounded-xl p-4 shadow-md`}>
+          <p className={`text-sm ${theme.textSecondary}`}>Periode Data</p>
+          <p className={`text-lg font-semibold ${theme.textPrimary}`}>
+            {new Date().toLocaleDateString("id-ID", {
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+
+        <div className={`${theme.cardBg} rounded-xl p-4 shadow-md`}>
+          <p className={`text-sm ${theme.textSecondary}`}>Status Sistem</p>
+          <p className="text-lg font-semibold text-green-600">Aktif</p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default JenisPengeluaranPage;

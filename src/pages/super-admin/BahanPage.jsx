@@ -1,39 +1,92 @@
 // src/pages/BahanPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { PlusCircle, Edit, Trash2, X } from "lucide-react";
-import { motion, number } from "framer-motion";
-import {
-  ConfirmDeletePopup,
-  SuccessPopup,
-  Button,
-  Modal,
-} from "../../components/ui";
+import { Plus } from "lucide-react";
+import { motion } from "framer-motion";
+import { ConfirmDeletePopup, SuccessPopup } from "../../components/ui";
+import { useNotification } from "../../components/context/NotificationContext";
+
+// 🆕 IMPOR KOMPONEN BARU
+import BahanBakuStats from "../../components/BahanBaku/BahanBakuStats";
+import BahanBakuSearchBar from "../../components/BahanBaku/BahanBakuSearchBar";
+import BahanBakuList from "../../components/BahanBaku/BahanBakuList";
+import BahanBakuFormModal from "../../components/BahanBaku/BahanBakuFormModal";
 
 const API_URL = "http://localhost:8000/api";
 
-const BahanPage = () => {
-  const [bahanList, setBahanList] = useState([]);
-  const [loading, setLoading] = useState(false);
+// Helper function formatRupiah tetap di page jika tidak digunakan di banyak tempat
+// Tapi karena format Rupiah juga digunakan di Stats dan List, kita bisa hapus di sini
+// dan pastikan sudah di-import/copy ke komponen yang membutuhkannya.
 
+const BahanPage = () => {
+  const { addNotification } = useNotification();
+  const [bahanList, setBahanList] = useState([]);
+  const [filteredBahan, setFilteredBahan] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     nama_bahan: "",
-    jumlah_stok: "",
+    jumlah_stok: 0, // Ubah ke 0 untuk konsistensi
     satuan: "",
     harga_satuan: "",
   });
-
   const [editBahan, setEditBahan] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
-
+  const [deleteName, setDeleteName] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  // --- Fetch data bahan ---
+  // 🔴 LOGIKA THEME
+  const getThemeColors = (role) => {
+    if (role === "super admin") {
+      return {
+        name: "super admin",
+        bgGradient: "from-orange-50 via-white to-orange-100",
+        primaryText: "text-orange-700",
+        primaryAccent: "text-orange-600",
+        primaryBg: "bg-orange-600",
+        primaryHoverBg: "hover:bg-orange-700",
+        modalBorder: "border-orange-600",
+        focusRing: "focus:ring-orange-400",
+        cardGradient: "from-orange-500 to-orange-600",
+      };
+    }
+    return {
+      name: "admin cabang",
+      bgGradient: "from-red-50 via-white to-red-100",
+      primaryText: "text-red-700",
+      primaryAccent: "text-red-600",
+      primaryBg: "bg-red-600",
+      primaryHoverBg: "hover:bg-red-700",
+      modalBorder: "border-red-600",
+      focusRing: "focus:ring-red-400",
+      cardGradient: "from-red-500 to-red-600",
+    };
+  };
+
+  const theme = getThemeColors(user?.role);
+
+  // 🔴 LOGIKA FILTER/SEARCH
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = bahanList.filter(
+        (item) =>
+          item.nama_bahan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.satuan.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredBahan(filtered);
+    } else {
+      setFilteredBahan(bahanList);
+    }
+  }, [bahanList, searchTerm]);
+
+  // 🔴 LOGIKA FETCH DATA
   const fetchBahan = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/bahan-baku`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -41,359 +94,219 @@ const BahanPage = () => {
       const data = await res.json();
       setBahanList(data.data || []);
     } catch (err) {
-      console.error("Fetch bahan error:", err);
       setBahanList([]);
+      addNotification("Gagal memuat data bahan baku.", "error");
+    } finally {
+      setLoading(false);
     }
-  }, [token]);
+  }, [token, addNotification]);
 
   useEffect(() => {
     if (token) fetchBahan();
   }, [token, fetchBahan]);
 
-  // --- Tambah bahan ---
-  const handleAdd = async (e) => {
+  // 🔴 LOGIKA SUBMIT FORM (CREATE/UPDATE)
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setActionLoading(true);
+    const isEditing = !!editBahan;
+    const payload = isEditing ? editBahan : formData;
+    const bahanName = payload.nama_bahan;
+    const url = isEditing
+      ? `${API_URL}/bahan-baku/${editBahan.id_bahan_baku}`
+      : `${API_URL}/bahan-baku`;
+    const method = isEditing ? "PUT" : "POST";
+    const actionText = isEditing ? "mengubah" : "menambah";
 
     try {
-      const res = await fetch(`${API_URL}/bahan-baku`, {
-        method: "POST",
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
-
       const data = await res.json();
-      if (res.status === 201) {
-        setSuccessMessage(data.message || "Bahan baku berhasil ditambahkan!");
-        setShowSuccess(true);
-        setFormData({ nama_bahan: "", jumlah_stok: "", satuan: "", harga_satuan: "" });
-        setShowForm(false);
-        fetchBahan();
-      } else {
-        alert("❌ " + (data.message || "Error"));
-      }
-    } catch (err) {
-      console.error("Add bahan error:", err);
-    }
-    setLoading(false);
-  };
 
-  // --- Update bahan ---
-  const handleUpdate = async () => {
-    try {
-      const res = await fetch(
-        `${API_URL}/bahan-baku/${editBahan.id_bahan_baku}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            nama_bahan: editBahan.nama_bahan,
-            jumlah_stok: Number(editBahan.jumlah_stok),
-            satuan: Number(editBahan.satuan),
-            harga_satuan: Number(editBahan.harga_satuan),
-          }),
-        }
-      );
-
-      const data = await res.json();
       if (res.ok) {
-        setSuccessMessage(data.message || "Bahan baku berhasil diupdate!");
+        const msg =
+          data.message ||
+          `Bahan baku ${bahanName} berhasil di${
+            isEditing ? "update" : "tambahkan"
+          }!`;
+        addNotification(
+          `Berhasil ${actionText} bahan: ${bahanName}`,
+          "success",
+          "Bahan Baku",
+          isEditing ? "update" : "create"
+        );
+
+        setSuccessMessage(msg);
         setShowSuccess(true);
+        closeModal(); // Panggil fungsi closeModal
         fetchBahan();
-        setEditBahan(null);
       } else {
-        alert("❌ " + (data.message || "Error"));
+        addNotification(
+          `Gagal ${actionText} bahan: ${data.message || "Error"}`,
+          "error"
+        );
       }
     } catch (err) {
-      console.error("Update bahan error:", err);
+      addNotification(`Error koneksi saat ${actionText} bahan.`, "error");
     }
+    setActionLoading(false);
   };
 
-  // --- Hapus bahan ---
+  // 🔴 LOGIKA DELETE
   const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
+    const item = bahanList.find((b) => b.id_bahan_baku === id);
+    if (item) {
+      setDeleteId(id);
+      setDeleteName(item.nama_bahan);
+      setShowConfirm(true);
+    }
   };
 
   const handleDelete = async () => {
+    const nameToDelete = deleteName;
     try {
       const res = await fetch(`${API_URL}/bahan-baku/${deleteId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
       if (res.ok) {
-        setSuccessMessage(data.message || "Bahan baku berhasil dihapus!");
+        addNotification(
+          `Berhasil menghapus bahan: ${nameToDelete}`,
+          "info",
+          "Bahan Baku",
+          "delete"
+        );
+        setSuccessMessage(
+          data.message || `Bahan ${nameToDelete} berhasil dihapus!`
+        );
         setShowSuccess(true);
         fetchBahan();
       } else {
-        alert("❌ " + (data.message || "Error"));
+        addNotification(
+          `Gagal menghapus bahan: ${data.message || "Error"}`,
+          "error",
+          "Bahan Baku",
+          "delete"
+        );
       }
     } catch (err) {
-      console.error("Delete bahan error:", err);
+      addNotification(`Error koneksi saat menghapus bahan.`, "error");
     }
     setShowConfirm(false);
     setDeleteId(null);
   };
 
-  const closeSuccessPopup = () => setShowSuccess(false);
+  // 🔴 LOGIKA MODAL
+  const openAddModal = () => {
+    setFormData({ nama_bahan: "", jumlah_stok: 0, satuan: "", harga_satuan: "" });
+    setEditBahan(null);
+    setShowForm(true);
+  };
+
+  const openEditModal = (bahan) => {
+    setEditBahan(bahan);
+    setShowForm(true);
+  };
+
+  const closeModal = () => {
+    setShowForm(false);
+    setEditBahan(null);
+  };
+
+  // 🔴 LOGIKA STATS
+  const totalBahan = bahanList.length;
+  const lowStockBahan = bahanList.filter((item) => item.jumlah_stok < 5).length;
+  const totalValue = bahanList.reduce(
+    (sum, item) => sum + item.harga_satuan * item.jumlah_stok,
+    0
+  );
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-green-100">
-      <motion.h1
-        className="text-4xl font-extrabold text-green-700 mb-8 drop-shadow-sm"
+    <div
+      className={`min-h-screen p-4 sm:p-6 bg-gradient-to-br ${theme.bgGradient}`}
+    >
+      {/* Header Section */}
+      <motion.div
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 sm:mb-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Daftar Bahan Baku
-      </motion.h1>
-
-      <div className="mb-6 flex justify-between items-center">
-        <p className="text-gray-600">Manajemen stok dan harga bahan baku.</p>
-        <Button onClick={() => setShowForm(true)}>
-          <PlusCircle size={18} /> Tambah Bahan Baru
-        </Button>
-      </div>
-
-      {/* Tabel bahan baku */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="overflow-hidden bg-white shadow-md rounded-xl"
-      >
-        {bahanList.length === 0 ? (
-          <p className="p-4 text-center text-gray-600">
-            ⏳ Memuat data...
+        <div className="mb-4 lg:mb-0">
+          <h1 className="text-3xl font-bold mb-2 text-gray-800">
+            Manajemen Bahan Baku
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Kelola dan atur semua bahan baku yang terdaftar
           </p>
-        ) : (
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-4 text-left font-semibold">ID</th>
-                <th className="px-6 py-4 text-left font-semibold">Nama Bahan</th>
-                <th className="px-6 py-4 text-left font-semibold">Stok</th>
-                <th className="px-6 py-4 text-left font-semibold">Satuan</th>
-                <th className="px-6 py-4 text-left font-semibold">
-                  Harga Satuan
-                </th>
-                <th className="px-6 py-4 text-center font-semibold">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bahanList.map((item) => (
-                <tr
-                  key={item.id_bahan_baku}
-                  className="hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4 font-bold">
-                    {item.id_bahan_baku}
-                  </td>
-                  <td className="px-6 py-4">{item.nama_bahan}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        item.jumlah_stok < 5
-                          ? "bg-red-100 text-red-600"
-                          : "bg-green-100 text-green-600"
-                      }`}
-                    >
-                      {item.jumlah_stok}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {Number(item.satuan) % 1 === 0
-                    ? Number(item.satuan) 
-                    : Number(item.satuan).toFixed(1)} kg
-                  </td>
-                  <td className="px-6 py-4">
-                    Rp {parseInt(item.harga_satuan).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-3">
-                      <button
-                        className="text-green-600 hover:text-green-800"
-                        onClick={() => setEditBahan(item)}
-                        title="Edit"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => confirmDelete(item.id_bahan_baku)}
-                        title="Hapus"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        </div>
+
+        <button
+          onClick={openAddModal}
+          className={`flex items-center gap-2 ${theme.primaryBg} ${theme.primaryHoverBg} text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl`}
+        >
+          <Plus size={18} />
+          <span className="font-semibold">Tambah Bahan</span>
+        </button>
       </motion.div>
 
-      {/* Modal tambah bahan */}
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)}>
-        <h2 className="text-xl font-semibold mb-4 text-green-700 flex items-center gap-2">
-          <PlusCircle size={18} /> Tambah Bahan Baku
-        </h2>
-        <form onSubmit={handleAdd}>
-          <label className="text-sm font-medium text-gray-700">
-            Nama Bahan
-          </label>
-          <input
-            type="text"
-            value={formData.nama_bahan}
-            onChange={(e) =>
-              setFormData({ ...formData, nama_bahan: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            required
-          />
+      {/* 🆕 Stats Cards */}
+      <BahanBakuStats
+        totalBahan={totalBahan}
+        lowStockBahan={lowStockBahan}
+        totalValue={totalValue}
+      />
 
-          <label className="text-sm font-medium text-gray-700">
-            Jumlah Stok
-          </label>
-          <input
-            type="number"
-            value={formData.jumlah_stok}
-            onChange={(e) =>
-              setFormData({ ...formData, jumlah_stok: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            required
-          />
+      {/* 🆕 Search Section */}
+      <BahanBakuSearchBar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        onReset={() => setSearchTerm("")}
+      />
 
-          <label className="text-sm font-medium text-gray-700">
-            Satuan
-          </label>
-          <input
-            type="number"
-            value={formData.satuan}
-            onChange={(e) =>
-              setFormData({ ...formData, satuan: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            required
-          />
+      {/* 🆕 Bahan List - Grid Layout untuk Mobile, Table untuk Desktop */}
+      <BahanBakuList
+        filteredBahan={filteredBahan}
+        bahanList={bahanList}
+        loading={loading}
+        openAddModal={openAddModal}
+        openEditModal={openEditModal}
+        confirmDelete={confirmDelete}
+        theme={theme}
+      />
 
-          <label className="text-sm font-medium text-gray-700">
-            Harga Satuan
-          </label>
-          <input
-            type="number"
-            value={formData.harga_satuan}
-            onChange={(e) =>
-              setFormData({ ...formData, harga_satuan: e.target.value })
-            }
-            className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-            required
-          />
+      {/* 🆕 Modal Form (Pindah ke Komponen) */}
+      <BahanBakuFormModal
+        showForm={showForm}
+        editBahan={editBahan}
+        formData={formData}
+        setEditBahan={setEditBahan}
+        setFormData={setFormData}
+        handleFormSubmit={handleFormSubmit}
+        closeModal={closeModal}
+        actionLoading={actionLoading}
+        theme={theme}
+      />
 
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-            >
-              {loading ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Modal edit bahan */}
-      <Modal isOpen={!!editBahan} onClose={() => setEditBahan(null)}>
-        <h2 className="text-xl font-semibold mb-4 text-green-700">
-          ✏️ Edit Bahan Baku
-        </h2>
-
-        <label className="text-sm font-medium text-gray-700">Nama Bahan</label>
-        <input
-          type="text"
-          value={editBahan?.nama_bahan || ""}
-          onChange={(e) =>
-            setEditBahan({ ...editBahan, nama_bahan: e.target.value })
-          }
-          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-        />
-
-        <label className="text-sm font-medium text-gray-700">Jumlah Stok</label>
-        <input
-          type="number"
-          value={editBahan?.jumlah_stok || ""}
-          onChange={(e) =>
-            setEditBahan({ ...editBahan, jumlah_stok: e.target.value })
-          }
-          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-        />
-
-        <label className="text-sm font-medium text-gray-700">Satuan</label>
-        <input
-          type="number"
-          value={editBahan?.satuan || ""}
-          onChange={(e) =>
-            setEditBahan({ ...editBahan, satuan: e.target.value })
-          }
-          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-        />
-
-        <label className="text-sm font-medium text-gray-700">
-          Harga Satuan
-        </label>
-        <input
-          type="number"
-          value={editBahan?.harga_satuan || ""}
-          onChange={(e) =>
-            setEditBahan({ ...editBahan, harga_satuan: e.target.value })
-          }
-          className="border rounded-lg px-3 py-2 w-full mb-3 text-gray-800"
-        />
-
-        <div className="flex justify-end gap-3 mt-4">
-          <button
-            onClick={() => setEditBahan(null)}
-            className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleUpdate}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-          >
-            Simpan
-          </button>
-        </div>
-      </Modal>
-
-      {/* Modal konfirmasi hapus */}
+      {/* Popups (Tetap di Page) */}
       <ConfirmDeletePopup
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleDelete}
+        message={`Anda yakin ingin menghapus bahan baku: ${deleteName}?`}
       />
-
-      {/* Modal sukses */}
       <SuccessPopup
         isOpen={showSuccess}
-        onClose={closeSuccessPopup}
-        title="Aksi Berhasil 🎉"
+        onClose={() => setShowSuccess(false)}
+        title="Aksi Berhasil! 🎉"
         message={successMessage}
+        type={user?.role}
       />
     </div>
   );

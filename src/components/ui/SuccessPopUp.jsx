@@ -1,59 +1,81 @@
+// src/components/ui/SuccessPopUp.jsx (atau di mana pun file Anda berada)
 import React, { useEffect } from "react";
-import { X, CheckCircle } from "lucide-react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SuccessPopUp = ({ isOpen, onClose, title, message, duration = 3000 }) => {
+const SuccessPopUp = ({
+  isOpen,
+  onClose,
+  message,
+  type = "success", // Tipe: 'success', 'error', 'warning', 'super admin', 'admin cabang'
+  duration = 3000,
+}) => {
+  
+  // Timer untuk menutup otomatis
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return;
+    const timer = setTimeout(() => onClose(), duration);
+    return () => clearTimeout(timer);
+  }, [isOpen, onClose, duration]);
 
-    const timer = setTimeout(() => {
-      onClose();
-    }, duration);
+  // --- LOGIKA TEMA BARU (Sesuai PengeluaranPage) ---
+  const getTheme = () => {
+    switch (type) {
+      case "error":
+        return {
+          styleClass: "bg-red-100 text-red-800",
+          icon: "✗",
+        };
+      case "warning":
+        return {
+          styleClass: "bg-yellow-100 text-yellow-800",
+          icon: "!", // Anda bisa ganti dengan ikon lucide jika mau
+        };
+      case "super admin": // Samakan 'super admin' dengan 'success' (orange)
+      case "success":
+      default:
+        // Di PengeluaranPage, 'success' memakai tema orange
+        return {
+          styleClass: "bg-orange-100 text-orange-800", 
+          icon: "✓",
+        };
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [isOpen, onClose, duration]);
+  const { styleClass, icon } = getTheme();
 
-  if (!isOpen) return null;
+  return (
+    <AnimatePresence>
+      {isOpen && message && (
+        <motion.div
+          key="popup"
+          // --- PERUBAHAN ANIMASI & POSISI ---
+          initial={{ opacity: 0, y: -20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.9 }} // y: 20 agar lebih natural saat hilang
+          transition={{ type: "spring", stiffness: 500, damping: 30 }} // Transisi spring lembut
+          
+          // --- PERUBAHAN DESAIN & CLASSNAME ---
+          className={`fixed top-6 left-1/2 -translate-x-1/2 p-3 rounded-lg flex items-center gap-3 text-sm font-semibold shadow-lg z-[100] ${styleClass}`}
+        >
+          {/* Konten (Ikon Teks + Pesan) */}
+          <span>{icon}</span>
+          <span>{message}</span>
 
-  return (
-    <AnimatePresence>
-      {message && (
-        <motion.div
-          key="popup"
-          initial={{ x: 300, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 300, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="fixed bottom-6 right-6 z-50 w-96"
-        >
-          <div className="relative bg-green-500 rounded-lg shadow-lg text-white flex items-center justify-between px-4 py-3 overflow-hidden">
-            {/* Konten */}
-            <div className="flex items-center gap-2">
-              <CheckCircle size={22} className="text-white" />
-              <p className="font-medium">{message}</p>
-            </div>
-
-            {/* Tombol close */}
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200 transition"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Progress Bar pakai animasi */}
-            <motion.div
-              key="progress"
-              initial={{ width: "100%" }}
-              animate={{ width: "0%" }}
-              transition={{ duration: 4, ease: "linear" }}
-              className="absolute bottom-0 left-0 h-1 bg-green-300"
-            />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+          {/* Tombol close (opsional, tapi bagus untuk UX) */}
+          <button
+            onClick={onClose}
+            // Styling tombol close agar menyatu dengan tema
+            className="ml-2 -mr-1 p-1 rounded-full hover:bg-black/10 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          
+          {/* Progress bar dihilangkan agar sesuai target */}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
 
 export default SuccessPopUp;
