@@ -1,7 +1,7 @@
 // src/pages/PengeluaranPage.jsx (Admin Cabang)
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Loader2, Tag, Calendar, FileText, DollarSign, AlertTriangle, Search, ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Loader2, Tag, Calendar, FileText, DollarSign, AlertTriangle, Search, ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
 import axios from 'axios';
 import {
   ConfirmDeletePopup,
@@ -293,7 +293,10 @@ const PengeluaranPage = () => {
     <>
       <motion.div className="p-6 space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+        <motion.div 
+          className="flex flex-col lg:flex-row justify-between lg:items-center gap-6"
+          initial={{ opacity: 0, y: -20 }} 
+          animate={{ opacity: 1, y: 0 }}>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-800">Manajemen Pengeluaran</h1>
             <p className="text-gray-600">
@@ -308,10 +311,10 @@ const PengeluaranPage = () => {
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-800 transition-all duration-300 font-semibold"
           >
-            <PlusCircle size={20} />
+            <Plus size={20} />
             Tambah Pengeluaran
           </motion.button>
-        </div>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

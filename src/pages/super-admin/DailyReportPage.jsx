@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { 
-  Loader2, 
-  AlertTriangle, 
-  RefreshCw, 
-  TrendingUp, 
-  ShoppingBag, 
-  Package, 
+import DashboardCard from "../../components/daily-report/DailyReportCard.jsx";
+import EmptyState from "../../components/daily-report/EmptyState.jsx";
+import {
+  Loader2,
+  AlertTriangle,
+  RefreshCw,
+  TrendingUp,
+  ShoppingBag,
+  Package,
   CreditCard,
   Calendar,
   DollarSign,
@@ -24,34 +26,6 @@ const formatRupiah = (value = 0) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-// Enhanced Dashboard Card Component with Gray Theme
-const DashboardCard = ({ title, value, icon, bgColor = "bg-white", textColor = "text-gray-800", iconBg = "bg-gray-100", index = 0, isPositive = true }) => {
-  return (
-    <motion.div
-      className={`${bgColor} rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 overflow-hidden relative`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      whileHover={{ y: -4 }}
-    >
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-xl ${iconBg} shadow-lg`}>
-            {icon}
-          </div>
-          <div className={`text-xs font-semibold px-3 py-1 rounded-full ${
-            isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {isPositive ? '↑' : '↓'}
-          </div>
-        </div>
-        <h3 className="text-sm font-medium text-gray-500 mb-1">{title}</h3>
-        <p className={`text-2xl font-bold ${textColor}`}>{value}</p>
-      </div>
-    </motion.div>
-  );
-};
-
 // Table Header Component
 const TableHeader = ({ children }) => (
   <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
@@ -64,10 +38,10 @@ const TableHeader = ({ children }) => (
 const TableCell = ({ children, align = "left", className = "" }) => {
   const alignClass = {
     left: "text-left",
-    center: "text-center", 
+    center: "text-center",
     right: "text-right"
   };
-  
+
   return (
     <th className={`p-4 ${alignClass[align]} font-semibold text-gray-700 text-sm ${className}`}>
       {children}
@@ -75,34 +49,21 @@ const TableCell = ({ children, align = "left", className = "" }) => {
   );
 };
 
-// Empty State Component
-const EmptyState = ({ icon: Icon, title, description }) => (
-  <tr>
-    <td colSpan="10" className="p-12">
-      <div className="flex flex-col items-center gap-3 text-gray-400">
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-          <Icon size={40} className="text-gray-300" />
-        </div>
-        <p className="text-lg font-semibold text-gray-500">{title}</p>
-        <p className="text-sm text-gray-400">{description}</p>
-      </div>
-    </td>
-  </tr>
-);
-
 const DailyReportPage = () => {
   const [data, setData] = useState(null);
   const [tanggal, setTanggal] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch report data
+
   const fetchReport = async (date) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         setError("Token tidak ditemukan. Silakan login kembali.");
         setLoading(false);
@@ -111,7 +72,7 @@ const DailyReportPage = () => {
 
       const res = await axios.get(`${API_URL}/report/harian`, {
         params: { tanggal: date },
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -141,7 +102,7 @@ const DailyReportPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-slate-100 p-6 space-y-6">
-      {/* === HEADER === */} 
+      {/* === HEADER === */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -150,7 +111,7 @@ const DailyReportPage = () => {
           <h1 className="text-3xl font-bold text-gray-800">Laporan Harian</h1>
           <p className="text-gray-500 mt-1">Ringkasan penjualan, bahan baku, dan pengeluaran</p>
         </motion.div>
-        
+
         <div className="flex gap-3">
           <div className="relative">
             <input
@@ -175,14 +136,14 @@ const DailyReportPage = () => {
       {loading && (
         <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
           <div className="text-center">
-              <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
+            <div className="flex items-center justify-center h-64 text-gray-500"><LoaderCircle className="animate-spin h-6 w-6 mr-3" /> Memuat...</div>
           </div>
         </div>
       )}
 
       {/* === ERROR === */}
       {error && !loading && (
-        <motion.div 
+        <motion.div
           className="p-5 bg-red-50 text-red-700 rounded-2xl border-2 border-red-200 flex items-start gap-3 shadow-md"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -202,7 +163,7 @@ const DailyReportPage = () => {
         <div className="space-y-6">
           {/* Warning */}
           {data.peringatan && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex items-start gap-3 p-5 bg-yellow-50 text-yellow-800 rounded-2xl border-2 border-yellow-200 shadow-md"
@@ -219,40 +180,40 @@ const DailyReportPage = () => {
 
           {/* === SUMMARY CARDS === */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-            <DashboardCard 
-              title="Total Penjualan" 
+            <DashboardCard
+              title="Total Penjualan"
               value={formatRupiah(data.penjualan_harian)}
               icon={<ShoppingBag size={24} className="text-gray-700" />}
               index={0}
               bgColor="bg-gray-50"
               isPositive={data.penjualan_harian > 0}
             />
-            <DashboardCard 
-              title="Modal Bahan Baku" 
+            <DashboardCard
+              title="Modal Bahan Baku"
               value={formatRupiah(data.modal_bahan_baku)}
               icon={<Package size={24} className="text-gray-700" />}
               index={1}
               bgColor="bg-gray-50"
               isPositive={false}
             />
-            <DashboardCard 
-              title="Pengeluaran Harian" 
+            <DashboardCard
+              title="Pengeluaran Harian"
               value={formatRupiah(data.pengeluaran_harian)}
               icon={<CreditCard size={24} className="text-gray-700" />}
               index={2}
               bgColor="bg-gray-50"
               isPositive={false}
             />
-            <DashboardCard 
-              title="Laba Harian" 
+            <DashboardCard
+              title="Laba Harian"
               value={formatRupiah(data.laba_harian)}
               icon={data.laba_harian >= 0 ? <TrendingUp size={24} className="text-green-700" /> : <TrendingDown size={24} className="text-rose-700" />}
               index={3}
               bgColor="bg-gray-50"
               isPositive={data.laba_harian >= 0}
             />
-            <DashboardCard 
-              title="Nett Income" 
+            <DashboardCard
+              title="Nett Income"
               value={formatRupiah(data.nett_income)}
               icon={<DollarSign size={24} className="text-gray-700" />}
               bgColor="bg-gray-50"
@@ -262,7 +223,7 @@ const DailyReportPage = () => {
           </div>
 
           {/* === PENJUALAN TABLE === */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -295,15 +256,15 @@ const DailyReportPage = () => {
                 </TableHeader>
                 <tbody className="divide-y divide-gray-100">
                   {!data.penjualan?.detail || data.penjualan.detail.length === 0 ? (
-                    <EmptyState 
+                    <EmptyState
                       icon={ShoppingBag}
                       title="Tidak ada penjualan"
                       description="Belum ada transaksi dengan status 'Selesai' pada tanggal ini"
                     />
                   ) : (
                     data.penjualan.detail.map((item, i) => (
-                      <motion.tr 
-                        key={i} 
+                      <motion.tr
+                        key={i}
                         className="hover:bg-gray-50 transition-colors"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -334,7 +295,7 @@ const DailyReportPage = () => {
           </motion.div>
 
           {/* === BAHAN BAKU TABLE === */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -368,15 +329,15 @@ const DailyReportPage = () => {
                 </TableHeader>
                 <tbody className="divide-y divide-gray-100">
                   {!data.bahan_baku?.detail || data.bahan_baku.detail.length === 0 ? (
-                    <EmptyState 
+                    <EmptyState
                       icon={Package}
                       title="Tidak ada data bahan baku"
                       description="Belum ada pencatatan penggunaan bahan baku pada tanggal ini"
                     />
                   ) : (
                     data.bahan_baku.detail.map((item, i) => (
-                      <motion.tr 
-                        key={i} 
+                      <motion.tr
+                        key={i}
                         className="hover:bg-gray-50 transition-colors"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -412,7 +373,7 @@ const DailyReportPage = () => {
           </motion.div>
 
           {/* === PENGELUARAN TABLE === */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -446,7 +407,7 @@ const DailyReportPage = () => {
                 </TableHeader>
                 <tbody className="divide-y divide-gray-100">
                   {!data.pengeluaran?.detail || data.pengeluaran.detail.length === 0 ? (
-                    <EmptyState 
+                    <EmptyState
                       icon={CreditCard}
                       title="Tidak ada data pengeluaran"
                       description="Belum ada pencatatan pengeluaran atau cicilan aktif"
@@ -455,8 +416,8 @@ const DailyReportPage = () => {
                     data.pengeluaran.detail.map((item, i) => {
                       const aktif = item.cicilan_harian > 0;
                       return (
-                        <motion.tr 
-                          key={i} 
+                        <motion.tr
+                          key={i}
                           className="hover:bg-gray-50 transition-colors"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -479,11 +440,10 @@ const DailyReportPage = () => {
                             </span>
                           </td>
                           <td className="p-4 text-center">
-                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-                              aktif 
-                                ? 'bg-green-100 text-green-700 border border-green-200' 
+                            <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${aktif
+                                ? 'bg-green-100 text-green-700 border border-green-200'
                                 : 'bg-gray-100 text-gray-500 border border-gray-200'
-                            }`}>
+                              }`}>
                               {aktif ? '✓ Aktif' : '○ Selesai'}
                             </span>
                           </td>

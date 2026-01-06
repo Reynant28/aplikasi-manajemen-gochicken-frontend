@@ -24,12 +24,16 @@ const AuditLogPage = () => {
     search: ''
   });
 
+  // Pagination state
+
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
     per_page: 20,
     total: 0
   });
+
+  // Filter options
   
   const [filterOptions, setFilterOptions] = useState({
     types: [],
@@ -53,6 +57,8 @@ const AuditLogPage = () => {
       fetchFilterOptions();
     }
   }, [pagination.current_page, filters]);
+
+  // Fetch audit logs from API
 
   const fetchAuditLogs = async () => {
     try {
@@ -82,6 +88,8 @@ const AuditLogPage = () => {
     }
   };
 
+  // Fetch filter options from API
+
   const fetchFilterOptions = async () => {
     try {
       const response = await axios.get(`${API_URL}/audit-logs/filters`, {
@@ -102,19 +110,7 @@ const AuditLogPage = () => {
     }
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPagination(prev => ({ ...prev, current_page: 1 }));
-  };
-
-  const handlePageChange = (value) => {
-    setPagination(prev => ({ ...prev, current_page: value }));
-  };
-
-  const handleViewDetails = (log) => {
-    setSelectedLog(log);
-    setShowDetail(true);
-  };
+  // Reset filters to default
 
   const resetFilters = () => {
     setFilters({
@@ -127,6 +123,22 @@ const AuditLogPage = () => {
     });
     setSuccessMessage("Filter berhasil direset");
     setShowSuccess(true);
+  };
+
+  // Handling changes
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setPagination(prev => ({ ...prev, current_page: 1 }));
+  };
+
+  const handlePageChange = (value) => {
+    setPagination(prev => ({ ...prev, current_page: value }));
+  };
+
+  const handleViewDetails = (log) => {
+    setSelectedLog(log);
+    setShowDetail(true);
   };
 
   const closeSuccessPopup = () => setShowSuccess(false);
@@ -195,10 +207,9 @@ const AuditLogPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.div 
-          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -212,10 +223,9 @@ const AuditLogPage = () => {
         </motion.div>
         
         <motion.div 
-          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -229,10 +239,9 @@ const AuditLogPage = () => {
         </motion.div>
         
         <motion.div 
-          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
         >
           <div className="flex items-center justify-between">
             <div>

@@ -30,7 +30,12 @@ const DashboardCard = ({ title, value, icon, children }) => {
       </div>
       <div className="mt-2">
         {value && (
-          <p className={`${getTextSizeClass(value)} font-bold text-gray-800 break-normal md:break-all`}>
+          <p 
+            className={`${getTextSizeClass(value)} font-bold text-gray-800 break-normal md:break-all`}
+            style={{
+              fontSize: "clamp(0.7rem, 1.5vw, 1.5rem)",
+              lineHeight: "1.2",
+            }}>
             {value}
           </p>
         )}

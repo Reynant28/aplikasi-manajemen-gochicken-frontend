@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Package, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Package, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   ConfirmDeletePopup,
   SuccessPopup,
   Modal,
   DataTable
 } from "../../components/ui";
-import BahanTable from "../../components/bahan-baku/BahanBakuTable.jsx";
 import BahanForm from "../../components/bahan-baku/BahanBakuForm.jsx";
 
 const API_URL = "http://localhost:8000/api";
@@ -189,6 +188,8 @@ const BahanPage = () => {
     </div>
   );
 
+  // Pagination logic
+
   const totalPages = Math.ceil(bahanList.length / itemsPerPage);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
@@ -235,7 +236,11 @@ const BahanPage = () => {
         animate={{ opacity: 1 }}
       >
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+        <motion.div 
+          className="flex flex-col lg:flex-row justify-between lg:items-center gap-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-800">Manajemen Bahan Baku</h1>
             <p className="text-gray-600">Kelola stok dan harga bahan baku untuk produksi</p>
@@ -247,10 +252,10 @@ const BahanPage = () => {
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-800 transition-all duration-300 font-semibold"
           >
-            <PlusCircle size={20} />
+            <Plus size={20} />
             Tambah Bahan Baku
           </motion.button>
-        </div>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -353,7 +358,7 @@ const BahanPage = () => {
 
         {/* Table Section */}
         <DataTable
-          data={currentData}  // Use paginated data
+          data={currentData} 
           columns={BahanBakuColumns}
           loading={loading}
           emptyMessage="Tidak ada bahan baku"

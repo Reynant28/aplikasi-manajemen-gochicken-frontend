@@ -1,7 +1,7 @@
 // src/pages/PemesananPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusCircle, Loader2, X, AlertTriangle, RefreshCw, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Loader2, X, AlertTriangle, RefreshCw, Eye, Edit, Trash2 } from "lucide-react";
 import axios from 'axios';
 
 import { SuccessPopup, ConfirmDeletePopup } from "../../components/ui";
@@ -326,9 +326,9 @@ const PemesananPage = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center justify-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all shadow-md font-semibold self-start md:self-center"
+            className="flex items-center justify-center gap-2 bg-gray-700 text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 shadow-md font-semibold self-start md:self-center"
           >
-            <PlusCircle size={20} /> 
+            <Plus size={20} /> 
             Buat Pesanan Baru
           </motion.button>
         </div>

@@ -18,13 +18,18 @@ const LowStockAlert = ({ loading, data }) => {
       {loading ? (
         <div className="text-gray-500">Memuat data stok rendah...</div>
       ) : data.length === 0 ? (
-        <div className="text-gray-700 text-center py-8 flex flex-col items-center gap-2">
+        <motion.div 
+          className="text-gray-700 text-center py-8 flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           <p className="font-semibold">Semua stok aman! 🎉</p>
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-3">
           {data.map((product, index) => (
-            <div
+            <motion.div
               key={index}
               className={`p-4 rounded-xl border transition-all hover:shadow-md ${
                 product.jumlah_stok === 0
@@ -33,6 +38,9 @@ const LowStockAlert = ({ loading, data }) => {
                   ? "bg-orange-50 border-orange-200"
                   : "bg-yellow-50 border-yellow-200"
               }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
@@ -70,7 +78,7 @@ const LowStockAlert = ({ loading, data }) => {
                     : "Perlu restock segera"}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

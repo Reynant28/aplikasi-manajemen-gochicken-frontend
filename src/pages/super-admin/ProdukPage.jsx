@@ -187,7 +187,12 @@ const ProdukPage = () => {
   return (
     <div className="p-6 space-y-6"> {/* Change from motion.div to regular div */}
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <motion.div 
+          className="flex flex-col md:flex-row justify-between md:items-center gap-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ease: "easeOut" }}
+      >
           <div>
               <h1 className="text-3xl font-bold text-gray-800">Kelola Produk</h1>
               <p className="text-gray-500 mt-1">Manajemen produk dan katalog</p>
@@ -199,7 +204,7 @@ const ProdukPage = () => {
           >
               <Plus size={20} /> Tambah Produk
           </button>
-      </div>
+      </motion.div>
 
       {/* Loading State */}
       {loading && (

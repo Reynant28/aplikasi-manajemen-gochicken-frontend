@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, LoaderCircle } from "lucide-react";
 
 const formatRupiah = (value = 0) => {
   try {
@@ -30,7 +30,11 @@ const MonthComparison = ({ loading, data }) => {
       {loading ? (
         <div className="text-gray-500">Memuat data perbandingan...</div>
       ) : data ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-lg transition-all">
             <p className="text-sm text-gray-600 mb-1">Pendapatan</p>
             <p className="text-2xl font-bold text-gray-800 mb-2">
@@ -66,7 +70,7 @@ const MonthComparison = ({ loading, data }) => {
               <span className="text-gray-500">vs bulan lalu</span>
             </div>
           </div>
-        </div>
+        </motion.div>
       ) : (
         <div className="text-gray-500">Data perbandingan tidak tersedia</div>
       )}

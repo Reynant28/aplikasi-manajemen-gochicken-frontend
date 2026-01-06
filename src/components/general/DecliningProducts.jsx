@@ -18,15 +18,22 @@ const DecliningProducts = ({ loading, data }) => {
       {loading ? (
         <div className="text-gray-500">Memuat data produk menurun...</div>
       ) : data.length === 0 ? (
-        <div className="text-gray-500 text-center py-8">
+        <motion.div className="text-gray-500 text-center py-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           Tidak ada produk dengan penurunan penjualan signifikan
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-3">
           {data.map((product, index) => (
-            <div
+            <motion.div
               key={index}
-              className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md transition-all"
+              className="p-4 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-800">{product.nama_produk}</h3>
@@ -48,7 +55,7 @@ const DecliningProducts = ({ loading, data }) => {
                 <TrendingDown size={16} />
                 <span className="font-semibold">{Math.abs(product.decline_percentage).toFixed(1)}% penurunan</span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

@@ -49,24 +49,29 @@ const StatsCards = ({ loading, totalProduk, transaksiHariIni, pendapatanBulanIni
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((item, index) => (
-        <motion.div 
+        <motion.div
           key={index}
-          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+          className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">{item.title}</p>
+              <p className="text-sm font-medium text-gray-600"
+                style={{ fontSize: "clamp(0.6rem, 1vw, 1.5rem)" }}
+              >
+                {item.title}
+              </p>
               {loading ? (
-                <p className="text-2xl font-bold text-gray-800 mt-1 animate-pulse">...</p>
+                <p className="text-xl font-bold text-gray-800 mt-1 animate-pulse">...</p>
               ) : (
                 <p
-                  className={`font-bold text-gray-800 mt-1 ${
-                    String(item.value).length > 15 ? "text-lg" : "text-2xl"
-                  }`}
-                  style={{ wordBreak: "break-word" }}
+                  className={`font-bold text-gray-800 mt-1 ${String(item.value).length > 15 ? "text-md" : "text-lg"
+                    }`}
+                  style={{
+                    lineHeight: "1.2",
+                  }}
                 >
                   {item.value}
                 </p>

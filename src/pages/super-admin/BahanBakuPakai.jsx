@@ -3,7 +3,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { ConfirmDeletePopup, SuccessPopup, Modal, DataTable } from "../../components/ui";
 import BahanHarianForm from "../../components/bahan-baku-pakai/BahanBakuPakaiForm.jsx";
-import { Package, Calendar, PlusCircle, Trash2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { Package, Calendar, Plus, Trash2, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -26,7 +26,7 @@ function BahanBakuPakai() {
   const [deleteId, setDeleteId] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [loadingCabang, setLoadingCabang] = useState(false); // Add this line
+  const [loadingCabang, setLoadingCabang] = useState(false);
 
   const [editingItem, setEditingItem] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -48,12 +48,12 @@ function BahanBakuPakai() {
     });
   }, [token]);
 
-  // Fetch cabang data from API
+  // Fetch cabang data 
   useEffect(() => {
     const fetchCabang = async () => {
       setLoadingCabang(true);
       try {
-        const response = await axios.get(`${API_URL}/cabang`, { // Use API_URL constant
+        const response = await axios.get(`${API_URL}/cabang`, { 
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -70,7 +70,7 @@ function BahanBakuPakai() {
     fetchCabang();
   }, [token]);
 
-  // Fetch data pemakaian harian
+  // Fetch pemakaian harian data
   const fetchPemakaian = async () => {
     setLoading(true);
     try {
@@ -88,7 +88,7 @@ function BahanBakuPakai() {
         }));
         setPemakaianList(pemakaianWithCabangName);
       } else {
-        // If cabang data not loaded yet, just set the data without cabang names
+        // If cabang data not loaded yet, set the data without cabang names
         setPemakaianList(res.data.data || []);
       }
     } catch (err) {
@@ -162,7 +162,7 @@ function BahanBakuPakai() {
     }
   };
 
-  // Hapus pemakaian
+  // Delete handler
   const confirmDelete = (id) => {
     setDeleteId(id);
     setShowConfirm(true);
@@ -296,10 +296,12 @@ function BahanBakuPakai() {
     }
   ];
 
+  // Pagination logic
+
   const totalPages = Math.ceil(pemakaianList.length / itemsPerPage);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentData = pemakaianList.slice(indexOfFirst, indexOfLast);
+  const currentData = pemakaianList.slice(indexOfFirst, indexOfLast); 
 
   const getPageNumbers = () => {
     const maxPagesToShow = 5;
@@ -333,11 +335,16 @@ function BahanBakuPakai() {
     <div className="min-h-screen p-6 bg-gray-50">
       <motion.div 
         className="space-y-6"
-        initial={{ opacity: 0 }} 
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+        <motion.div 
+          className="flex flex-col lg:flex-row justify-between lg:items-center gap-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-800">Pemakaian Bahan Baku Harian</h1>
             <p className="text-gray-600">Kelola dan pantau pemakaian bahan baku per hari</p>
@@ -349,10 +356,10 @@ function BahanBakuPakai() {
             whileTap={{ scale: 0.95 }}
             className="flex items-center justify-center gap-2 bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-gray-800 transition-all duration-300 font-semibold"
           >
-            <PlusCircle size={20} />
+            <Plus size={20} />
             Tambah Pemakaian
           </motion.button>
-        </div>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

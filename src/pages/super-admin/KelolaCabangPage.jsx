@@ -237,7 +237,13 @@ const KelolaCabangPage = () => {
                         <p className="text-gray-400 text-sm mt-1">Klik "Tambah Cabang" untuk memulai</p>
                     </motion.div>
                 ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <motion.div 
+                        className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                    
                         {cabang.map((branch) => (
                             <CardInfo
                                 key={branch.id_cabang}
@@ -260,7 +266,7 @@ const KelolaCabangPage = () => {
                                 animateOnMount={false} 
                             />
                         ))}
-                    </div>
+                    </motion.div>
                 )}
                 </>
             )}

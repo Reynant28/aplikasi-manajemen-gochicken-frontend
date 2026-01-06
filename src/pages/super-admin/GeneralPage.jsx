@@ -191,38 +191,57 @@ const GeneralPage = () => {
   }, [token]);
 
   // Fetch recent activities
-  useEffect(() => {
-    let cancelled = false;
+  const fetchRecentActivities = async () => {
+    try {
+      setActivitiesLoading(true);
+      setActivitiesError(null);
 
-    const fetchRecentActivities = async () => {
-      try {
-        setActivitiesLoading(true);
-        const response = await axios.get(`${API_URL}/dashboard/activities`, {
+      // backend defaults: per_page = 20, ordered by created_at desc
+      // dashboard usually needs limited recent data
+      const params = new URLSearchParams({
+        per_page: 5,          // adjust if needed
+        type: 'all',
+        model: 'all',
+        user_id: 'all'
+      });
+
+      const response = await axios.get(
+        `${API_URL}/dashboard/audit-logs?${params.toString()}`,
+        {
           headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (response.data.status === 'success') {
-          setRecentActivities(response.data.data);
-        } else {
-          setActivitiesError('Gagal memuat aktivitas');
         }
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-        setActivitiesError('Terjadi kesalahan saat memuat aktivitas');
-      } finally {
-        setActivitiesLoading(false);
-      }
-    };
+      );
 
+      if (response.data.status === 'success') {
+        // response.data.data already comes from transformAuditLog()
+        setRecentActivities(response.data.data);
+      } else {
+        setActivitiesError('Gagal memuat aktivitas');
+      }
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      setActivitiesError('Terjadi kesalahan saat memuat aktivitas');
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) {
+      setActivitiesLoading(false);
+      return;
+    }
+
+    fetchRecentActivities();
+  }, [token]);
+
+
+  useEffect(() => {
     if (token) {
       fetchRecentActivities();
     } else {
       setActivitiesLoading(false);
     }
-
-    return () => {
-      cancelled = true;
-    };
   }, [token]);
 
   // Fetch month comparison

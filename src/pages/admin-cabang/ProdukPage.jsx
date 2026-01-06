@@ -1,7 +1,7 @@
 // pages/ProdukPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Save, X, RefreshCw, AlertCircle, ShoppingBag, ListChecks, Loader2 } from "lucide-react";
+import { Package, Plus, Save, X, RefreshCw, AlertCircle, ShoppingBag, ListChecks, Loader2, LoaderCircle } from "lucide-react";
 import axios from "axios";
 import ProductCardCabang from "../../components/produk/ProductCardCabang";
 
@@ -77,56 +77,7 @@ const ProdukPage = () => {
   const totalPerubahan = Object.keys(pendingChanges).length;
 
   const renderContent = () => {
-    if (loading) return (
-      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
-          <RefreshCw className="animate-spin text-gray-400 mb-4" size={32} />
-          <p className="text-gray-500">Memuat data stok produk...</p>
-      </div>
-    );
     
-    if (error) return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-700 bg-gray-50 rounded-xl">
-        <AlertCircle className="h-10 w-10 mb-4 text-gray-500" />
-        <p className="font-semibold text-gray-800">Terjadi Kesalahan</p>
-        <p className="text-gray-600">{error}</p>
-      </div>
-    );
-
-    return (
-      <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: {
-              delayChildren: 0.1,
-              staggerChildren: 0.05
-            }
-          }
-        }}
-      >
-        {produkList.map((produk, index) => (
-          <motion.div
-            key={produk.id_stock_cabang}
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0 }
-            }}
-          >
-            <ProductCardCabang
-              product={produk}
-              index={index}
-              pendingChange={pendingChanges[produk.id_stock_cabang] || 0}
-              onStockChange={handleStockChange}
-              onImageClick={setSelectedImageUrl}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
-    );
   };
 
   const changedItems = Object.keys(pendingChanges).map(id => {
@@ -135,17 +86,20 @@ const ProdukPage = () => {
   }).filter(Boolean);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <motion.div className="min-h-screen p-6 bg-gray-50">
       <div className="space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
+        <motion.div 
+          className="flex flex-col lg:flex-row justify-between lg:items-center gap-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-800">Manajemen Stok Cabang</h1>
             <p className="text-gray-600">
               Kelola stok produk untuk: <strong className="text-gray-800">{cabang?.nama_cabang || 'N/A'}</strong>
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -190,18 +144,81 @@ const ProdukPage = () => {
         )}
 
         {/* Product Grid Section */}
-        {produkList.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center h-96">
-            <ShoppingBag size={64} className="text-gray-300 mb-4" />
-            <p className="text-gray-500 text-lg font-medium">Belum ada produk</p>
-            <p className="text-gray-400 text-sm mt-1">Tidak ada produk yang tersedia untuk cabang ini</p>
-          </div>
-        ) : (
-          renderContent() // This now includes the staggered animation!
-        )}
+        <div className="mt-6"> 
+          {(() => {
+            // Handle Loading State
+            if (loading) {
+              return (
+                <div className="flex flex-col items-center justify-center h-64 bg-white rounded-2xl shadow-md border border-gray-100">
+                  <LoaderCircle className="animate-spin text-gray-400 mb-4" size={32} />
+                  <p className="text-gray-500">Memuat data stok produk...</p>
+                </div>
+              );
+            }
+
+            // Handle Error State
+            if (error) {
+              return (
+                <div className="flex flex-col items-center justify-center h-96 text-gray-700 bg-gray-50 rounded-xl">
+                  <AlertCircle className="h-10 w-10 mb-4 text-gray-500" />
+                  <p className="font-semibold text-gray-800">Terjadi Kesalahan</p>
+                  <p className="text-gray-600">{error}</p>
+                </div>
+              );
+            }
+
+            // Handle Empty State
+            if (produkList.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center h-96">
+                  <ShoppingBag size={64} className="text-gray-300 mb-4" />
+                  <p className="text-gray-500 text-lg font-medium">Belum ada produk</p>
+                  <p className="text-gray-400 text-sm mt-1">Tidak ada produk yang tersedia untuk cabang ini</p>
+                </div>
+              );
+            }
+
+            // Data Success State
+            return (
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: {
+                      delayChildren: 0.1,
+                      staggerChildren: 0.05
+                    }
+                  }
+                }}
+              >
+                {produkList.map((produk, index) => (
+                  <motion.div
+                    key={produk.id_stock_cabang}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 }
+                    }}
+                  >
+                    <ProductCardCabang
+                      product={produk}
+                      index={index}
+                      pendingChange={pendingChanges[produk.id_stock_cabang] || 0}
+                      onStockChange={handleStockChange}
+                      onImageClick={setSelectedImageUrl}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            );
+          })()}
+        </div>
       </div>
 
-      {/* Floating Save Button */}
+      Floating Save Button
       <AnimatePresence>
         {hasPendingChanges && (
           <motion.div 
@@ -351,7 +368,7 @@ const ProdukPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 

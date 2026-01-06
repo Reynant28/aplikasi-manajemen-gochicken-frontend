@@ -62,8 +62,8 @@ const GeneralPage = () => {
       try {
         const res = await axios.get(`${API_URL}/dashboard/cabang/${cabangId}/chart`, {
           params: { 
-            filter: chartFilter, // Use the filter state
-            year: 2025 // Add year parameter if needed
+            filter: chartFilter, 
+            year: 2025 
           },
           headers: { Authorization: `Bearer ${token}` },
         });
